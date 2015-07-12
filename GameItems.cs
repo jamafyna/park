@@ -112,14 +112,14 @@ namespace LunaparkGame
     {
         int width, height;
         public readonly bool isHorizontalOriented;
-        public RectangleAmusements(Model m,bool isHorizontal):base(m)
+        public RectangleAmusements(Model m,bool isHorizontal=true):base(m)
         {
             isHorizontalOriented = isHorizontal;
         }
         public override bool Create(int x, int y)
         {
-            if (model.CheckFreeLocation(x,y,width,height)) return false;//todo: nekde vyhodit vyjimku, ze neni dostatek mista
-
+            if (!model.CheckFreeLocation(x,y,width,height)) return false;//todo: nekde vyhodit vyjimku, ze neni dostatek mista
+            
             
 
             return false;

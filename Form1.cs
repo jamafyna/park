@@ -12,16 +12,18 @@ namespace LunaparkGame
 {
     public partial class MainForm : Form
     {
-        //public Type lastClick{get; private set;}
+        public Type lastClick{get; private set;}
         /// <summary>
         /// contains an unique instance for each type
         /// </summary>
-        public MapObjects lastClick{set; private get;}
+       // public MapObjects lastClick{set; private get;}
         MapObjects lastBuildItem;
         static int sizeOfSquare = 50;
         AmusementsForm amusform;
         PathForm pathform;
         Control map;
+        Model model;
+       
         bool DemolishOn;
 
         public MainForm()
@@ -33,7 +35,7 @@ namespace LunaparkGame
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
             CreateVisualMap(10,15,50);
-            
+           
            
         }
 
@@ -79,25 +81,28 @@ namespace LunaparkGame
                 int x = mys.X - mys.X % sizeOfSquare;
                 int y = mys.Y - mys.Y % sizeOfSquare;
                 //  if(lastClick ==)
-                
+
                 //todo: kontrola na co vse mohl uzivatel kliknout, nejspise poslat udalost do modelu spolu se souradnicemi
                 //todo: kontrola, zda neni neco rozestavene
                 if (lastClick is Amusements)
                 {
-                    lastClick.Create(x,y);
-                    
+                    // lastClick.Create(x,y);
 
+                    
                 }
-                else {
-                    if (lastClick.Create(x, y)) { 
+                else
+                {
+                    // if (lastClick.Create(x, y)) { 
                     //do sth or nothing
-                    }
                 }
-                              
+
+                object[] arg = { model, x, y };
+                Activator.CreateInstance(lastClick, arg);
                 throw new NotImplementedException();
             }
-        
         }
+        
+        
        
         private void MyInitialize() {        
         }
