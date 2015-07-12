@@ -7,6 +7,10 @@ using System.Windows.Forms;
 
 namespace LunaparkGame
 {
+    public interface IActionable {
+        void Action();
+    
+    }
     public class MyDebugException : Exception
     {
         public MyDebugException() : base() { }
@@ -20,17 +24,21 @@ namespace LunaparkGame
         public Coordinates(int x, int y) { this.x = x; this.y = y; }
     }
 
-
     public abstract class MapObjects
     {
+        protected readonly Model model;
         public Control control { get; set; }
         public int value { get; protected set; }
+
+        public MapObjects(Model m) {
+            this.model = m;
+        }
         /// <summary>
         /// Create an instance and show it in the game map
         /// </summary>
         /// <param name="x">the left coordinate</param>
         /// <param name="y">the top coordinate</param>
-        public abstract void Create(int x, int y); //todo mozna system.drawing.point
+        public abstract bool Create(int x, int y); //todo mozna system.drawing.point
         /// <summary>
         /// user action
         /// </summary>
@@ -39,12 +47,13 @@ namespace LunaparkGame
         /// user action
         /// </summary>
         public abstract void Demolish();
+        public static bool Create() { return true; }
 
 
 
     }
 
-    public abstract class Amusements : MapObjects
+    public abstract class Amusements : MapObjects,IActionable
     {
         public int id { get; private set; }
        
@@ -63,7 +72,8 @@ namespace LunaparkGame
             private set { }
         }
 
-
+        public Amusements(Model m) :base(m)       
+        { }
         public override void Demolish()
         {
             throw new NotImplementedException();
@@ -75,7 +85,7 @@ namespace LunaparkGame
 #warning opravdu abstract Action? Nemela by byt virtual a rovnou naimplementovana?
         public virtual void Action() { throw new NotImplementedException(); }
         public void ChangeId(int id) { this.id = id; }
-
+       
 
         /// <summary>
         /// create an Item in AtrakceForm and set it (e.g. set visible=false)
@@ -86,11 +96,13 @@ namespace LunaparkGame
     }
     public abstract class SquareAmusements : Amusements
     {
-        public override void Create(int x, int y)
+
+        public SquareAmusements(Model m) : base(m) { }
+        public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
         }
-
+      
 
     }
     /// <summary>
@@ -98,17 +110,27 @@ namespace LunaparkGame
     /// </summary>
     public abstract class RectangleAmusements : Amusements
     {
+        int width, height;
         public readonly bool isHorizontalOriented;
-        public RectangleAmusements(bool isHorizontal)
+        public RectangleAmusements(Model m,bool isHorizontal):base(m)
         {
             isHorizontalOriented = isHorizontal;
         }
+        public override bool Create(int x, int y)
+        {
+            if (model.CheckFreeLocation(x,y,width,height)) return false;//todo: nekde vyhodit vyjimku, ze neni dostatek mista
 
+            
+
+            return false;
+        }
+      
     }
 
     public abstract class FreeShapedAmusements : Amusements
     {
-        public override void Create(int x, int y)
+        public FreeShapedAmusements(Model m) : base(m) { }
+        public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
         }
@@ -116,14 +138,15 @@ namespace LunaparkGame
 
 
 
-    public class Person : MapObjects
+    public class Person : MapObjects,IActionable
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
         public int id { get; private set; }
+        public Person(Model m) : base(m) { }
         public override void Click()
         {
             throw new NotImplementedException();
         }
-        public override void Create(int x, int y)
+        public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
         }
@@ -141,7 +164,10 @@ namespace LunaparkGame
 
     public abstract class Path : MapObjects
     {
-        public override void Create(int x, int y) { }
+        public Path(Model m) : base(m) { }
+        public override bool Create(int x, int y) {
+            throw new NotImplementedException();
+        }
 
         public override void Click() {
             //nothing

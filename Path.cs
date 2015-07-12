@@ -8,7 +8,8 @@ namespace LunaparkGame
 {
     class StonePath : Path
     {
-        public override void Create(int x, int y)
+        public StonePath(Model m) : base(m) { }
+        public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
         }
@@ -21,7 +22,8 @@ namespace LunaparkGame
     }
     class AsphaltPath : Path
     {
-        public override void Create(int x, int y)
+        public AsphaltPath(Model m) : base(m) { }
+        public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
         }
@@ -34,7 +36,8 @@ namespace LunaparkGame
     }
     class SandPath : Path
     {
-        public override void Create(int x, int y)
+        public SandPath(Model m) : base(m) { }
+        public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
         }
@@ -46,7 +49,8 @@ namespace LunaparkGame
     }
     class MarblePath : Path
     {
-        public override void Create(int x, int y)
+        public MarblePath(Model m) : base(m) { }
+        public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
         }
@@ -58,12 +62,14 @@ namespace LunaparkGame
 
     }
     class AmusementEnter : Path {
+        public AmusementEnter(Model m) : base(m) { }
         public override void Demolish()
         {
             throw new NotImplementedException();
         }
     }
     class AmusementExit : Path {
+       public AmusementExit(Model m) : base(m) { }
         public override void Demolish()
         {
             throw new NotImplementedException();
