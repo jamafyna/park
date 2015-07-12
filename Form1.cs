@@ -16,15 +16,14 @@ namespace LunaparkGame
         /// <summary>
         /// contains an unique instance for each type
         /// </summary>
-        public MapObjects lastClick{set; private get;}
-        MapObjects lastBuildItem;
+        
+       
         static int sizeOfSquare = 50;
         AmusementsForm amusform;
         PathForm pathform;
         Control map;
-        Model model;
-       
-        bool DemolishOn;
+        Model model;      
+        bool DemolishOn=false;
 
         public MainForm(int width, int height)
         {
@@ -84,7 +83,7 @@ namespace LunaparkGame
 
                 //todo: kontrola na co vse mohl uzivatel kliknout, nejspise poslat udalost do modelu spolu se souradnicemi
                 //todo: kontrola, zda neni neco rozestavene
-                if (lastClick is Amusements)
+                if (model.lastClick is Amusements)
                 {
                     // lastClick.Create(x,y);
                   /*  ((typeof(Amusements))lastClick).Zkusebni();
@@ -92,16 +91,17 @@ namespace LunaparkGame
                       Path.Zkusebni();
                      ((lastClick.GetType())).Zkusebni();
                     Type a=typeof(Amusements);*/
-                    
-                    if(((Amusements)lastClick).CheckFreeLocation(x,y)){
+
+                    if (((Amusements)model.lastClick).CheckFreeLocation(x, y))
+                    {
                         object[] arg = { x, y, model };
-                        model.lastBuiltAmus=(Amusements)Activator.CreateInstance(lastClick.GetType(),arg);                        
+                        model.lastBuiltAmus = (Amusements)Activator.CreateInstance(model.lastClick.GetType(), arg);                        
                     }
                 }
                 else
                 {
                     object[] arg = {x,y,model };
-                    Activator.CreateInstance(lastClick.GetType(),arg);
+                    Activator.CreateInstance(model.lastClick.GetType(), arg);
                 }
 #warning rusim tu schopnost prekladace spravne kontrolovat - nezajisti mi, ze dana trida bude mit spravny konstruktor
                /* object[] arg = { model, x, y };

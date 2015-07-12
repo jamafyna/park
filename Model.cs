@@ -16,7 +16,7 @@ namespace LunaparkGame
         //todo: ostatni user akce - kliky a formy...
         public int[][] map;//todo: zvazit, zda ne jen bool
         public Amusements lastBuiltAmus;
-
+        public MapObjects lastClick { set; get; }
 
         public Model(int height, int width){
             this.height=height;

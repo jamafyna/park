@@ -35,9 +35,9 @@
             this.radioButton20 = new System.Windows.Forms.RadioButton();
             this.Start_button1 = new System.Windows.Forms.Button();
             this.Start_panel = new System.Windows.Forms.Panel();
-            this.newGame_button = new System.Windows.Forms.Button();
-            this.loadGame_button = new System.Windows.Forms.Button();
             this.exit_button = new System.Windows.Forms.Button();
+            this.loadGame_button = new System.Windows.Forms.Button();
+            this.newGame_button = new System.Windows.Forms.Button();
             this.sizeOfMap_panel.SuspendLayout();
             this.Start_panel.SuspendLayout();
             this.SuspendLayout();
@@ -127,27 +127,6 @@
             this.Start_panel.Size = new System.Drawing.Size(300, 242);
             this.Start_panel.TabIndex = 8;
             // 
-            // newGame_button
-            // 
-            this.newGame_button.Font = new System.Drawing.Font("Comic Sans MS", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.newGame_button.Location = new System.Drawing.Point(19, 39);
-            this.newGame_button.Name = "newGame_button";
-            this.newGame_button.Size = new System.Drawing.Size(265, 31);
-            this.newGame_button.TabIndex = 2;
-            this.newGame_button.Text = "NEW GAME";
-            this.newGame_button.UseVisualStyleBackColor = true;
-            this.newGame_button.Click += new System.EventHandler(this.newGame_button_Click);
-            // 
-            // loadGame_button
-            // 
-            this.loadGame_button.Font = new System.Drawing.Font("Comic Sans MS", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.loadGame_button.Location = new System.Drawing.Point(19, 76);
-            this.loadGame_button.Name = "loadGame_button";
-            this.loadGame_button.Size = new System.Drawing.Size(265, 31);
-            this.loadGame_button.TabIndex = 3;
-            this.loadGame_button.Text = "LOAD SAVED GAME";
-            this.loadGame_button.UseVisualStyleBackColor = true;
-            // 
             // exit_button
             // 
             this.exit_button.Font = new System.Drawing.Font("Comic Sans MS", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
@@ -159,6 +138,27 @@
             this.exit_button.UseVisualStyleBackColor = true;
             this.exit_button.Click += new System.EventHandler(this.exit_button_Click);
             // 
+            // loadGame_button
+            // 
+            this.loadGame_button.Font = new System.Drawing.Font("Comic Sans MS", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.loadGame_button.Location = new System.Drawing.Point(19, 76);
+            this.loadGame_button.Name = "loadGame_button";
+            this.loadGame_button.Size = new System.Drawing.Size(265, 31);
+            this.loadGame_button.TabIndex = 3;
+            this.loadGame_button.Text = "LOAD SAVED GAME";
+            this.loadGame_button.UseVisualStyleBackColor = true;
+            // 
+            // newGame_button
+            // 
+            this.newGame_button.Font = new System.Drawing.Font("Comic Sans MS", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.newGame_button.Location = new System.Drawing.Point(19, 39);
+            this.newGame_button.Name = "newGame_button";
+            this.newGame_button.Size = new System.Drawing.Size(265, 31);
+            this.newGame_button.TabIndex = 2;
+            this.newGame_button.Text = "NEW GAME";
+            this.newGame_button.UseVisualStyleBackColor = true;
+            this.newGame_button.Click += new System.EventHandler(this.newGame_button_Click);
+            // 
             // StartForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -168,6 +168,8 @@
             this.Controls.Add(this.sizeOfMap_panel);
             this.Name = "StartForm";
             this.Text = "StartForm";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.StartForm_FormClosed);
+            this.Load += new System.EventHandler(this.StartForm_Load);
             this.sizeOfMap_panel.ResumeLayout(false);
             this.sizeOfMap_panel.PerformLayout();
             this.Start_panel.ResumeLayout(false);

@@ -53,6 +53,16 @@ namespace LunaparkGame
             height = 15;
         }
 
+        private void StartForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void StartForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Application.Exit();
+        }
+
 
     }
 }
