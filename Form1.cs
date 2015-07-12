@@ -26,7 +26,7 @@ namespace LunaparkGame
        
         bool DemolishOn;
 
-        public MainForm()
+        public MainForm(int width, int height)
         {
             InitializeComponent();
             IsMdiContainer = true;
@@ -35,7 +35,7 @@ namespace LunaparkGame
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
             CreateVisualMap(10,15,50);
-           
+            model = new Model(height,width);
            
         }
 

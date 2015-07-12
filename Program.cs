@@ -70,7 +70,10 @@ namespace LunaparkGame
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            StartForm s=new StartForm();
+            Application.Run(s);
+            Application.Run(new MainForm(s.width,s.height));
+            
         }
     }
 }
