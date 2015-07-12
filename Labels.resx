@@ -138,11 +138,11 @@
   <data name="demolishStartButton" xml:space="preserve">
     <value>DEMOLISH</value>
   </data>
-  <data name="endButton" xml:space="preserve">
-    <value>BREAK</value>
+  <data name="gameItem" xml:space="preserve">
+    <value>GAME</value>
     <comment>button for end game - stop/new game/save/continue/end</comment>
   </data>
-  <data name="endMenu" xml:space="preserve">
+  <data name="quitMenu" xml:space="preserve">
     <value>QUIT</value>
   </data>
   <data name="loadMenu" xml:space="preserve">
@@ -179,5 +179,14 @@
   </data>
   <data name="startButton" xml:space="preserve">
     <value>START</value>
+  </data>
+  <data name="accessories" xml:space="preserve">
+    <value>ACCESSORIES</value>
+  </data>
+  <data name="helpItem" xml:space="preserve">
+    <value>HELP</value>
+  </data>
+  <data name="viewItem" xml:space="preserve">
+    <value>VIEW</value>
   </data>
 </root>

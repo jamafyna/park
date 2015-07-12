@@ -53,6 +53,7 @@
     <Compile Include="AccessoriesForm.Designer.cs">
       <DependentUpon>AccessoriesForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Amusements.cs" />
     <Compile Include="AmusementsForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -65,6 +66,9 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="GameItems.cs" />
+    <Compile Include="Model.cs" />
+    <Compile Include="Path.cs" />
     <Compile Include="PathForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -78,6 +82,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Labels.resx</DependentUpon>
     </Compile>
+    <Compile Include="View.cs" />
+    <EmbeddedResource Include="AccessoriesForm.resx">
+      <DependentUpon>AccessoriesForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="AmusementsForm.resx">
       <DependentUpon>AmusementsForm.cs</DependentUpon>
     </EmbeddedResource>

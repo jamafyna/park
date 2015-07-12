@@ -34,8 +34,11 @@
             // 
             this.AllowDrop = true;
             this.ClientSize = new System.Drawing.Size(284, 262);
+            this.DockAreas = WeifenLuo.WinFormsUI.Docking.DockAreas.DockRight;
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.HideOnClose = true;
             this.Name = "PathForm";
+            this.Text = "Path";
             this.ResumeLayout(false);
 
         }

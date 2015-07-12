@@ -14,5 +14,10 @@ namespace LunaparkGame
         {
             InitializeComponent();
         }
+
+        private void AmusementsForm_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

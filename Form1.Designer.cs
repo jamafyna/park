@@ -28,28 +28,28 @@
         /// </summary>
         private void InitializeComponent()
         {
-            WeifenLuo.WinFormsUI.Docking.DockPanelSkin dockPanelSkin1 = new WeifenLuo.WinFormsUI.Docking.DockPanelSkin();
-            WeifenLuo.WinFormsUI.Docking.AutoHideStripSkin autoHideStripSkin1 = new WeifenLuo.WinFormsUI.Docking.AutoHideStripSkin();
-            WeifenLuo.WinFormsUI.Docking.DockPanelGradient dockPanelGradient1 = new WeifenLuo.WinFormsUI.Docking.DockPanelGradient();
-            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient1 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
-            WeifenLuo.WinFormsUI.Docking.DockPaneStripSkin dockPaneStripSkin1 = new WeifenLuo.WinFormsUI.Docking.DockPaneStripSkin();
-            WeifenLuo.WinFormsUI.Docking.DockPaneStripGradient dockPaneStripGradient1 = new WeifenLuo.WinFormsUI.Docking.DockPaneStripGradient();
-            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient2 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
-            WeifenLuo.WinFormsUI.Docking.DockPanelGradient dockPanelGradient2 = new WeifenLuo.WinFormsUI.Docking.DockPanelGradient();
-            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient3 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
-            WeifenLuo.WinFormsUI.Docking.DockPaneStripToolWindowGradient dockPaneStripToolWindowGradient1 = new WeifenLuo.WinFormsUI.Docking.DockPaneStripToolWindowGradient();
-            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient4 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
-            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient5 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
-            WeifenLuo.WinFormsUI.Docking.DockPanelGradient dockPanelGradient3 = new WeifenLuo.WinFormsUI.Docking.DockPanelGradient();
-            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient6 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
-            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient7 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
+            WeifenLuo.WinFormsUI.Docking.DockPanelSkin dockPanelSkin2 = new WeifenLuo.WinFormsUI.Docking.DockPanelSkin();
+            WeifenLuo.WinFormsUI.Docking.AutoHideStripSkin autoHideStripSkin2 = new WeifenLuo.WinFormsUI.Docking.AutoHideStripSkin();
+            WeifenLuo.WinFormsUI.Docking.DockPanelGradient dockPanelGradient4 = new WeifenLuo.WinFormsUI.Docking.DockPanelGradient();
+            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient8 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
+            WeifenLuo.WinFormsUI.Docking.DockPaneStripSkin dockPaneStripSkin2 = new WeifenLuo.WinFormsUI.Docking.DockPaneStripSkin();
+            WeifenLuo.WinFormsUI.Docking.DockPaneStripGradient dockPaneStripGradient2 = new WeifenLuo.WinFormsUI.Docking.DockPaneStripGradient();
+            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient9 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
+            WeifenLuo.WinFormsUI.Docking.DockPanelGradient dockPanelGradient5 = new WeifenLuo.WinFormsUI.Docking.DockPanelGradient();
+            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient10 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
+            WeifenLuo.WinFormsUI.Docking.DockPaneStripToolWindowGradient dockPaneStripToolWindowGradient2 = new WeifenLuo.WinFormsUI.Docking.DockPaneStripToolWindowGradient();
+            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient11 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
+            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient12 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
+            WeifenLuo.WinFormsUI.Docking.DockPanelGradient dockPanelGradient6 = new WeifenLuo.WinFormsUI.Docking.DockPanelGradient();
+            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient13 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
+            WeifenLuo.WinFormsUI.Docking.TabGradient tabGradient14 = new WeifenLuo.WinFormsUI.Docking.TabGradient();
             this.firstMenuStrip = new System.Windows.Forms.MenuStrip();
             this.aToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.continueToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.newGameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.cancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.quitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.vIEWToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.amusementsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -79,7 +79,7 @@
             this.firstMenuStrip.Name = "firstMenuStrip";
             this.firstMenuStrip.Size = new System.Drawing.Size(773, 24);
             this.firstMenuStrip.TabIndex = 0;
-            this.firstMenuStrip.Text = "menuStrip1";
+            this.firstMenuStrip.Text = "Menu";
             // 
             // aToolStripMenuItem
             // 
@@ -88,40 +88,40 @@
             this.newGameToolStripMenuItem,
             this.saveToolStripMenuItem,
             this.loadToolStripMenuItem,
-            this.cancelToolStripMenuItem});
+            this.quitToolStripMenuItem});
             this.aToolStripMenuItem.Name = "aToolStripMenuItem";
             this.aToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
-            this.aToolStripMenuItem.Text = "GAME";
+            this.aToolStripMenuItem.Text = global::LunaparkGame.Labels.gameItem;
             // 
             // continueToolStripMenuItem
             // 
             this.continueToolStripMenuItem.Name = "continueToolStripMenuItem";
-            this.continueToolStripMenuItem.Size = new System.Drawing.Size(131, 22);
-            this.continueToolStripMenuItem.Text = "Continue ";
+            this.continueToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.continueToolStripMenuItem.Text = global::LunaparkGame.Labels.continueMenu;
             // 
             // newGameToolStripMenuItem
             // 
             this.newGameToolStripMenuItem.Name = "newGameToolStripMenuItem";
-            this.newGameToolStripMenuItem.Size = new System.Drawing.Size(131, 22);
-            this.newGameToolStripMenuItem.Text = "New game";
+            this.newGameToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.newGameToolStripMenuItem.Text = global::LunaparkGame.Labels.newGameMenu;
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(131, 22);
-            this.saveToolStripMenuItem.Text = "Save";
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.saveToolStripMenuItem.Text = global::LunaparkGame.Labels.saveMenu;
             // 
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(131, 22);
-            this.loadToolStripMenuItem.Text = "Load";
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.loadToolStripMenuItem.Text = global::LunaparkGame.Labels.loadMenu;
             // 
-            // cancelToolStripMenuItem
+            // quitToolStripMenuItem
             // 
-            this.cancelToolStripMenuItem.Name = "cancelToolStripMenuItem";
-            this.cancelToolStripMenuItem.Size = new System.Drawing.Size(131, 22);
-            this.cancelToolStripMenuItem.Text = "Cancel";
+            this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
+            this.quitToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.quitToolStripMenuItem.Text = global::LunaparkGame.Labels.quitMenu;
             // 
             // vIEWToolStripMenuItem
             // 
@@ -131,32 +131,37 @@
             this.AccessoriesToolStripMenuItem});
             this.vIEWToolStripMenuItem.Name = "vIEWToolStripMenuItem";
             this.vIEWToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
-            this.vIEWToolStripMenuItem.Text = "VIEW";
+            this.vIEWToolStripMenuItem.Text = global::LunaparkGame.Labels.viewItem;
             // 
             // amusementsToolStripMenuItem
             // 
+            this.amusementsToolStripMenuItem.Checked = true;
+            this.amusementsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.amusementsToolStripMenuItem.Name = "amusementsToolStripMenuItem";
-            this.amusementsToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
-            this.amusementsToolStripMenuItem.Text = "Amusements";
+            this.amusementsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.amusementsToolStripMenuItem.Text = global::LunaparkGame.Labels.amusementButton;
+            this.amusementsToolStripMenuItem.Click += new System.EventHandler(this.amusementsToolStripMenuItem_Click);
             // 
             // pathToolStripMenuItem
             // 
+            this.pathToolStripMenuItem.Checked = true;
+            this.pathToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.pathToolStripMenuItem.Name = "pathToolStripMenuItem";
-            this.pathToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
-            this.pathToolStripMenuItem.Text = "Path";
+            this.pathToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.pathToolStripMenuItem.Text = global::LunaparkGame.Labels.pathButton;
+            this.pathToolStripMenuItem.Click += new System.EventHandler(this.pathToolStripMenuItem_Click);
             // 
             // AccessoriesToolStripMenuItem
             // 
             this.AccessoriesToolStripMenuItem.Name = "AccessoriesToolStripMenuItem";
-            this.AccessoriesToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
-            this.AccessoriesToolStripMenuItem.Text = "Accessories";
-            this.AccessoriesToolStripMenuItem.Click += new System.EventHandler(this.addiToolStripMenuItem_Click);
+            this.AccessoriesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.AccessoriesToolStripMenuItem.Text = global::LunaparkGame.Labels.accessories;
             // 
             // hELPToolStripMenuItem
             // 
             this.hELPToolStripMenuItem.Name = "hELPToolStripMenuItem";
             this.hELPToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
-            this.hELPToolStripMenuItem.Text = "HELP";
+            this.hELPToolStripMenuItem.Text = global::LunaparkGame.Labels.helpItem;
             // 
             // menuStrip1
             // 
@@ -190,8 +195,8 @@
             // research_toolStripMenuItem
             // 
             this.research_toolStripMenuItem.Name = "research_toolStripMenuItem";
-            this.research_toolStripMenuItem.Size = new System.Drawing.Size(63, 20);
-            this.research_toolStripMenuItem.Text = "research";
+            this.research_toolStripMenuItem.Size = new System.Drawing.Size(34, 20);
+            this.research_toolStripMenuItem.Text = "res";
             // 
             // toolStripMenuItem1
             // 
@@ -202,8 +207,8 @@
             // ToolStripMenuItem
             // 
             this.ToolStripMenuItem.Name = "ToolStripMenuItem";
-            this.ToolStripMenuItem.Size = new System.Drawing.Size(109, 20);
-            this.ToolStripMenuItem.Text = "Count of money:";
+            this.ToolStripMenuItem.Size = new System.Drawing.Size(59, 20);
+            this.ToolStripMenuItem.Text = global::LunaparkGame.Labels.moneyCount;
             // 
             // moneyCount_toolStripMenuItem
             // 
@@ -214,8 +219,8 @@
             // ToolStripMenuItem2
             // 
             this.ToolStripMenuItem2.Name = "ToolStripMenuItem2";
-            this.ToolStripMenuItem2.Size = new System.Drawing.Size(58, 20);
-            this.ToolStripMenuItem2.Text = "People:";
+            this.ToolStripMenuItem2.Size = new System.Drawing.Size(61, 20);
+            this.ToolStripMenuItem2.Text = global::LunaparkGame.Labels.peopleCount;
             // 
             // peopleCount_toolStripMenuItem
             // 
@@ -226,56 +231,57 @@
             // mainDockPanel
             // 
             this.mainDockPanel.ActiveAutoHideContent = null;
+            this.mainDockPanel.AutoScroll = true;
             this.mainDockPanel.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             this.mainDockPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainDockPanel.DockBackColor = System.Drawing.SystemColors.Control;
             this.mainDockPanel.Location = new System.Drawing.Point(0, 48);
             this.mainDockPanel.Name = "mainDockPanel";
             this.mainDockPanel.Size = new System.Drawing.Size(773, 338);
-            dockPanelGradient1.EndColor = System.Drawing.SystemColors.ControlLight;
-            dockPanelGradient1.StartColor = System.Drawing.SystemColors.ControlLight;
-            autoHideStripSkin1.DockStripGradient = dockPanelGradient1;
-            tabGradient1.EndColor = System.Drawing.SystemColors.Control;
-            tabGradient1.StartColor = System.Drawing.SystemColors.Control;
-            tabGradient1.TextColor = System.Drawing.SystemColors.ControlDarkDark;
-            autoHideStripSkin1.TabGradient = tabGradient1;
-            dockPanelSkin1.AutoHideStripSkin = autoHideStripSkin1;
-            tabGradient2.EndColor = System.Drawing.SystemColors.ControlLightLight;
-            tabGradient2.StartColor = System.Drawing.SystemColors.ControlLightLight;
-            tabGradient2.TextColor = System.Drawing.SystemColors.ControlText;
-            dockPaneStripGradient1.ActiveTabGradient = tabGradient2;
-            dockPanelGradient2.EndColor = System.Drawing.SystemColors.Control;
-            dockPanelGradient2.StartColor = System.Drawing.SystemColors.Control;
-            dockPaneStripGradient1.DockStripGradient = dockPanelGradient2;
-            tabGradient3.EndColor = System.Drawing.SystemColors.ControlLight;
-            tabGradient3.StartColor = System.Drawing.SystemColors.ControlLight;
-            tabGradient3.TextColor = System.Drawing.SystemColors.ControlText;
-            dockPaneStripGradient1.InactiveTabGradient = tabGradient3;
-            dockPaneStripSkin1.DocumentGradient = dockPaneStripGradient1;
-            tabGradient4.EndColor = System.Drawing.SystemColors.ActiveCaption;
-            tabGradient4.LinearGradientMode = System.Drawing.Drawing2D.LinearGradientMode.Vertical;
-            tabGradient4.StartColor = System.Drawing.SystemColors.GradientActiveCaption;
-            tabGradient4.TextColor = System.Drawing.SystemColors.ActiveCaptionText;
-            dockPaneStripToolWindowGradient1.ActiveCaptionGradient = tabGradient4;
-            tabGradient5.EndColor = System.Drawing.SystemColors.Control;
-            tabGradient5.StartColor = System.Drawing.SystemColors.Control;
-            tabGradient5.TextColor = System.Drawing.SystemColors.ControlText;
-            dockPaneStripToolWindowGradient1.ActiveTabGradient = tabGradient5;
-            dockPanelGradient3.EndColor = System.Drawing.SystemColors.ControlLight;
-            dockPanelGradient3.StartColor = System.Drawing.SystemColors.ControlLight;
-            dockPaneStripToolWindowGradient1.DockStripGradient = dockPanelGradient3;
-            tabGradient6.EndColor = System.Drawing.SystemColors.GradientInactiveCaption;
-            tabGradient6.LinearGradientMode = System.Drawing.Drawing2D.LinearGradientMode.Vertical;
-            tabGradient6.StartColor = System.Drawing.SystemColors.GradientInactiveCaption;
-            tabGradient6.TextColor = System.Drawing.SystemColors.ControlText;
-            dockPaneStripToolWindowGradient1.InactiveCaptionGradient = tabGradient6;
-            tabGradient7.EndColor = System.Drawing.Color.Transparent;
-            tabGradient7.StartColor = System.Drawing.Color.Transparent;
-            tabGradient7.TextColor = System.Drawing.SystemColors.ControlDarkDark;
-            dockPaneStripToolWindowGradient1.InactiveTabGradient = tabGradient7;
-            dockPaneStripSkin1.ToolWindowGradient = dockPaneStripToolWindowGradient1;
-            dockPanelSkin1.DockPaneStripSkin = dockPaneStripSkin1;
-            this.mainDockPanel.Skin = dockPanelSkin1;
+            dockPanelGradient4.EndColor = System.Drawing.SystemColors.ControlLight;
+            dockPanelGradient4.StartColor = System.Drawing.SystemColors.ControlLight;
+            autoHideStripSkin2.DockStripGradient = dockPanelGradient4;
+            tabGradient8.EndColor = System.Drawing.SystemColors.Control;
+            tabGradient8.StartColor = System.Drawing.SystemColors.Control;
+            tabGradient8.TextColor = System.Drawing.SystemColors.ControlDarkDark;
+            autoHideStripSkin2.TabGradient = tabGradient8;
+            dockPanelSkin2.AutoHideStripSkin = autoHideStripSkin2;
+            tabGradient9.EndColor = System.Drawing.SystemColors.ControlLightLight;
+            tabGradient9.StartColor = System.Drawing.SystemColors.ControlLightLight;
+            tabGradient9.TextColor = System.Drawing.SystemColors.ControlText;
+            dockPaneStripGradient2.ActiveTabGradient = tabGradient9;
+            dockPanelGradient5.EndColor = System.Drawing.SystemColors.Control;
+            dockPanelGradient5.StartColor = System.Drawing.SystemColors.Control;
+            dockPaneStripGradient2.DockStripGradient = dockPanelGradient5;
+            tabGradient10.EndColor = System.Drawing.SystemColors.ControlLight;
+            tabGradient10.StartColor = System.Drawing.SystemColors.ControlLight;
+            tabGradient10.TextColor = System.Drawing.SystemColors.ControlText;
+            dockPaneStripGradient2.InactiveTabGradient = tabGradient10;
+            dockPaneStripSkin2.DocumentGradient = dockPaneStripGradient2;
+            tabGradient11.EndColor = System.Drawing.SystemColors.ActiveCaption;
+            tabGradient11.LinearGradientMode = System.Drawing.Drawing2D.LinearGradientMode.Vertical;
+            tabGradient11.StartColor = System.Drawing.SystemColors.GradientActiveCaption;
+            tabGradient11.TextColor = System.Drawing.SystemColors.ActiveCaptionText;
+            dockPaneStripToolWindowGradient2.ActiveCaptionGradient = tabGradient11;
+            tabGradient12.EndColor = System.Drawing.SystemColors.Control;
+            tabGradient12.StartColor = System.Drawing.SystemColors.Control;
+            tabGradient12.TextColor = System.Drawing.SystemColors.ControlText;
+            dockPaneStripToolWindowGradient2.ActiveTabGradient = tabGradient12;
+            dockPanelGradient6.EndColor = System.Drawing.SystemColors.ControlLight;
+            dockPanelGradient6.StartColor = System.Drawing.SystemColors.ControlLight;
+            dockPaneStripToolWindowGradient2.DockStripGradient = dockPanelGradient6;
+            tabGradient13.EndColor = System.Drawing.SystemColors.GradientInactiveCaption;
+            tabGradient13.LinearGradientMode = System.Drawing.Drawing2D.LinearGradientMode.Vertical;
+            tabGradient13.StartColor = System.Drawing.SystemColors.GradientInactiveCaption;
+            tabGradient13.TextColor = System.Drawing.SystemColors.ControlText;
+            dockPaneStripToolWindowGradient2.InactiveCaptionGradient = tabGradient13;
+            tabGradient14.EndColor = System.Drawing.Color.Transparent;
+            tabGradient14.StartColor = System.Drawing.Color.Transparent;
+            tabGradient14.TextColor = System.Drawing.SystemColors.ControlDarkDark;
+            dockPaneStripToolWindowGradient2.InactiveTabGradient = tabGradient14;
+            dockPaneStripSkin2.ToolWindowGradient = dockPaneStripToolWindowGradient2;
+            dockPanelSkin2.DockPaneStripSkin = dockPaneStripSkin2;
+            this.mainDockPanel.Skin = dockPanelSkin2;
             this.mainDockPanel.TabIndex = 14;
             // 
             // MainForm
@@ -288,7 +294,7 @@
             this.Controls.Add(this.firstMenuStrip);
             this.MainMenuStrip = this.firstMenuStrip;
             this.Name = "MainForm";
-            this.Text = "a";
+            this.Text = "Lunapark";
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.firstMenuStrip.ResumeLayout(false);
             this.firstMenuStrip.PerformLayout();
@@ -307,7 +313,7 @@
         private System.Windows.Forms.ToolStripMenuItem newGameToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem loadToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem cancelToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem vIEWToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem amusementsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem pathToolStripMenuItem;

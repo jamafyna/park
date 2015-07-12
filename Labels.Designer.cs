@@ -61,6 +61,15 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ACCESSORIES.
+        /// </summary>
+        internal static string accessories {
+            get {
+                return ResourceManager.GetString("accessories", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ADVERTISE.
         /// </summary>
         internal static string advertiseButton {
@@ -115,20 +124,20 @@ namespace LunaparkGame {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to BREAK.
+        ///   Looks up a localized string similar to GAME.
         /// </summary>
-        internal static string endButton {
+        internal static string gameItem {
             get {
-                return ResourceManager.GetString("endButton", resourceCulture);
+                return ResourceManager.GetString("gameItem", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to QUIT.
+        ///   Looks up a localized string similar to HELP.
         /// </summary>
-        internal static string endMenu {
+        internal static string helpItem {
             get {
-                return ResourceManager.GetString("endMenu", resourceCulture);
+                return ResourceManager.GetString("helpItem", resourceCulture);
             }
         }
         
@@ -187,6 +196,15 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to QUIT.
+        /// </summary>
+        internal static string quitMenu {
+            get {
+                return ResourceManager.GetString("quitMenu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to RESEARCHING.
         /// </summary>
         internal static string researchingButton {
@@ -228,6 +246,15 @@ namespace LunaparkGame {
         internal static string startButton {
             get {
                 return ResourceManager.GetString("startButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VIEW.
+        /// </summary>
+        internal static string viewItem {
+            get {
+                return ResourceManager.GetString("viewItem", resourceCulture);
             }
         }
     }
