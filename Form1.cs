@@ -12,11 +12,11 @@ namespace LunaparkGame
 {
     public partial class MainForm : Form
     {
-        public Type lastClick{get; private set;}
+        //public Type lastClick{get; private set;}
         /// <summary>
         /// contains an unique instance for each type
         /// </summary>
-       // public MapObjects lastClick{set; private get;}
+        public MapObjects lastClick{set; private get;}
         MapObjects lastBuildItem;
         static int sizeOfSquare = 50;
         AmusementsForm amusform;
@@ -87,18 +87,26 @@ namespace LunaparkGame
                 if (lastClick is Amusements)
                 {
                     // lastClick.Create(x,y);
-
+                  /*  ((typeof(Amusements))lastClick).Zkusebni();
+                    //System.Reflection.MethodInfo.
+                      Path.Zkusebni();
+                     ((lastClick.GetType())).Zkusebni();
+                    Type a=typeof(Amusements);*/
                     
+                    if(((Amusements)lastClick).CheckFreeLocation(x,y)){
+                        object[] arg = { x, y, model };
+                        model.lastBuiltAmus=(Amusements)Activator.CreateInstance(lastClick.GetType(),arg);                        
+                    }
                 }
                 else
                 {
-                    // if (lastClick.Create(x, y)) { 
-                    //do sth or nothing
+                    object[] arg = {x,y,model };
+                    Activator.CreateInstance(lastClick.GetType(),arg);
                 }
-
-                object[] arg = { model, x, y };
-                Activator.CreateInstance(lastClick, arg);
-                throw new NotImplementedException();
+#warning rusim tu schopnost prekladace spravne kontrolovat - nezajisti mi, ze dana trida bude mit spravny konstruktor
+               /* object[] arg = { model, x, y };
+                Activator.CreateInstance(lastClick, arg);*/
+                
             }
         }
         

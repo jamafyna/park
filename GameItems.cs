@@ -56,7 +56,6 @@ namespace LunaparkGame
     public abstract class Amusements : MapObjects,IActionable
     {
         public int id { get; private set; }
-       
         public Coordinates entrance { get; protected set; } //todo: je opravdu potreba protected, nestaci private nebo dokonce readonly?
         public Coordinates exit { get; protected set; }
         public int capacity { get; protected set; }
@@ -85,7 +84,32 @@ namespace LunaparkGame
 #warning opravdu abstract Action? Nemela by byt virtual a rovnou naimplementovana?
         public virtual void Action() { throw new NotImplementedException(); }
         public void ChangeId(int id) { this.id = id; }
-       
+        //hack: nezkontrolovano
+        public abstract bool CheckFreeLocation(int x, int y);
+        protected virtual bool CheckFreeLocation(int x, int y, byte width, byte height,bool hasEntranceAndExit=true) { 
+            if (x + width > model.map.Length || y + height > model.map[0].Length) return false;
+            for (int i = x; i < width; i++)
+            {
+                for (int j = 0; j < height; j++)
+                {
+                    if (model.map[i][j] != 0) return false;
+                }
+            }
+            if (hasEntranceAndExit) {
+                bool free = false;;
+                if (x - 1 > 0) for (int i = y; i < y + height; i++)
+                        if (model.map[x - 1][i] == 0) { if (free) return free; else free = true; }
+                if (x + 1 < model.map.Length) for (int i = y; i < y + height; i++)
+                        if (model.map[x - 1][i] == 0) { if (free) return free; else free = true; }
+                if (y - 1 > 0) for (int i = x; i < x + width; i++)
+                        if (model.map[i][y - 1] == 0) { if (free) return free; else free = true; }
+                if (y + 1 < model.map[0].Length) for (int i = y; i < y + height; i++)
+                        if (model.map[i][y - 1] == 0) { if (free) return free; else free = true; }
+                return free;
+            }
+            return true;       
+        
+        }
 
         /// <summary>
         /// create an Item in AtrakceForm and set it (e.g. set visible=false)
@@ -96,11 +120,15 @@ namespace LunaparkGame
     }
     public abstract class SquareAmusements : Amusements
     {
-
+        public byte width { get; protected set; }
         public SquareAmusements(Model m) : base(m) { }
         public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
+        }
+        public override bool CheckFreeLocation(int x, int y)
+        {          
+            return base.CheckFreeLocation(x, y, width, width, hasEntranceAndExit: true);
         }
       
 
@@ -110,7 +138,7 @@ namespace LunaparkGame
     /// </summary>
     public abstract class RectangleAmusements : Amusements
     {
-        int width, height;
+        byte width, height;
         public readonly bool isHorizontalOriented;
         public RectangleAmusements(Model m,bool isHorizontal=true):base(m)
         {
@@ -118,12 +146,16 @@ namespace LunaparkGame
         }
         public override bool Create(int x, int y)
         {
-            if (!model.CheckFreeLocation(x,y,width,height)) return false;//todo: nekde vyhodit vyjimku, ze neni dostatek mista
-            
-            
-
-            return false;
+            throw new NotImplementedException();
+           
         }
+        public override bool CheckFreeLocation(int x, int y)
+        {
+            if (isHorizontalOriented) return CheckFreeLocation(x, y, width, height, hasEntranceAndExit: true);
+            else return CheckFreeLocation(x,y,height,width,hasEntranceAndExit:true);
+        }
+        
+        
       
     }
 
@@ -172,7 +204,7 @@ namespace LunaparkGame
         public override void Click() {
             //nothing
         }
-
+       
     }
 
     /// <summary>
