@@ -73,6 +73,7 @@ namespace LunaparkGame
             StartForm s=new StartForm();
             Application.Run(s);
             Application.Run(new MainForm(s.width,s.height));
+           // Application.Run(new MainForm());
             
         }
     }

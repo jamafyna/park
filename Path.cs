@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace LunaparkGame
 {
-    class StonePath : Path
+    public class StonePath : Path
     {
-        public StonePath(Model m) : base(m) { }
+        public StonePath(Model m, int x, int y) : base(m,x,y) { }
         public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
@@ -20,9 +20,9 @@ namespace LunaparkGame
         }
         
     }
-    class AsphaltPath : Path
+    public class AsphaltPath : Path
     {
-        public AsphaltPath(Model m) : base(m) { }
+        public AsphaltPath(Model m, int x, int y) : base(m, x, y) { }
         public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
@@ -34,9 +34,9 @@ namespace LunaparkGame
         
 
     }
-    class SandPath : Path
+    public class SandPath : Path
     {
-        public SandPath(Model m) : base(m) { }
+        public SandPath(Model m, int x, int y) : base(m, x, y) { }
         public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
@@ -47,9 +47,9 @@ namespace LunaparkGame
         }
         
     }
-    class MarblePath : Path
+    public class MarblePath : Path
     {
-        public MarblePath(Model m) : base(m) { }
+        public MarblePath(Model m, int x, int y) : base(m, x, y) { }
         public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
@@ -61,15 +61,21 @@ namespace LunaparkGame
        
 
     }
-    class AmusementEnter : Path {
-        public AmusementEnter(Model m) : base(m) { }
+    public class AmusementEnterPath : Path
+    {
+        
+        public AmusementEnterPath(Model m, int x, int y) : base(m, x, y) { 
+            value=0;
+        }
         public override void Demolish()
         {
             throw new NotImplementedException();
         }
     }
-    class AmusementExit : Path {
-       public AmusementExit(Model m) : base(m) { }
+    public class AmusementExitPath : Path {
+        public AmusementExitPath(Model m, int x, int y) : base(m, x, y) {
+            value = 0;
+        }
         public override void Demolish()
         {
             throw new NotImplementedException();

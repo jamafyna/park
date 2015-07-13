@@ -26,12 +26,14 @@ namespace LunaparkGame
 
     public abstract class MapObjects
     {
+        protected int x,y;
         protected readonly Model model;
-        public Control control { get; set; }
-        public int value { get; protected set; }
+        public Control control { get; set; } //picture
+        virtual protected int value { get; set; } //todo: This must be abstract!!!
 
         public MapObjects(Model m) {
             this.model = m;
+            model.money -= this.value;
         }
         /// <summary>
         /// Create an instance and show it in the game map
@@ -47,8 +49,7 @@ namespace LunaparkGame
         /// user action
         /// </summary>
         public abstract void Demolish();
-        public static bool Create() { return true; }
-
+        
 
 
     }
@@ -56,11 +57,11 @@ namespace LunaparkGame
     public abstract class Amusements : MapObjects,IActionable
     {
         public int id { get; private set; }
-        public Coordinates entrance { get; protected set; } //todo: je opravdu potreba protected, nestaci private nebo dokonce readonly?
-        public Coordinates exit { get; protected set; }
+        public AmusementEnterPath entrance { get; protected set; } //todo: je opravdu potreba protected, nestaci private nebo dokonce readonly?
+        public AmusementExitPath exit { get; protected set; }
         public int capacity { get; protected set; }
         protected Queue<Person> queue;
-
+        public bool hasEntranceExit { get; protected set; }
         public int waitingPeopleCount
         {
             get
@@ -72,7 +73,18 @@ namespace LunaparkGame
         }
 
         public Amusements(Model m) :base(m)       
-        { }
+        {
+            throw new NotImplementedException();   
+        }
+        public Amusements(int x, int y, Model m) :base(m)       
+        {
+            model.lastBuiltAmus = this;        
+           
+            model.mustBeEnter = true;
+            this.id = model.amusList.ReturnFreeID();//mozna lepe nastavovat az pri pridani do listu
+            model.amusList.Add(this);
+            throw new NotImplementedException();   
+        }
         public override void Demolish()
         {
             throw new NotImplementedException();
@@ -110,7 +122,45 @@ namespace LunaparkGame
             return true;       
         
         }
-
+        /// <summary>
+        /// checks if entrance can be built on this place and if yes -> create it
+        /// </summary>
+        /// <param name="x">an x coordinate in the inside-map</param>
+        /// <param name="y">an x coordinate in the inside-map</param>
+        /// <returns>if entrance was successful built on this point</returns>
+        public bool CheckEntranceAndBuild(int x,int y) {
+            if (IsInsideInAmusement(x - 1, y) ||
+                IsInsideInAmusement(x + 1, y) ||
+                IsInsideInAmusement(x, y - 1) ||
+                IsInsideInAmusement(x, y + 1))
+            {
+                this.entrance = new AmusementEnterPath(model,x,y);
+                model.mustBeEnter = false;
+                model.mustBeExit = true;
+                return true;
+            }
+            else return false;        
+        }
+        /// <summary>
+        /// checks if exit can be built on this place and if yes -> create it
+        /// </summary>
+        /// <param name="x">an x coordinate in the inside-map</param>
+        /// <param name="y">an x coordinate in the inside-map</param>
+        /// <returns>if exit was successful built on this point</returns>
+        public bool CheckExitAndBuild(int x, int y)
+        {
+            if (IsInsideInAmusement(x - 1, y) ||
+                IsInsideInAmusement(x + 1, y) ||
+                IsInsideInAmusement(x, y - 1) ||
+                IsInsideInAmusement(x, y + 1))
+            {
+                this.exit = new AmusementExitPath(model, x, y);
+                model.mustBeExit = false;
+                return true;
+            }
+            else return false;
+        }
+        protected abstract bool IsInsideInAmusement(int x, int y);
         /// <summary>
         /// create an Item in AtrakceForm and set it (e.g. set visible=false)
         /// </summary>
@@ -130,7 +180,13 @@ namespace LunaparkGame
         {          
             return base.CheckFreeLocation(x, y, width, width, hasEntranceAndExit: true);
         }
-      
+        protected override bool IsInsideInAmusement(int x, int y)
+        {
+            if (x >= this.x && x < this.x + this.width &&
+                y >= this.y && y < this.y + this.width)
+                return true;
+            else return false;       
+        }
 
     }
     /// <summary>
@@ -153,7 +209,14 @@ namespace LunaparkGame
         {
             if (isHorizontalOriented) return CheckFreeLocation(x, y, width, height, hasEntranceAndExit: true);
             else return CheckFreeLocation(x,y,height,width,hasEntranceAndExit:true);
-        }
+        }
+        protected override bool IsInsideInAmusement(int x, int y)
+        {
+            if (x >= this.x && x < this.x + this.width &&
+                y >= this.y && y < this.y + this.height)
+                return true;
+            else return false;
+        }
         
         
       
@@ -196,7 +259,7 @@ namespace LunaparkGame
 
     public abstract class Path : MapObjects
     {
-        public Path(Model m) : base(m) { }
+        public Path(Model m, int x, int y) : base(m) { }
         public override bool Create(int x, int y) {
             throw new NotImplementedException();
         }

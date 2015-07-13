@@ -24,7 +24,13 @@ namespace LunaparkGame
         Control map;
         Model model;      
         bool DemolishOn=false;
+        private AmusementEnterPath aEnterHelp;
+        private AmusementExitPath aExitHelp;
+       
 
+     /*   public MainForm() {
+            InitializeComponent();
+        }*/
         public MainForm(int width, int height)
         {
             InitializeComponent();
@@ -33,8 +39,9 @@ namespace LunaparkGame
             pathform = new PathForm();         
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
-            CreateVisualMap(10,15,50);
+            CreateVisualMap(width,height,50);
             model = new Model(height,width);
+            
            
         }
 
@@ -74,39 +81,44 @@ namespace LunaparkGame
         }
 
         private void map_Click(object sender, EventArgs e) {
-            if (!DemolishOn)
+            if (!DemolishOn && model.lastClick!=null)
             {
                 MouseEventArgs mys = (MouseEventArgs)e;
                 int x = mys.X - mys.X % sizeOfSquare;
                 int y = mys.Y - mys.Y % sizeOfSquare;
-                //  if(lastClick ==)
+               // System.Drawing.Point loc = mys.Location;
 
                 //todo: kontrola na co vse mohl uzivatel kliknout, nejspise poslat udalost do modelu spolu se souradnicemi
                 //todo: kontrola, zda neni neco rozestavene
+                if(model.mustBeEnter){
+                         if(!model.lastBuiltAmus.CheckEntranceAndBuild(x,y)) {
+                                    //todo: show chybu, idalne ulozit do modelu, aby si ji view vzal
+                         }
+                         return;
+                }
+                if(model.mustBeExit){
+                     if(!model.lastBuiltAmus.CheckExitAndBuild(x,y)) {
+                                    //todo: show chybu
+                     }
+                    return;
+                }
+               
                 if (model.lastClick is Amusements)
                 {
-                    // lastClick.Create(x,y);
-                  /*  ((typeof(Amusements))lastClick).Zkusebni();
-                    //System.Reflection.MethodInfo.
-                      Path.Zkusebni();
-                     ((lastClick.GetType())).Zkusebni();
-                    Type a=typeof(Amusements);*/
-
                     if (((Amusements)model.lastClick).CheckFreeLocation(x, y))
                     {
                         object[] arg = { x, y, model };
-                        model.lastBuiltAmus = (Amusements)Activator.CreateInstance(model.lastClick.GetType(), arg);                        
+                        //todo:nize nejspise neni nutne ukladat, udelano v konstruktoru atrakce a nastavovat 
+                        model.lastBuiltAmus = (Amusements)Activator.CreateInstance(model.lastClick.GetType(), arg);                                               
                     }
+                    return;
                 }
                 else
                 {
                     object[] arg = {x,y,model };
                     Activator.CreateInstance(model.lastClick.GetType(), arg);
                 }
-#warning rusim tu schopnost prekladace spravne kontrolovat - nezajisti mi, ze dana trida bude mit spravny konstruktor
-               /* object[] arg = { model, x, y };
-                Activator.CreateInstance(lastClick, arg);*/
-                
+#warning rusim tu schopnost prekladace spravne kontrolovat - nezajisti mi, ze dana trida bude mit spravny konstruktor                            
             }
         }
         

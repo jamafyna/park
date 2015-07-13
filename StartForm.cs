@@ -12,11 +12,20 @@ namespace LunaparkGame
 {
     public partial class StartForm : Form
     {
+        private const int width1=10;
+        private const int height1 = 10;
+        private const int width2 = 10;
+        private const int height2 = 20;
+        private const int width3 = 15;
+        private const int height3 = 15;
+
         public int width {get;private set;}
         public int height{get;private set;}
         public StartForm()
         {
             InitializeComponent();
+            width = width1;
+            height = height1;
         }
 
         private void newGame_button_Click(object sender, EventArgs e)
@@ -37,20 +46,20 @@ namespace LunaparkGame
 
         private void radioButton20_CheckedChanged(object sender, EventArgs e)
         {
-            width = 10;
-            height = 10;
+            width = width1;
+            height = height1;
         }
 
         private void radioButton40_CheckedChanged(object sender, EventArgs e)
         {
-            width = 10;
-            height = 20;
+            width = width2;
+            height = height2;
         }
 
         private void radioButton60_CheckedChanged(object sender, EventArgs e)
         {
-            width = 15;
-            height = 15;
+            width = width3;
+            height = height3;
         }
 
         private void StartForm_Load(object sender, EventArgs e)
@@ -60,7 +69,7 @@ namespace LunaparkGame
 
         private void StartForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Application.Exit();
+          //  this.Close();//Application.Exit();
         }
 
 
