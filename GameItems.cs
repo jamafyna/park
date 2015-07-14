@@ -7,9 +7,10 @@ using System.Windows.Forms;
 
 namespace LunaparkGame
 {
+    public enum Direction {no, N, S, W, E };
+   
     public interface IActionable {
-        void Action();
-    
+        void Action();    
     }
     public class MyDebugException : Exception
     {
@@ -19,23 +20,23 @@ namespace LunaparkGame
     }
 
     public struct Coordinates
-    { //todo: Zamyslet se, zda nepouzit System.Drawing.Point
-        public int x;
-        public int y;
-        public Coordinates(int x, int y) { this.x = x; this.y = y; }
+    {
+        public byte x;
+        public byte y;
+        public Coordinates(byte x, byte y) { this.x = x; this.y = y; }
     }
 
     public abstract class MapObjects
     {
-        protected int x,y;
+        public Coordinates coord { protected set; get; }
         protected readonly Model model;
         public Control control { get; set; } //picture
-        virtual protected int value { get; set; } //todo: This must be abstract!!!
+        virtual protected int price { get; set; } //todo: This must be abstract!!!
 
         public MapObjects(Model m) {
             control.Click += new EventHandler(Click);
             this.model = m;
-            model.money -= this.value;
+            model.money -= this.price;
         }
         /// <summary>
         /// Create an instance and show it in the game map
@@ -58,6 +59,7 @@ namespace LunaparkGame
 
     public abstract class Amusements : MapObjects,IActionable
     {
+        #region
         public enum Status { waitingForPeople, running, outOfService, runningOut }
         public int id { get; private set; }
         public AmusementEnterPath entrance { get; protected set; } //todo: je opravdu potreba protected, nestaci private nebo dokonce readonly?
@@ -74,7 +76,7 @@ namespace LunaparkGame
             }
             private set { }
         }
-        protected int waitingTime = 0, actRunningTime;
+        protected int waitingTime = 0, actRunningTime=0;
         public int visitPrice;
         protected bool isRunningOut=false;
         protected bool isRunning = false;
@@ -86,27 +88,36 @@ namespace LunaparkGame
         protected readonly int initialVisitPrice;
         protected int refundCoef;
         //----------------------------
+        #endregion
 
         public Amusements(Model m) :base(m)       
         {
             throw new NotImplementedException();   
         }
-        public Amusements(int x, int y, Model m) :base(m)       
+        public Amusements(Coordinates coord, Model m) :base(m)       
         {
-            model.lastBuiltAmus = this;        
-           
+            model.lastBuiltAmus = this;                 
             model.mustBeEnter = true;
             this.id = model.amusList.ReturnFreeID();//mozna lepe nastavovat az pri pridani do listu
             model.amusList.Add(this);
             peopleInList = new List<Person>(capacity);
-            throw new NotImplementedException();   
+            queue = new Queue<Person>();
+            this.coord = coord;
+            //todo: dodelat
+                       
+           // mimoProvoz = true;
+           // klikForm = new KlikNaAtrakciForm(this, (LSSAtrakce)form.evidence.atrakceLSS, form);
+           // zacatek = true;
+           // stav = Stav.mimoProvoz;
         }
         
         public override void Demolish()
         {
             entrance.Demolish();
             exit.Demolish();
-            model.money += refundCoef * value;//refund money
+            model.money += refundCoef * price;//refund money
+            model.amusList.Remove(this);
+            //todo:odstranit z mapy
         } 
         
         protected void PickUpPeople(int n) { //naloz lidi
@@ -279,6 +290,7 @@ namespace LunaparkGame
         /// create an Item in AtrakceForm and set it (e.g. set visible=false)
         /// </summary>
         //  public abstract static void Initialize();
+        public abstract List<Coordinates> GetAllPoints();
         protected override void Click(object sender, EventArgs e)
         {
            // if (!zacatek)
@@ -316,20 +328,31 @@ namespace LunaparkGame
         }
         protected override bool IsInsideInAmusement(int x, int y)
         {
-            if (x >= this.x && x < this.x + this.width &&
-                y >= this.y && y < this.y + this.width)
+            if (x >= this.coord.x && x < this.coord.x + this.width &&
+                y >= this.coord.y && y < this.coord.y + this.width)
                 return true;
             else return false;       
         }
-
+        public override List<Coordinates> GetAllPoints()
+        {
+            List<Coordinates> list=new List<Coordinates>(width*width);
+            for (byte i = coord.x; i < coord.x+width; i++)
+            {
+                for (byte j = coord.y; j < coord.y + width; j++) list.Add(new Coordinates(i, j));               
+            }
+            return list;
+        }
     }
     /// <summary>
     /// Class for rectangle, not square, amusements. It can have a different orientation.
     /// </summary>
     public abstract class RectangleAmusements : Amusements
     {
-        byte width, height;
+        public abstract byte width{get;protected set;}
+        public abstract byte height { get; protected set; }
         public readonly bool isHorizontalOriented;
+
+
         public RectangleAmusements(Model m,bool isHorizontal=true):base(m)
         {
             isHorizontalOriented = isHorizontal;
@@ -346,12 +369,20 @@ namespace LunaparkGame
         }
         protected override bool IsInsideInAmusement(int x, int y)
         {
-            if (x >= this.x && x < this.x + this.width &&
-                y >= this.y && y < this.y + this.height)
+            if (x >= this.coord.x && x < this.coord.x + this.width &&
+                y >= this.coord.y && y < this.coord.y + this.height)
                 return true;
             else return false;
         }
-        
+        public override List<Coordinates> GetAllPoints()
+        {
+            List<Coordinates> list = new List<Coordinates>(width * height);
+            for (byte i = coord.x; i < coord.x + width; i++)
+            {
+                for (byte j = coord.y; j < coord.y + height; j++) list.Add(new Coordinates(i, j));
+            }
+            return list;
+        }
         
       
     }
@@ -411,68 +442,5 @@ namespace LunaparkGame
        
     }
 
-    /// <summary>
-    /// list of all amusements, at position i is an amusement with id==i
-    /// </summary>
-    public class ListOfAmusements
-    { //todo: nejspis by mela byt thread-safe
-        private List<Amusements> list;
-#warning overit, ze v count je opravdu spravne
-        public int count { get { return list.Count; } private set { } }
-        public ListOfAmusements()
-        {
-            list = new List<Amusements>();
-        }
-        public void Add(Amusements a)
-        {
-            if (a.id == list.Count) list.Add(a);
-            else throw new Exception("nesedi id a count v ListOfAmusements-Add()"); //todo: nemelo by se stavat, protoze by vzdy melo jit vytvorit jen jednu atrakci
-        }
-        public int ReturnFreeID()
-        {
-            return list.Count;
-        }
-        public void Remove(Amusements a)
-        {
-            Amusements b = list[list.Count - 1];
-            b.ChangeId(a.id);
-            list[a.id] = b;
-            list.RemoveAt(list.Count - 1);
-        }
-        public void ForeachAction()
-        {
-            foreach (Amusements a in list)
-            {
-                a.Action();
-            }
-        }
-
-    }
-
-    public class PersonList
-    {
-        private List<Person> list;
-        public void Action()
-        {
-            foreach (var p in list)
-            {
-                p.Action();//todo: casem idealne ve vice vlaknech
-            }
-        }
-        public void Demolish(int id)
-        {
-            Person p = list.Find(q => q.id == id);
-            p.Demolish();//todo: mozna v opacnem smeru, tj. list.demolish vola person.demolish
-            throw new NotImplementedException();
-        }
-        public void Add(Person p)
-        {
-            throw new NotImplementedException();
-        }
-        private int GetFreeID()
-        {
-            throw new NotImplementedException();
-        }
-
-    }
+    
 }

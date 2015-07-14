@@ -65,7 +65,7 @@ namespace LunaparkGame
     {
         
         public AmusementEnterPath(Model m, int x, int y) : base(m, x, y) { 
-            value=0;
+            price=0;
         }
         public override void Demolish()
         {
@@ -74,7 +74,7 @@ namespace LunaparkGame
     }
     public class AmusementExitPath : Path {
         public AmusementExitPath(Model m, int x, int y) : base(m, x, y) {
-            value = 0;
+            price = 0;
         }
         public override void Demolish()
         {
