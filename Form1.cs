@@ -23,7 +23,7 @@ namespace LunaparkGame
         PathForm pathform;
         Control map;
         Model model;      
-        bool DemolishOn=false;
+       
         private AmusementEnterPath aEnterHelp;
         private AmusementExitPath aExitHelp;
        
@@ -81,7 +81,7 @@ namespace LunaparkGame
         }
 
         private void map_Click(object sender, EventArgs e) {
-            if (!DemolishOn && model.lastClick!=null)
+            if (!model.demolishOn && model.lastClick!=null)
             {
                 MouseEventArgs mys = (MouseEventArgs)e;
                 int x = mys.X - mys.X % sizeOfSquare;

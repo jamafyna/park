@@ -15,6 +15,7 @@ namespace LunaparkGame
     {
         public MyDebugException() : base() { }
         public MyDebugException(string s) : base(s) { }
+        
     }
 
     public struct Coordinates
@@ -32,6 +33,7 @@ namespace LunaparkGame
         virtual protected int value { get; set; } //todo: This must be abstract!!!
 
         public MapObjects(Model m) {
+            control.Click += new EventHandler(Click);
             this.model = m;
             model.money -= this.value;
         }
@@ -44,7 +46,7 @@ namespace LunaparkGame
         /// <summary>
         /// user action
         /// </summary>
-        public abstract void Click();
+        protected abstract void Click(object sender, EventArgs e);
         /// <summary>
         /// user action
         /// </summary>
@@ -56,13 +58,14 @@ namespace LunaparkGame
 
     public abstract class Amusements : MapObjects,IActionable
     {
+        public enum Status { waitingForPeople, running, outOfService, runningOut }
         public int id { get; private set; }
         public AmusementEnterPath entrance { get; protected set; } //todo: je opravdu potreba protected, nestaci private nebo dokonce readonly?
         public AmusementExitPath exit { get; protected set; }
-        public int capacity { get; protected set; }
         protected Queue<Person> queue;
-        public bool hasEntranceExit { get; protected set; }
-        public int waitingPeopleCount
+        protected List<Person> peopleInList;
+        private Status status;
+        public int countOfWaitingPeople
         {
             get
             {
@@ -71,6 +74,18 @@ namespace LunaparkGame
             }
             private set { }
         }
+        protected int waitingTime = 0, actRunningTime;
+        public int visitPrice;
+        protected bool isRunningOut=false;
+        protected bool isRunning = false;
+        //-------popisove vlastnosti
+        public int capacity { get; protected set; }
+        public int workingPrice { get; protected set; }//provozniCena
+        protected int maxWaitingTime, fixedRunningTime;
+        public bool hasEntranceExit { get; protected set; }
+        protected readonly int initialVisitPrice;
+        protected int refundCoef;
+        //----------------------------
 
         public Amusements(Model m) :base(m)       
         {
@@ -83,21 +98,120 @@ namespace LunaparkGame
             model.mustBeEnter = true;
             this.id = model.amusList.ReturnFreeID();//mozna lepe nastavovat az pri pridani do listu
             model.amusList.Add(this);
+            peopleInList = new List<Person>(capacity);
             throw new NotImplementedException();   
         }
+        
         public override void Demolish()
         {
-            throw new NotImplementedException();
+            entrance.Demolish();
+            exit.Demolish();
+            model.money += refundCoef * value;//refund money
+        } 
+        
+        protected void PickUpPeople(int n) { //naloz lidi
+            Person p;           
+            for (int i = 1; i <= n; i++)
+            {
+                p = queue.Dequeue(); 
+                try //melo by jit jen o zbytecne ujisteni
+                {
+                    p.status = Person.Status.inAmus;
+                    peopleInList.Add(p);
+                    p.money -= this.visitPrice;              
+                    //todo: p.Zneviditelni();     Control.visible=false; - co takhle zde vytvorit metodu a pak predat delegata?              
+                }
+                catch (NullReferenceException e) {
+                    throw new MyDebugException("Not expected null in pickUpPeople: " + e.ToString());
+                }
+                catch (ArgumentNullException e) {
+                    throw new MyDebugException("Not expected null in pickUpPeople: " + e.ToString());
+                }
+            }
+            model.money += n * this.visitPrice;        
         }
-        public override void Click()
+        protected void DropPeopleOff(){
+            foreach (Person p in peopleInList)
+	        {
+		        p.status=Person.Status.choosesAmus;
+               //todo: p.coord=this.exit.coord;
+                //todo:clovek.Premisti(vystupX,vystupY);
+                //todo:clovek.Zviditelni();
+	        }
+            peopleInList.Clear();       
+        }
+        protected virtual void WaitingForPeopleAction() {
+            int temp = queue.Count;
+            if (temp >= 0.8 * capacity || (waitingTime >= maxWaitingTime && temp > 0))
+            {
+                waitingTime = 0;
+                actRunningTime = 0; //aktualni doba toceni atrakce
+                temp = Math.Min(temp, capacity);
+                PickUpPeople(temp); //vlozi lidi z fronty do atrakce, zmeni jim stav na VAtrakci a zneviditelni je
+                status = Status.running;
+                isRunning = true;
+            }
+            else waitingTime++;
+            model.money -= this.workingPrice; //provozni cena        
+        }
+        protected virtual void RunningAction() {
+            if (actRunningTime < fixedRunningTime) actRunningTime++;
+            else
+            {
+                DropPeopleOff();
+                if (isRunningOut) status = Status.runningOut;
+                else status = Status.waitingForPeople;
+                isRunning = false;
+                actRunningTime = 0;
+            }
+            model.money -= workingPrice;
+        }
+        protected virtual void RunningOutAction()
+        {//todo: neni lepsi, aby se lide cekajici ve fronte museli vratit? tj. nikdo dalsi se nesveze, snizi se spokojenost, ale asi neni proveditelne, protoze to pak lide stale mohou vybirat tuto atrakci
+            model.money -= workingPrice;
+            if (queue.Count == 0 && (!isRunning)) //!bezi-aby se nezmenilo, kdyz uzivatel klikne uprostred behu
+            {
+                status = Status.outOfService;
+                isRunningOut = false;
+            }
+            else
+            {
+                isRunningOut = true;
+                if (isRunning) status = Status.running;
+                else status = Status.waitingForPeople;             
+            }       
+        }
+        public virtual void Action() {
+            switch (status)
+            {
+                case Status.waitingForPeople: WaitingForPeopleAction();
+                    break;
+                case Status.running: RunningAction();
+                    break;
+                case Status.runningOut: RunningOutAction();
+                    break;
+                case Status.outOfService: //nothing
+                    break;
+                default:
+                    break;
+            }                     
+        }
+        public void QueuesPerson(Person p){
+            queue.Enqueue(p);  
+        }
+        public void DeletePersonFromQueue(Person p)
         {
-            throw new NotImplementedException();
+            Person q;
+            int c = queue.Count;
+            Person[] atemp = queue.ToArray();//due to keep queue in its original order
+            queue.Clear();           
+            for (int i = c; i >= 0; i--)
+			{
+                if ((q=atemp[i]) != p) queue.Enqueue(q);
+            }           
         }
-#warning opravdu abstract Action? Nemela by byt virtual a rovnou naimplementovana?
-        public virtual void Action() { throw new NotImplementedException(); }
         public void ChangeId(int id) { this.id = id; }
-        //hack: nezkontrolovano
-        public abstract bool CheckFreeLocation(int x, int y);
+        public abstract bool CheckFreeLocation(int x, int y);  //hack: nezkontrolovano
         protected virtual bool CheckFreeLocation(int x, int y, byte width, byte height,bool hasEntranceAndExit=true) { 
             if (x + width > model.map.Length || y + height > model.map[0].Length) return false;
             for (int i = x; i < width; i++)
@@ -165,7 +279,27 @@ namespace LunaparkGame
         /// create an Item in AtrakceForm and set it (e.g. set visible=false)
         /// </summary>
         //  public abstract static void Initialize();
-
+        protected override void Click(object sender, EventArgs e)
+        {
+           // if (!zacatek)
+          //  {
+                if (model.demolishOn)
+                {
+                    if (status == Status.outOfService)
+                    {
+                        Demolish();
+                        model.lastClick = null; //v tomto se lisi od funkce predka; v pripade, ze se nejprve rusil vstup a pak atrakce
+                    }
+                    else
+                    {  //todo: MessageBox.Show("Nelze zbořit, dokud atrakce běží.", "Upozornění", MessageBoxButtons.OK);
+                    }
+                }
+                else
+                {
+                    // todo: HlaskaPoKliknuti();
+                }
+           // }
+        }
 
     }
     public abstract class SquareAmusements : Amusements
@@ -235,9 +369,15 @@ namespace LunaparkGame
 
     public class Person : MapObjects,IActionable
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
+        public enum Status { walking, onCrossroad, inAmusQueue, inAmus,choosesAmus, end, initialWalking  }
+        public int money;
+        public Coordinates coord;
         public int id { get; private set; }
-        public Person(Model m) : base(m) { }
-        public override void Click()
+        public Status status { set; private get; }
+        public Person(Model m) : base(m) {
+            //must set money
+        }
+        protected override void Click(object sender, EventArgs e)
         {
             throw new NotImplementedException();
         }
@@ -264,7 +404,8 @@ namespace LunaparkGame
             throw new NotImplementedException();
         }
 
-        public override void Click() {
+        protected override void Click(object sender, EventArgs e)
+        {
             //nothing
         }
        

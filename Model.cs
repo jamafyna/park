@@ -21,6 +21,7 @@ namespace LunaparkGame
         public MapObjects lastClick { set; get; }
         public bool mustBeEnter = false;
         public bool mustBeExit = false;
+        public bool demolishOn = false;
         public int money;
         
         
