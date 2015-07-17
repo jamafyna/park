@@ -430,7 +430,13 @@ namespace LunaparkGame
 
     public abstract class Path : MapObjects
     {
-        public Path(Model m, int x, int y) : base(m) { }
+        public Direction[] signpostAmus;//rozcestnik
+        public Path(Model m, int x, int y) : base(m) { 
+            signpostAmus=new Direction[m.maxAmusementsCount];
+            //todo: mozna neni treba, overit
+            for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
+          
+        }
         public override bool Create(int x, int y) {
             throw new NotImplementedException();
         }

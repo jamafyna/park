@@ -128,17 +128,17 @@ namespace LunaparkGame
     public class Map: IActionable 
     {
         private bool[][] isFree;
-        private Path[][] paths;
+      //  private Path[][] paths;
         private Direction[][][] path;
         private bool pathChanged = false;//,amusDeleted = false;
         private int amusDeletedId = -1;
-        private byte width, height;
+        private byte widthMap, heightMap;
         private int maxAmusCount;
         
 
         public Map(byte width, byte height, int maxAmusCount) {
-            this.width = width;
-            this.height = height;
+            this.widthMap = width;
+            this.heightMap = height;
             this.maxAmusCount = maxAmusCount;
             //----initialize isFree
             isFree = new bool[width][];
@@ -148,8 +148,8 @@ namespace LunaparkGame
                 for (int j = 0; j < height; j++) isFree[i][j] = true;
             }
             //----initialize paths
-            paths=new Path[width][];
-            for (int i = 0; i < width; i++) paths[i] = new Path[height]; 
+          /*  paths=new Path[width][];
+            for (int i = 0; i < width; i++) paths[i] = new Path[height]; */
             //----initialize path
             path = new Direction[width][][];
             for (int i = 0; i < width; i++) path[i] = new Direction[height][];
@@ -175,9 +175,9 @@ namespace LunaparkGame
         public void DeleteDirectionToAmusement(int amusId)//mozna nebude treba, principialne neni spatne, kdyz jde clovek dal
         {
             Direction[] temp;
-            for (int i = 0; i < width; i++)
+            for (int i = 0; i < widthMap; i++)
             {
-                for (int j = 0; j < height; j++)
+                for (int j = 0; j < heightMap; j++)
                     if ((temp = path[i][j]) != null) temp[amusId] = Direction.no;
             }
             amusDeletedId = -1;
@@ -204,6 +204,103 @@ namespace LunaparkGame
             if (pathChanged) UpdatePathsDirection();
         }
         
+    }
+    static class UrceniSmeruCesty ///spocte vzdalenost vsech chodniku k dane atrakci
+    {
+
+        //spocte vzdalenost od vstupu dane atrakce ke vsem chodnikum, vlna, a vsem chodnikum nastavi smer nejkratsi cesty k atrakci
+        public static void spoctiVzdalenostOdAtrakce(int idAtrakce, int xAtrakce, int yAtrakce, int vyska, int sirka, IntSmer[,] JsouChodniky, Mapa mapaChodniku)
+        {
+            int sxA = xAtrakce / Program.sizeOfSquare; //indexy pocatecniho policka-vstupu atrakce
+            int syA = yAtrakce / Program.sizeOfSquare;
+            Fronta<PrvekFronty> fronta = new Fronta<PrvekFronty>(sirka * vyska + 5);
+            PocatecniVlozeni(sxA, syA, fronta, JsouChodniky); //kvuli brane - ta muze mit sousedni policko mimo mapu
+            while (!fronta.Prazdna())
+            {
+                PrvekFronty prvek = fronta.VratPrvek();
+                //prohlednuti sousedu a prip. pridani do fronty
+                //okrajova policka nevadi, nebot na okrajich je plot, tj -1
+                //Smer je zrcadlove, z pohledu cloveka je to totiz obracene, tj. z pohledu cloveka takto spravne
+                if (NeighbourAction(JsouChodniky, prvek.sx, prvek.sy + 1, prvek.pocetKroku, fronta))
+                    JsouChodniky[prvek.sx, prvek.sy + 1].smer = Direction.N;
+                if (NeighbourAction(JsouChodniky, prvek.sx, prvek.sy - 1, prvek.pocetKroku, fronta))
+                    JsouChodniky[prvek.sx, prvek.sy - 1].smer = Direction.S;
+                if (NeighbourAction(JsouChodniky, prvek.sx + 1, prvek.sy, prvek.pocetKroku, fronta))
+                    JsouChodniky[prvek.sx + 1, prvek.sy].smer = Direction.W;
+                if ((prvek.sx - 1 >= 0) && NeighbourAction(JsouChodniky, prvek.sx - 1, prvek.sy, prvek.pocetKroku, fronta))
+                    JsouChodniky[prvek.sx - 1, prvek.sy].smer = Direction.E;
+            }
+            ZaznamenejDoMapy(vyska, sirka, idAtrakce, JsouChodniky, mapaChodniku);
+            NastavHodnotyZpet(vyska, sirka, JsouChodniky, xAtrakce, yAtrakce);
+        }
+
+        //vlozi do fronty sousedy startovniho policka (vstup atrakce), v pripade vseho jineho nez brany jsou az 4, v pripade brany prave 1
+        private static void PocatecniVlozeni(int sxA, int syA, Fronta<PrvekFronty> fronta, IntSmer[,] JsouChodniky)
+        {
+            JsouChodniky[sxA, syA].cislo = 0;
+
+            if ((sxA - 1 >= 0) && (NeighbourAction(JsouChodniky, sxA - 1, syA, 1, fronta))) //&& funguje tak, ze se nevyhodnocuje druha cast podminky, pokud je prvni nesplnena, tj. nevadi takovyto zapis
+            {
+                JsouChodniky[sxA - 1, syA].smer = Direction.E;
+
+            }
+            if (NeighbourAction(JsouChodniky, sxA, syA - 1, 1, fronta))
+            {
+                JsouChodniky[sxA, syA - 1].smer = Direction.S;
+
+            }
+            if (NeighbourAction(JsouChodniky, sxA, syA + 1, 1, fronta))
+            {
+                JsouChodniky[sxA, syA + 1].smer = Direction.N;
+
+            }
+            if (NeighbourAction(JsouChodniky, sxA + 1, syA, 1, fronta))
+            {
+                JsouChodniky[sxA + 1, syA].smer = Direction.W;
+
+            }
+        }
+
+
+
+        private static bool NeighbourAction(Direction[][][] paths, int i, int j, int pocetKroku, Fronta<PrvekFronty> fronta)
+        {
+            if (paths[i, j].cislo == int.MaxValue) //tzn. je zde chodnik (kdyby nebyl, je -1) a nebyl jeste projit
+            {
+                PrvekFronty objekt = new PrvekFronty(i, j, pocetKroku + 1);
+                fronta.Vloz(objekt);
+                paths[i, j].cislo = pocetKroku;
+                return true;
+            }
+            else return false;
+        }
+        //prochazi pole a zaznamenat do mapy chodniku a atrakci
+        private static void ZaznamenejDoMapy(int vyska, int sirka, int id, IntSmer[,] JsouChodniky, Mapa MapaChodniku)
+        {
+            for (int i = 0; i < sirka; i++)
+            {
+                for (int j = 0; j < vyska; j++)
+                {
+                    MapaChodniku.uloz Smer(i, j, id, JsouChodniky[i, j].smer);
+                }
+            }
+        }
+        //upravuje zpet pole
+        private static void NastavHodnotyZpet(int vyska, int sirka, IntSmer[,] JsouChodniky, int xAtrakce, int yAtrakce)
+        {
+            for (int i = 0; i < sirka; i++)
+            {
+                for (int j = 0; j < vyska; j++)
+                {
+                    if (JsouChodniky[i, j].cislo >= 0)//resp. je !=-1
+                    {
+                        JsouChodniky[i, j].cislo = int.MaxValue;
+                        JsouChodniky[i, j].smer = Direction.no; //dulezite, pokud bych nenastavila, tak napr. pokud k dalsi atrakci nevede cesta, zustal by nastaven smer z predchozi - proto chodili jen na nejnovejsi
+                    }
+                }
+            }
+        }
+
     }
 
 
