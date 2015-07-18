@@ -15,6 +15,7 @@ namespace LunaparkGame
         public Queue<Control> dirtyDestruct;//pouze pbox.Destruct, mozna jen zadat souradnice
         public ListOfAmusements amusList;
         public PersonList persList = new PersonList();
+        public Map maps;
         //todo: ostatni user akce - kliky a formy...
         public int[][] map;//todo: zvazit, zda ne jen bool
         public Amusements lastBuiltAmus;
@@ -26,7 +27,7 @@ namespace LunaparkGame
         public readonly int maxAmusementsCount;
         
         
-        public Model(int height, int width){
+        public Model(byte height, byte width){
             this.height=height;
             this.width=width;
             money = initialMoney;
@@ -35,6 +36,7 @@ namespace LunaparkGame
             for (int i = 0; i < width; i++) map[i] = new int[height];
             maxAmusementsCount = height * width;
             amusList = new ListOfAmusements(maxAmusementsCount);
+            maps=new Map(width,height,this);
         }
         
        
@@ -97,6 +99,11 @@ namespace LunaparkGame
         public Coordinates GetGateCoordinate() {
             return list[0].coord;       
         }
+        public Amusements[] GetCopyArray() { 
+            Amusements[] a=new Amusements[list.Count];
+            list.CopyTo(a);
+            return a;
+        }
     }
 
     public class PersonList
@@ -127,181 +134,245 @@ namespace LunaparkGame
     }
     public class Map: IActionable 
     {
-        private bool[][] isFree;
-      //  private Path[][] paths;
-        private Direction[][][] path;
-        private bool pathChanged = false;//,amusDeleted = false;
+        //private bool[][] isFree;
+        class DirectionItem {
+            public Direction dir;
+            public readonly Coordinates c;
+            public DirectionItem(Coordinates c){
+                this.c = c;
+                dir = Direction.no; 
+            }       
+        }
+
+        private DirectionItem[][] auxPathMap;//null = there isnt path
+        private MapObjects[][] objectsInMapSquares;
+        private Amusements[][] amusementMap;
+        private Path[][] pathMap;
+        private Model model;
+        private Queue<Amusements> lastAddedAmus=new Queue<Amusements>();
+
+       // private Direction[][][] path;
+        private bool pathChanged = false, amusAdd=false;//,amusDeleted = false;
         private int amusDeletedId = -1;
         private byte widthMap, heightMap;
         private int maxAmusCount;
         
 
-        public Map(byte width, byte height, int maxAmusCount) {
+        public Map(byte width, byte height, Model m) {
             this.widthMap = width;
             this.heightMap = height;
-            this.maxAmusCount = maxAmusCount;
-            //----initialize isFree
+            this.maxAmusCount = model.maxAmusementsCount;
+            this.model = m;
+           
+            /*//----initialize isFree
             isFree = new bool[width][];
             for (int i = 0; i < width; i++) isFree[i] = new bool[height];
             for (int i = 0; i < width; i++)
             {
                 for (int j = 0; j < height; j++) isFree[i][j] = true;
             }
-            //----initialize paths
-          /*  paths=new Path[width][];
-            for (int i = 0; i < width; i++) paths[i] = new Path[height]; */
+         
             //----initialize path
             path = new Direction[width][][];
             for (int i = 0; i < width; i++) path[i] = new Direction[height][];
-            /*for (int i = 0; i < width; i++)//nechci, chci aby byl null, kde neni chodnik
+            for (int i = 0; i < width; i++)//nechci, chci aby byl null, kde neni chodnik
             {
                 for (int j = 0; j < height; j++)
                 {
                     path[i][j]=new Direction[maxAmusCount];//hash:zkontrolovat, jestli opravdu .no je inicialni
                 }
-            } */        
+            }   */
+      
+            //---initialize helpPath
+            auxPathMap=new DirectionItem[width][];
+            for (int i = 0; i < width; i++)  auxPathMap[i] = new DirectionItem[height];
+           
+            //---initialize objectsInMap
+            objectsInMapSquares=new MapObjects[width][];
+            for (int i = 0; i < width; i++) objectsInMapSquares[i] = new MapObjects[height];
+            
         }
-        public void RemoveAmus(Amusements a) {
+        public bool isFree(Coordinates c){
+            if (objectsInMapSquares[c.x][c.y] == null) return true;
+            else return false;
+        /*    if (amusementMap[c.x][c.y] == null && pathMap[c.x][c.y] == null) return true;
+            else return false;*/
+        }
+        public void RemoveAmus(Amusements a) {          
+            foreach (var c in a.GetAllPoints()) objectsInMapSquares[c.x][c.y] = null;
             amusDeletedId = a.id;
-            foreach (var c in a.GetAllPoints()) isFree[c.x][c.y] = true;
           /*  if (a.entrance != null) { isFree[a.entrance.coord.x][a.entrance.coord.y]=true;}//mel by udelat chodnik
             if (a.exit != null) { isFree[a.entrance.coord.x][a.entrance.coord.y] = true; }*/
         }
         public void AddAmus(Amusements a) {
-            foreach (var c in a.GetAllPoints()) isFree[c.x][c.y] = false;
-           /* if (a.entrance != null) { isFree[a.entrance.coord.x][a.entrance.coord.y] = true; }
-            if (a.exit != null) { isFree[a.entrance.coord.x][a.entrance.coord.y] = true; }*/
+            
+            foreach (var c in a.GetAllPoints()) objectsInMapSquares[c.x][c.y] = a;
+            if (a.entrance != null) { 
+                objectsInMapSquares[a.entrance.coord.x][a.entrance.coord.y] = a.entrance; 
+                //not add to auxPathMap, because I want to people can't go over entrance
+            }
+            if (a.exit != null) {
+                objectsInMapSquares[a.exit.coord.x][a.exit.coord.y] = a.exit;
+                auxPathMap[a.exit.coord.x][a.exit.coord.y] = new DirectionItem(a.exit.coord);
+            }
+            amusAdd = true;
+            lastAddedAmus.Enqueue(a);
         }
         public void DeleteDirectionToAmusement(int amusId)//mozna nebude treba, principialne neni spatne, kdyz jde clovek dal
         {
-            Direction[] temp;
+           /* Direction[] temp;
+            
             for (int i = 0; i < widthMap; i++)
             {
                 for (int j = 0; j < heightMap; j++)
                     if ((temp = path[i][j]) != null) temp[amusId] = Direction.no;
             }
+           */
+            Path p;
+            for (int i = 0; i < widthMap; i++) 
+                for (int j = 0; j < heightMap; j++)
+                { 
+                    p=objectsInMapSquares[i][j] as Path;
+                    if (p!=null) p.signpostAmus[amusId] = Direction.no;
+                }
             amusDeletedId = -1;
         }
 
         public void AddPath(Path p) { 
-            path[p.coord.x][p.coord.y]=new Direction[maxAmusCount];
+            /*path[p.coord.x][p.coord.y]=new Direction[maxAmusCount];
             isFree[p.coord.x][p.coord.y] = false;
+            pathChanged = true;*/
+
+            objectsInMapSquares[p.coord.x][p.coord.y] = p;
+            auxPathMap[p.coord.x][p.coord.y] = new DirectionItem(p.coord);
             pathChanged = true;
         }
         public void RemovePath(Path p) {
-            path[p.coord.x][p.coord.y] = null;
+           /* path[p.coord.x][p.coord.y] = null;
             isFree[p.coord.x][p.coord.y] = true;
             pathChanged = true;
+            */
+            objectsInMapSquares[p.coord.x][p.coord.y] = null;
+            auxPathMap[p.coord.x][p.coord.y] = null;
+            pathChanged = true;
         }
-        public void UpdateDirectionToAmusement(int amusId) {           
-             throw new NotImplementedException();       
-        }
-        public void UpdatePathsDirection() {
-            throw new NotImplementedException();
-        }
-        public void Action() {
-            if (amusDeletedId >= 0) {DeleteDirectionToAmusement(amusDeletedId);}
-            if (pathChanged) UpdatePathsDirection();
-        }
-        
-    }
-    static class UrceniSmeruCesty ///spocte vzdalenost vsech chodniku k dane atrakci
-    {
-
-        //spocte vzdalenost od vstupu dane atrakce ke vsem chodnikum, vlna, a vsem chodnikum nastavi smer nejkratsi cesty k atrakci
-        public static void spoctiVzdalenostOdAtrakce(int idAtrakce, int xAtrakce, int yAtrakce, int vyska, int sirka, IntSmer[,] JsouChodniky, Mapa mapaChodniku)
-        {
-            int sxA = xAtrakce / Program.sizeOfSquare; //indexy pocatecniho policka-vstupu atrakce
-            int syA = yAtrakce / Program.sizeOfSquare;
-            Fronta<PrvekFronty> fronta = new Fronta<PrvekFronty>(sirka * vyska + 5);
-            PocatecniVlozeni(sxA, syA, fronta, JsouChodniky); //kvuli brane - ta muze mit sousedni policko mimo mapu
-            while (!fronta.Prazdna())
+        private void UpdateDirectionToAmusementPrivate(Amusements a,Queue<DirectionItem> queue, DirectionItem[][] paths) {
+            DirectionItem item;
+            InitializeQueue(queue, a.entrance.coord, paths);
+            while (queue.Count != 0)
             {
-                PrvekFronty prvek = fronta.VratPrvek();
-                //prohlednuti sousedu a prip. pridani do fronty
-                //okrajova policka nevadi, nebot na okrajich je plot, tj -1
-                //Smer je zrcadlove, z pohledu cloveka je to totiz obracene, tj. z pohledu cloveka takto spravne
-                if (NeighbourAction(JsouChodniky, prvek.sx, prvek.sy + 1, prvek.pocetKroku, fronta))
-                    JsouChodniky[prvek.sx, prvek.sy + 1].smer = Direction.N;
-                if (NeighbourAction(JsouChodniky, prvek.sx, prvek.sy - 1, prvek.pocetKroku, fronta))
-                    JsouChodniky[prvek.sx, prvek.sy - 1].smer = Direction.S;
-                if (NeighbourAction(JsouChodniky, prvek.sx + 1, prvek.sy, prvek.pocetKroku, fronta))
-                    JsouChodniky[prvek.sx + 1, prvek.sy].smer = Direction.W;
-                if ((prvek.sx - 1 >= 0) && NeighbourAction(JsouChodniky, prvek.sx - 1, prvek.sy, prvek.pocetKroku, fronta))
-                    JsouChodniky[prvek.sx - 1, prvek.sy].smer = Direction.E;
+                item = queue.Dequeue();
+                ProcessQueueItem(item.c, queue, paths);
             }
-            ZaznamenejDoMapy(vyska, sirka, idAtrakce, JsouChodniky, mapaChodniku);
-            NastavHodnotyZpet(vyska, sirka, JsouChodniky, xAtrakce, yAtrakce);
-        }
-
-        //vlozi do fronty sousedy startovniho policka (vstup atrakce), v pripade vseho jineho nez brany jsou az 4, v pripade brany prave 1
-        private static void PocatecniVlozeni(int sxA, int syA, Fronta<PrvekFronty> fronta, IntSmer[,] JsouChodniky)
-        {
-            JsouChodniky[sxA, syA].cislo = 0;
-
-            if ((sxA - 1 >= 0) && (NeighbourAction(JsouChodniky, sxA - 1, syA, 1, fronta))) //&& funguje tak, ze se nevyhodnocuje druha cast podminky, pokud je prvni nesplnena, tj. nevadi takovyto zapis
+            //---set calculated directions
+            //hash: takto divne kvuli vice vlaknum
+            MapObjects p;
+            for (int i = 0; i < widthMap; i++)
             {
-                JsouChodniky[sxA - 1, syA].smer = Direction.E;
-
-            }
-            if (NeighbourAction(JsouChodniky, sxA, syA - 1, 1, fronta))
-            {
-                JsouChodniky[sxA, syA - 1].smer = Direction.S;
-
-            }
-            if (NeighbourAction(JsouChodniky, sxA, syA + 1, 1, fronta))
-            {
-                JsouChodniky[sxA, syA + 1].smer = Direction.N;
-
-            }
-            if (NeighbourAction(JsouChodniky, sxA + 1, syA, 1, fronta))
-            {
-                JsouChodniky[sxA + 1, syA].smer = Direction.W;
-
-            }
-        }
-
-
-
-        private static bool NeighbourAction(Direction[][][] paths, int i, int j, int pocetKroku, Fronta<PrvekFronty> fronta)
-        {
-            if (paths[i, j].cislo == int.MaxValue) //tzn. je zde chodnik (kdyby nebyl, je -1) a nebyl jeste projit
-            {
-                PrvekFronty objekt = new PrvekFronty(i, j, pocetKroku + 1);
-                fronta.Vloz(objekt);
-                paths[i, j].cislo = pocetKroku;
-                return true;
-            }
-            else return false;
-        }
-        //prochazi pole a zaznamenat do mapy chodniku a atrakci
-        private static void ZaznamenejDoMapy(int vyska, int sirka, int id, IntSmer[,] JsouChodniky, Mapa MapaChodniku)
-        {
-            for (int i = 0; i < sirka; i++)
-            {
-                for (int j = 0; j < vyska; j++)
+                for (int j = 0; j < heightMap; i++)
                 {
-                    MapaChodniku.uloz Smer(i, j, id, JsouChodniky[i, j].smer);
-                }
-            }
-        }
-        //upravuje zpet pole
-        private static void NastavHodnotyZpet(int vyska, int sirka, IntSmer[,] JsouChodniky, int xAtrakce, int yAtrakce)
-        {
-            for (int i = 0; i < sirka; i++)
-            {
-                for (int j = 0; j < vyska; j++)
-                {
-                    if (JsouChodniky[i, j].cislo >= 0)//resp. je !=-1
+                    if ((item = paths[i][j]) != null && (p = objectsInMapSquares[i][j]) is Path)
                     {
-                        JsouChodniky[i, j].cislo = int.MaxValue;
-                        JsouChodniky[i, j].smer = Direction.no; //dulezite, pokud bych nenastavila, tak napr. pokud k dalsi atrakci nevede cesta, zustal by nastaven smer z predchozi - proto chodili jen na nejnovejsi
+                        ((Path)p).signpostAmus[a.id] = item.dir;
                     }
                 }
             }
+            
+        
         }
+        public void UpdateDirectionToAmusement(Amusements a) {
+            Queue<DirectionItem> queue = new Queue<DirectionItem>(widthMap*heightMap+5);
+            DirectionItem[][] paths=(DirectionItem[][])auxPathMap.Clone();
+            UpdateDirectionToAmusementPrivate(a,queue,paths);      
+        }
+        public void UpdateDirections()
+        {
+            Amusements[] amusA = model.amusList.GetCopyArray();
+            DirectionItem[][] paths = (DirectionItem[][])auxPathMap.Clone();
+            Queue<DirectionItem> queue = new Queue<DirectionItem>();
+            foreach (var a in amusA)
+            {
+                UpdateDirectionToAmusementPrivate(a,queue,paths);
+                queue.Clear();
+                for (int i = 0; i < widthMap; i++)
+                    for (int j = 0; j < heightMap; j++)                 
+                        if (paths[i][j] != null) paths[i][j].dir = Direction.no;                
+            }
+        }
+        
+        private void InitializeQueue(Queue<DirectionItem> queue, Coordinates start, DirectionItem[][] paths) {
+            //paths[start.x][start.y].dir = Direction.here; ...null - people can't go over entrance
+            DirectionItem aux;
+            if ((start.x - 1 >= 0) && (aux=paths[start.x - 1][start.y]) != null) {             
+                aux.dir= Direction.E;
+                queue.Enqueue(aux);
+            }
+            if ((aux=paths[start.x][start.y-1]) != null){
+                aux.dir = Direction.S;
+                queue.Enqueue(aux);
+            }
+            if ((aux = paths[start.x][start.y + 1]) != null){
+                aux.dir = Direction.N;
+                queue.Enqueue(aux);
+            }
+            if ((aux = paths[start.x+1][start.y]) != null){
+                aux.dir = Direction.W;
+                queue.Enqueue(aux);
+            }
+        
+        }
+        /// <summary>
+        /// analyse item's neighbours, eventually enque them and set them right direction
+        /// </summary>
+        /// <param name="item">coordinates of queue item which is analysed</param>
+        /// <param name="queue">queue which realise BFS</param>
+        /// <param name="paths">a copy of auxPathMap </param>
+        private void ProcessQueueItem(Coordinates item, Queue<DirectionItem> queue, DirectionItem[][] paths)
+        {
+            //border fields (except the gate) don't matter because there is a fence (i.e. null) around the playing map
+            //direction is set the other way around because it is correct from a person perspective.
 
+            DirectionItem aux;
+            if ((item.x - 1 >= 0) && (aux = paths[item.x - 1][item.y]) != null && aux.dir==Direction.no) //item.x-1>=0 due to the gate
+            {
+                aux.dir = Direction.E;
+                queue.Enqueue(aux);
+            }
+            if ((aux = paths[item.x][item.y - 1]) != null && aux.dir == Direction.no)
+            {
+                aux.dir = Direction.S;
+                queue.Enqueue(aux);
+            }
+            if ((aux = paths[item.x][item.y + 1]) != null && aux.dir == Direction.no)
+            {
+                aux.dir = Direction.N;
+                queue.Enqueue(aux);
+            }
+            if ((aux = paths[item.x + 1][item.y]) != null && aux.dir == Direction.no)
+            {
+                aux.dir = Direction.W;
+                queue.Enqueue(aux);
+            }       
+        }      
+        public void Action() {
+
+            if (pathChanged) { pathChanged = false; UpdateDirections(); }
+            else
+            {
+                if (lastAddedAmus.Count > 0)
+                {
+                    Amusements[] a = new Amusements[lastAddedAmus.Count];
+                    lastAddedAmus.CopyTo(a, 0);
+                    lastAddedAmus.Clear();
+                    foreach (var item in a)
+                    {
+                        UpdateDirectionToAmusement(item);
+                    }
+                }
+                if (amusDeletedId >= 0) { DeleteDirectionToAmusement(amusDeletedId); }
+            }
+        }
+        
     }
-
-
+    
 }

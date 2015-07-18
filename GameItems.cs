@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace LunaparkGame
 {
-    public enum Direction {no, N, S, W, E };
+    public enum Direction { no, here, N, S, W, E };
    
     public interface IActionable {
         void Action();    
