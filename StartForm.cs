@@ -12,15 +12,15 @@ namespace LunaparkGame
 {
     public partial class StartForm : Form
     {
-        private const int width1=10;
-        private const int height1 = 10;
-        private const int width2 = 10;
-        private const int height2 = 20;
-        private const int width3 = 15;
-        private const int height3 = 15;
+        private const byte width1 = 10;
+        private const byte height1 = 10;
+        private const byte width2 = 10;
+        private const byte height2 = 20;
+        private const byte width3 = 15;
+        private const byte height3 = 15;
 
-        public int width {get;private set;}
-        public int height{get;private set;}
+        public byte width {get;private set;}
+        public byte height{get;private set;}
         public StartForm()
         {
             InitializeComponent();

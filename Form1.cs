@@ -31,7 +31,7 @@ namespace LunaparkGame
      /*   public MainForm() {
             InitializeComponent();
         }*/
-        public MainForm(int width, int height)
+        public MainForm(byte width, byte height)
         {
             InitializeComponent();
             IsMdiContainer = true;
@@ -84,8 +84,8 @@ namespace LunaparkGame
             if (!model.demolishOn && model.lastClick!=null)
             {
                 MouseEventArgs mys = (MouseEventArgs)e;
-                int x = mys.X - mys.X % sizeOfSquare;
-                int y = mys.Y - mys.Y % sizeOfSquare;
+                byte x = (byte)(mys.X - mys.X % sizeOfSquare);
+                byte y = (byte)(mys.Y - mys.Y % sizeOfSquare);
                // System.Drawing.Point loc = mys.Location;
 
                 //todo: kontrola na co vse mohl uzivatel kliknout, nejspise poslat udalost do modelu spolu se souradnicemi

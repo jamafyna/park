@@ -10,14 +10,13 @@ namespace LunaparkGame
     public class Model //todo: Mozna nahradit Evidenci modelem, aby se musela synchronizovat jen jedna vec
     {
         private const int initialMoney = 1;
-        public readonly int width=10,height=15;
+        public readonly int width = 10, height = 15; //todo: virtual metoda u atrakci pocita s tim, ze jsou to ty viditelne uzivatelem
         public Queue<MapObjects> dirtyNew;
         public Queue<Control> dirtyDestruct;//pouze pbox.Destruct, mozna jen zadat souradnice
         public ListOfAmusements amusList;
         public PersonList persList = new PersonList();
         public Map maps;
         //todo: ostatni user akce - kliky a formy...
-        public int[][] map;//todo: zvazit, zda ne jen bool
         public Amusements lastBuiltAmus;
         public MapObjects lastClick { set; get; }
         public bool mustBeEnter = false;
@@ -31,10 +30,8 @@ namespace LunaparkGame
             this.height=height;
             this.width=width;
             money = initialMoney;
-            //---inicializace mapy - 0 prazdne, -1 chodnik, ostatni id atrakce
-            map=new int[width][];
-            for (int i = 0; i < width; i++) map[i] = new int[height];
-            maxAmusementsCount = height * width;
+           
+            maxAmusementsCount = height * width+1;//todo: pokud zde bude uz myslenkove height+2, upravit, ale nezapomenout na +1 za branu
             amusList = new ListOfAmusements(maxAmusementsCount);
             maps=new Map(width,height,this);
         }
@@ -119,7 +116,7 @@ namespace LunaparkGame
         public void Demolish(int id)
         {
             Person p = list.Find(q => q.id == id);
-            p.Demolish();//todo: mozna v opacnem smeru, tj. list.demolish vola person.demolish
+            p.Destruct();//todo: mozna v opacnem smeru, tj. list.demolish vola person.demolish
             throw new NotImplementedException();
         }
         public void Add(Person p)
@@ -154,15 +151,17 @@ namespace LunaparkGame
        // private Direction[][][] path;
         private bool pathChanged = false, amusAdd=false;//,amusDeleted = false;
         private int amusDeletedId = -1;
-        private byte widthMap, heightMap;
+        public byte widthMap { get; private set; }
+        public byte heightMap{get;private set;}
         private int maxAmusCount;
         
 
         public Map(byte width, byte height, Model m) {
             this.widthMap = width;
             this.heightMap = height;
-            this.maxAmusCount = model.maxAmusementsCount;
             this.model = m;
+            this.maxAmusCount = model.maxAmusementsCount;
+            
            
             /*//----initialize isFree
             isFree = new bool[width][];
@@ -192,6 +191,11 @@ namespace LunaparkGame
             for (int i = 0; i < width; i++) objectsInMapSquares[i] = new MapObjects[height];
             
         }
+#warning isFree metody jsou 2
+        public bool isFree(byte x, byte y) {
+            if (objectsInMapSquares[x][y] == null) return true;
+            else return false;
+        }
         public bool isFree(Coordinates c){
             if (objectsInMapSquares[c.x][c.y] == null) return true;
             else return false;
@@ -207,13 +211,17 @@ namespace LunaparkGame
         public void AddAmus(Amusements a) {
             
             foreach (var c in a.GetAllPoints()) objectsInMapSquares[c.x][c.y] = a;
-            if (a.entrance != null) { 
-                objectsInMapSquares[a.entrance.coord.x][a.entrance.coord.y] = a.entrance; 
-                //not add to auxPathMap, because I want to people can't go over entrance
-            }
-            if (a.exit != null) {
+            try
+            {
+                objectsInMapSquares[a.entrance.coord.x][a.entrance.coord.y] = a.entrance;
+                //not add to auxPathMap, because I want to people can't go over entrance               
                 objectsInMapSquares[a.exit.coord.x][a.exit.coord.y] = a.exit;
                 auxPathMap[a.exit.coord.x][a.exit.coord.y] = new DirectionItem(a.exit.coord);
+
+            }
+            catch (NullReferenceException e)
+            {
+                throw new MyDebugException("Entry or exit is null in AddAmus" + e.ToString());
             }
             amusAdd = true;
             lastAddedAmus.Enqueue(a);

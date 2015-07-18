@@ -33,10 +33,15 @@ namespace LunaparkGame
         public Control control { get; set; } //picture
         virtual protected int price { get; set; } //todo: This must be abstract!!!
 
-        public MapObjects(Model m) {
+        protected MapObjects(Model m) {
+            this.model = m;
+        }
+        public MapObjects(Model m,Coordinates coord)
+        {
             control.Click += new EventHandler(Click);
             this.model = m;
             model.money -= this.price;
+            this.coord = coord;
         }
         /// <summary>
         /// Create an instance and show it in the game map
@@ -51,7 +56,7 @@ namespace LunaparkGame
         /// <summary>
         /// user action
         /// </summary>
-        public abstract void Demolish();
+        public abstract void Destruct();
         
 
 
@@ -66,7 +71,7 @@ namespace LunaparkGame
         public AmusementExitPath exit { get; protected set; }
         protected Queue<Person> queue;
         protected List<Person> peopleInList;
-        private Status status;
+        private Status status=Status.outOfService;
         public int countOfWaitingPeople
         {
             get
@@ -90,19 +95,17 @@ namespace LunaparkGame
         //----------------------------
         #endregion
 
-        public Amusements(Model m) :base(m)       
-        {
-            throw new NotImplementedException();   
-        }
-        public Amusements(Coordinates coord, Model m) :base(m)       
+         public Amusements( Model m, Coordinates c) :base(m,c)       
         {
             model.lastBuiltAmus = this;                 
             model.mustBeEnter = true;
             this.id = model.amusList.ReturnFreeID();//mozna lepe nastavovat az pri pridani do listu
-            model.amusList.Add(this);
+           
             peopleInList = new List<Person>(capacity);
             queue = new Queue<Person>();
             this.coord = coord;
+            model.amusList.Add(this);
+            model.maps.AddAmus(this);
             //todo: dodelat
                        
            // mimoProvoz = true;
@@ -111,12 +114,13 @@ namespace LunaparkGame
            // stav = Stav.mimoProvoz;
         }
         
-        public override void Demolish()
+        public override void Destruct()
         {
-            entrance.Demolish();
-            exit.Demolish();
+            entrance.Destruct();
+            exit.Destruct();
             model.money += refundCoef * price;//refund money
             model.amusList.Remove(this);
+            model.maps.RemoveAmus(this);
             //todo:odstranit z mapy
         } 
         
@@ -222,26 +226,26 @@ namespace LunaparkGame
             }           
         }
         public void ChangeId(int id) { this.id = id; }
-        public abstract bool CheckFreeLocation(int x, int y);  //hack: nezkontrolovano
-        protected virtual bool CheckFreeLocation(int x, int y, byte width, byte height,bool hasEntranceAndExit=true) { 
-            if (x + width > model.map.Length || y + height > model.map[0].Length) return false;
-            for (int i = x; i < width; i++)
+        public abstract bool CheckFreeLocation(byte x,byte y);  //hack: nezkontrolovano
+        protected virtual bool CheckFreeLocation(byte x,byte y, byte width, byte height,bool hasEntranceAndExit=true) { 
+            if (x + width > model.width || y + height > model.height) return false;
+            for (byte i = x; i < x+width; i++)
             {
-                for (int j = 0; j < height; j++)
+                for (byte j = y; j < y+height; j++)
                 {
-                    if (model.map[i][j] != 0) return false;
+                    if (!model.maps.isFree(i,j)) return false;
                 }
             }
             if (hasEntranceAndExit) {
-                bool free = false;;
-                if (x - 1 > 0) for (int i = y; i < y + height; i++)
-                        if (model.map[x - 1][i] == 0) { if (free) return free; else free = true; }
-                if (x + 1 < model.map.Length) for (int i = y; i < y + height; i++)
-                        if (model.map[x - 1][i] == 0) { if (free) return free; else free = true; }
-                if (y - 1 > 0) for (int i = x; i < x + width; i++)
-                        if (model.map[i][y - 1] == 0) { if (free) return free; else free = true; }
-                if (y + 1 < model.map[0].Length) for (int i = y; i < y + height; i++)
-                        if (model.map[i][y - 1] == 0) { if (free) return free; else free = true; }
+                bool free = false;
+                if (x - 1 > 0) for (byte i = y; i < y + height; i++)
+                        if (model.maps.isFree((byte)(x-1),i)) { if (free) return free; else free = true; }
+                if (x + 1 < model.width) for (byte i = y; i < y + height; i++)
+                        if (model.maps.isFree((byte)(x + 1), i)) { if (free) return free; else free = true; }
+                if (y - 1 > 0) for (byte i = x; i < x + width; i++)
+                        if (model.maps.isFree(i,(byte)(y-1))) { if (free) return free; else free = true; }
+                if (y + 1 < model.width) for (byte i = y; i < y + height; i++)
+                        if (model.maps.isFree(i,(byte)(y+1))) { if (free) return free; else free = true; }
                 return free;
             }
             return true;       
@@ -259,7 +263,7 @@ namespace LunaparkGame
                 IsInsideInAmusement(x, y - 1) ||
                 IsInsideInAmusement(x, y + 1))
             {
-                this.entrance = new AmusementEnterPath(model,x,y);
+                this.entrance = new AmusementEnterPath(model, new Coordinates((byte)x,(byte)y));
                 model.mustBeEnter = false;
                 model.mustBeExit = true;
                 return true;
@@ -279,7 +283,7 @@ namespace LunaparkGame
                 IsInsideInAmusement(x, y - 1) ||
                 IsInsideInAmusement(x, y + 1))
             {
-                this.exit = new AmusementExitPath(model, x, y);
+                this.exit = new AmusementExitPath(model,new Coordinates((byte)x,(byte)y));
                 model.mustBeExit = false;
                 return true;
             }
@@ -299,7 +303,7 @@ namespace LunaparkGame
                 {
                     if (status == Status.outOfService)
                     {
-                        Demolish();
+                        Destruct();
                         model.lastClick = null; //v tomto se lisi od funkce predka; v pripade, ze se nejprve rusil vstup a pak atrakce
                     }
                     else
@@ -317,12 +321,12 @@ namespace LunaparkGame
     public abstract class SquareAmusements : Amusements
     {
         public byte width { get; protected set; }
-        public SquareAmusements(Model m) : base(m) { }
+        public SquareAmusements(Model m, Coordinates c) : base(m,c) { }
         public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
         }
-        public override bool CheckFreeLocation(int x, int y)
+        public override bool CheckFreeLocation(byte x, byte y)
         {          
             return base.CheckFreeLocation(x, y, width, width, hasEntranceAndExit: true);
         }
@@ -353,7 +357,7 @@ namespace LunaparkGame
         public readonly bool isHorizontalOriented;
 
 
-        public RectangleAmusements(Model m,bool isHorizontal=true):base(m)
+        public RectangleAmusements(Model m,Coordinates c,bool isHorizontal=true):base(m,c)
         {
             isHorizontalOriented = isHorizontal;
         }
@@ -362,7 +366,7 @@ namespace LunaparkGame
             throw new NotImplementedException();
            
         }
-        public override bool CheckFreeLocation(int x, int y)
+        public override bool CheckFreeLocation(byte x, byte y)
         {
             if (isHorizontalOriented) return CheckFreeLocation(x, y, width, height, hasEntranceAndExit: true);
             else return CheckFreeLocation(x,y,height,width,hasEntranceAndExit:true);
@@ -389,7 +393,7 @@ namespace LunaparkGame
 
     public abstract class FreeShapedAmusements : Amusements
     {
-        public FreeShapedAmusements(Model m) : base(m) { }
+        public FreeShapedAmusements(Model m, Coordinates c) : base(m,c) { }
         public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
@@ -416,7 +420,7 @@ namespace LunaparkGame
         {
             throw new NotImplementedException();
         }
-        public override void Demolish()
+        public override void Destruct()
         {
             throw new NotImplementedException();
         }
@@ -431,11 +435,12 @@ namespace LunaparkGame
     public abstract class Path : MapObjects
     {
         public Direction[] signpostAmus;//rozcestnik
-        public Path(Model m, int x, int y) : base(m) { 
+        protected Path(Model m):base(m){ }
+        public Path(Model m, Coordinates c) : base(m,c) { 
             signpostAmus=new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
-          
+            model.maps.AddPath(this);
         }
         public override bool Create(int x, int y) {
             throw new NotImplementedException();
@@ -444,6 +449,10 @@ namespace LunaparkGame
         protected override void Click(object sender, EventArgs e)
         {
             //nothing
+        }
+        public override void Destruct()
+        {
+            model.maps.RemovePath(this);
         }
        
     }
