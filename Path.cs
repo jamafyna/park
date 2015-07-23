@@ -80,6 +80,7 @@ namespace LunaparkGame
         public override void Destruct()
         {
             //not to remove from model.maps
+            //todo:signal pro view
         }
     }
     public class AmusementExitPath : Path {
@@ -96,7 +97,10 @@ namespace LunaparkGame
            
         }
         public override void Destruct()
-        {//not to remove from model.maps
+        {
+            //not to remove from model.maps
+            //todo: signal pro destruct
         }
     }
+
 }
