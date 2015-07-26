@@ -140,12 +140,13 @@ namespace LunaparkGame
 #warning zeptat se Jezka, jestli  to nize je opravdu atomicke, jestli to nekazi aktPeopleCount+1
             int interId = Interlocked.Exchange(ref countOfPeopleArray, countOfPeopleArray + 1);//misto:  int interId = aktPeopleCount++;//todo: ulozeni a zvyseni musi probehnout atomicky!!
             interChangablePeopleId[p.id] = interId;
-            //todo: dodelat, dost chybi
+            people[interId] = p;
+            //todo: dodelat, dost chybi?
 
         }
         public void Action()//todo: thread-safe - zamek people pro cteni
         {
-            Person p;
+            
             //todo: casem idealne ve vice vlaknech (experimentalne overit, zda je zapotrebi)
             try
             {
@@ -167,7 +168,7 @@ namespace LunaparkGame
         {
             int id=interChangablePeopleId[p.id];
             interChangablePeopleId[p.id]=-1;
-            int newId;
+            Person temp;
             //DEBUG check
             if (people[id] != p) throw new MyDebugException("PeopleList.Remove - person[id]!=p: p.id: "+p.id.ToString()+", p: "+p.ToString());
             if(id==countOfPeopleArray-1){ //p is the last item
@@ -175,15 +176,15 @@ namespace LunaparkGame
                 countOfPeopleArray--;
             }
             else {
-                people[id] = people[countOfPeopleArray - 1];
+                temp = people[countOfPeopleArray - 1];//last item
+                people[id] = temp;
+                interChangablePeopleId[temp.id]=id;
                 people[countOfPeopleArray - 1] = null;//due to GC
                 countOfPeopleArray--;
             }
             
 
-            /*Person p = list.Find(q => q.id == id);
-            p.Destruct();//todo: mozna v opacnem smeru, tj. list.demolish vola person.demolish
-            throw new NotImplementedException();*/
+          
         }
         
         
