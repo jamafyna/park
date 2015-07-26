@@ -99,7 +99,7 @@ namespace LunaparkGame
         {
             model.lastBuiltAmus = this;                 
             model.mustBeEnter = true;
-            this.id = model.amusList.ReturnFreeID();//mozna lepe nastavovat az pri pridani do listu
+            this.id = model.amusList.GetFreeID();//mozna lepe nastavovat az pri pridani do listu
            
             peopleInList = new List<Person>(capacity);
             queue = new Queue<Person>();
@@ -225,7 +225,7 @@ namespace LunaparkGame
                 if ((q=atemp[i]) != p) queue.Enqueue(q);
             }           
         }
-        public void ChangeId(int id) { this.id = id; }
+       // public void ChangeId(int id) { this.id = id; }
         public abstract bool CheckFreeLocation(byte x,byte y);  //hack: nezkontrolovano
         protected virtual bool CheckFreeLocation(byte x,byte y, byte width, byte height,bool hasEntranceAndExit=true) { 
             if (x + width > model.width || y + height > model.height) return false;
@@ -406,11 +406,12 @@ namespace LunaparkGame
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
         public enum Status { walking, onCrossroad, inAmusQueue, inAmus,choosesAmus, end, initialWalking  }
         public int money;
-        public Coordinates coord;
         public int id { get; private set; }
         public Status status { set; private get; }
         public Person(Model m) : base(m) {
             //must set money
+
+
         }
         protected override void Click(object sender, EventArgs e)
         {
@@ -431,6 +432,313 @@ namespace LunaparkGame
 
 
     }
+    public class Clovek
+    {
+        int trpelivost; // cas cekani ve fronte pri kterem se nesnizuje spokojenost
+        public int pocetPenez, spokojenost, hlad;
+        int kamJde, casCekani, pocetKroku, pocatecniChuze, pocatecniSmer;
+        float koefDrahoty;
+        bool zacatek;
+        public int x, y;
+        public int id;
+
+        public enum Stav { jde, naKrizovatce, veFronte, naAtrakci, vybiraAtrakci, konec, pocatecniChuze };
+        PictureBox vzhled;
+        Stav stav;
+        Direction smer;
+        Hlavni_Form hlform;
+
+        public Clovek(Hlavni_Form form)
+        {
+
+            hlform = form;
+            VytvorCloveka();
+            stav = Stav.pocatecniChuze;
+            casCekani = 0;
+            pocetKroku = 0;
+            pocatecniChuze = 2 * Program.sizeOfSquare; //2 mi prijde vhodne zvolena konstanta
+            pocatecniSmer = 1;
+            zacatek = true;
+
+            form.evidence.pocetVsechLidi++;
+            if (form.evidence.pocetVsechLidi == 100 && form.evidence.poprve)
+            {
+                form.evidence.poprve = false;
+                MessageBox.Show("Gratulujeme! Park navštívilo již 100 lidí. Získáváte 5000 navíc.", "Odměna", MessageBoxButtons.OK);
+                form.evidence.pocetPenez += 5000;
+                form.pocetPenez_label.Text = form.evidence.pocetPenez.ToString();
+
+            }
+            if (form.evidence.pocetVsechLidi == 250 && form.evidence.poprve2)
+            {
+                form.evidence.poprve2 = false;
+                MessageBox.Show("Gratulujeme! Park navštívilo již 250 lidí. Získáváte odměnu 10000.", "Odměna", MessageBoxButtons.OK);
+                form.evidence.pocetPenez += 10000;
+                form.pocetPenez_label.Text = form.evidence.pocetPenez.ToString();
+
+            }
+            form.evidence.aktualniPocetLidi++;
+            form.pocetLidiCislo_label.Text = form.evidence.aktualniPocetLidi.ToString();
+            form.evidence.lideLSS.VlozNaKonec(this);
+
+            vzhled.Click += new EventHandler(Click);//prirazuji pri kliknuti na pictureBox vzhled funkci Click
+
+        }
+
+        private void VytvorCloveka()
+        {
+
+            id = (hlform.evidence.pocetVsechLidi + 1) % 50000;//50000 konstanta, ktera urcite staci, aby dva lide nemeli stejne id
+            trpelivost = hlform.random.Next(100, 200); //timer ma interval 100=0,1S, tj nyni je trpelivost 10s-20s
+            pocetPenez = hlform.random.Next(500, 3000);
+            spokojenost = 100;
+            hlad = 0;
+            koefDrahoty = (hlform.random.Next(7, 18) + hlform.random.Next(3, 9)) / (float)10; //melo by nejcasteji davat kolem 16, pred ni rust krivka rychleji a pomaleji klesat za ni
+            vzhled = new PictureBox();
+            //obrazek hlavy
+            vzhled.BackgroundImage = Properties.Resources.clovek_maly;
+            //urceni barvy obleceni pomoci RGB
+            vzhled.BackColor = Color.FromArgb(hlform.random.Next(255), hlform.random.Next(255), hlform.random.Next(255));
+            //obrezek zustane takovy, jaky byl, tj. neroztahuje se, neopakuje apod.
+            vzhled.BackgroundImageLayout = ImageLayout.None;
+            vzhled.Width = 7;
+            vzhled.Height = Program.sizeOfSquare / 2;
+            //uchyceni leveho dolniho rohu
+            vzhled.Anchor = AnchorStyles.Bottom;
+            vzhled.Anchor = AnchorStyles.Left;
+            vzhled.Top = hlform.brana.vstupY + 2;
+            vzhled.Left = hlform.brana.vstupX + Program.sizeOfSquare + 1;
+            x = vzhled.Left + vzhled.Width / 2;
+            y = vzhled.Bottom;
+            vzhled.Parent = hlform.pictureBox1;
+            hlform.pictureBox1.Controls.SetChildIndex(vzhled, 2); //poradi v popredi, 0 nejblize, cim vysssi, tim vice v pozadi                 
+        }
+        public void Click(object sender, EventArgs e)
+        {
+            hlform.clovekFormular.Show(this.id, this.kamJde, this.spokojenost, this.pocetPenez, this.hlad / 20);
+        }
+        public void Zneviditelni()
+        {
+            this.vzhled.Visible = false;
+        }
+
+        public void Zviditelni()
+        {
+            this.vzhled.Visible = true;
+        }
+        public void Premisti(int xovaSour, int yovaSour)
+        {
+            //spoleham na to, ze dostavam souradnice leveho horniho rohu, tj. bodu mrizky
+            vzhled.Top = yovaSour + hlform.random.Next(Program.sizeOfSquare / 3, Program.sizeOfSquare / 2);
+            vzhled.Left = xovaSour + hlform.random.Next(Program.sizeOfSquare / 3, Program.sizeOfSquare / 2);
+            x = vzhled.Left + vzhled.Width / 2;
+            y = vzhled.Bottom;
+        }
+        public void Akce() //interval 100 - tj probehne 10x za sekundu
+        {
+
+            hlad = Math.Min(hlad + 1, 2000); //2000 je 100 %
+            switch (stav)
+            {
+                case Stav.pocatecniChuze:
+                    {
+                        if (pocatecniChuze > 0)
+                        {
+                            JdiNahodne();
+                            pocatecniChuze--;
+                        }
+                        else
+                        {
+                            zacatek = false;
+                            stav = Stav.vybiraAtrakci;
+                        }
+                    }
+                    break;
+                case Stav.jde:
+                    {
+                        //UdelejKrok(); //lepe napsat rovnou sem nez do funkce - rychlejsi
+
+                        if (pocetKroku < Program.sizeOfSquare)
+                        {
+                            switch (smer)
+                            {
+                                case Direction.N: { y--; vzhled.Top--; }
+                                    break;
+                                case Direction.S: { y++; vzhled.Top++; }
+                                    break;
+                                case Direction.W: { x--; vzhled.Left--; }
+                                    break;
+                                case Direction.E: { x++; vzhled.Left++; }
+                                    break;
+                                case Direction.no: stav = Stav.vybiraAtrakci;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            pocetKroku++;
+                        }
+                        else
+                        {
+                            stav = Stav.naKrizovatce;
+                            pocetKroku = 0;
+                        }
+
+                    }
+                    break;
+                case Stav.naKrizovatce:
+                    {
+                        //testovani, zda uz nedosel do cile, pokud ano, ceka frontu, jinak se zepta na cestu
+                        int xsou, ysou;
+                        hlform.evidence.atrakceLSS.VratSouradniceVstupu(kamJde, out xsou, out ysou);
+                        if ((x / Program.sizeOfSquare) == (xsou / Program.sizeOfSquare) &&
+                           (y / Program.sizeOfSquare) == (ysou / Program.sizeOfSquare))
+                        {
+                            Atrakce atrakceUNizJe = hlform.evidence.atrakceLSS.VratClenSId(kamJde);
+                            int vstupneAtr = atrakceUNizJe.vstupne;
+
+                            if (vstupneAtr > koefDrahoty * atrakceUNizJe.puvodniVstupne || vstupneAtr > this.pocetPenez) //tj. clovek na ni nema penize
+                            {
+                                stav = Stav.vybiraAtrakci;
+                                spokojenost = Math.Max(spokojenost - 10, 0);
+
+                            }
+                            else
+                            {
+                                stav = Stav.veFronte;
+                                casCekani = 0;
+                                atrakceUNizJe.pridejDoFronty(this);
+                                pocetKroku = 0;
+                            }
+                        }
+
+                        else
+                        {
+                            smer = ZeptejSeNaCestu(kamJde);
+                            stav = Stav.jde;
+                        }
+                    }
+                    break;
+                case Stav.veFronte:
+                    {
+                        if (casCekani < trpelivost)
+                        {
+                            casCekani++;
+                        }
+                        else //snizuje spokojenost, protoze ho prestalo bavit cekani
+                        {
+                            spokojenost = Math.Max(spokojenost - 2, 0);
+                        }
+                    }
+                    break;
+                case Stav.naAtrakci:
+                    {
+                        spokojenost = Math.Min(spokojenost + 1, 100);
+                    }
+                    break;
+                case Stav.vybiraAtrakci:
+                    {
+                        casCekani = 0;
+                        kamJde = VyberAtrakci();
+                        stav = Stav.naKrizovatce;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        private void JdiNahodne() //metoda pro pocatecni chuzi
+        {
+            switch (pocatecniSmer)
+            {
+                case 1:
+                    if (hlform.evidence.mapaAtrakciAChodniku.jeChodnik(x + 1, y)) { vzhled.Left++; x++; }
+                    else pocatecniSmer = hlform.random.Next(1, 5);
+                    break;
+                case 2: if (hlform.evidence.mapaAtrakciAChodniku.jeChodnik(x, y - 1)) { vzhled.Top--; y--; }
+                    else pocatecniSmer = hlform.random.Next(1, 5);
+                    break;
+                case 3: if (hlform.evidence.mapaAtrakciAChodniku.jeChodnik(x, y + 1)) { vzhled.Top++; y++; }
+                    else pocatecniSmer = hlform.random.Next(1, 5);
+                    break;
+                case 4: if (hlform.evidence.mapaAtrakciAChodniku.jeChodnik(x - 1, y)) { vzhled.Left--; x--; }
+                    else pocatecniSmer = hlform.random.Next(1, 5);
+                    break;
+
+            }
+            if (hlform.random.Next(1, 12) % 7 == 0) pocatecniSmer = hlform.random.Next(1, 4);
+        }
+
+        private Direction ZeptejSeNaCestu(int idAtrakce)
+        {
+            return hlform.evidence.mapaAtrakciAChodniku.vratSmer(x, y, idAtrakce);
+        }
+        private int VyberAtrakci()
+        {
+            //nema penize na zadnou atrakci -> opousti park
+            if (this.pocetPenez < hlform.evidence.minimalniCena) return 0;
+            //kdyz je hlad 90%, vybira obcerstveni
+            if (this.spokojenost == 0) return 0;
+            if (this.hlad > 20 * 90) //2000=100 %, tj. 2000*0.9
+            {
+                int pom2 = hlform.random.Next(1, hlform.evidence.obcerstveniLSS.PocetUzlu() + 1);
+                return hlform.evidence.obcerstveniLSS.VratIdNtehoClenu(pom2);
+            }
+            //jinak vybira z normalnich atrakci
+
+            int vyberTypAtrakce = hlform.random.Next(101); //nah. cislo 0-100
+            if (vyberTypAtrakce > this.spokojenost) return 0; //tj. spokojenost je slaba a tj. vetsi pst opustit park 
+            else if (vyberTypAtrakce < this.hlad / 20) //tj. roste hlad, vetsi pst jit do obcerstveni | 2000=100%, tj./20=pocet procent
+            {
+                int pom2 = hlform.random.Next(hlform.evidence.obcerstveniLSS.PocetUzlu());
+                return hlform.evidence.obcerstveniLSS.VratIdNtehoClenu(pom2);
+            }
+            else
+            {
+
+                int pom = hlform.random.Next(hlform.evidence.pocetAtrakci);//cisla od 0 do poc.atrakci-1 - spravne, nebot v PoctuAtrakci je i brana a ta ma cislo 0
+
+                if (pom == 0)
+                {
+                    //pokud jde o PocatecniChuzi, tj. nedavny vstup do parku, neni dovoleno volit 0, tj. utect, ale musi byt postavena alespon jedna atrakce mimo branu
+
+                    if (zacatek && hlform.evidence.pocetAtrakci > 1)
+                    {
+                        pom = hlform.random.Next(1, hlform.evidence.pocetAtrakci);
+                        return hlform.evidence.atrakceLSS.VratIdNtehoClenu(pom);
+                    }
+                    else return 0;
+                }
+
+                else return hlform.evidence.atrakceLSS.VratIdNtehoClenu(pom);
+            }
+
+
+
+        }
+        public void ZmenStav(Stav zmena)
+        {
+            stav = zmena;
+        }
+
+        public void Destruct()
+        {
+            vzhled.Dispose();
+            hlform.evidence.lideLSS.NajdiASmaz(this.id);//maze cloveka z LSS
+            hlform.evidence.aktualniPocetLidi--;
+            hlform.pocetLidiCislo_label.Text = hlform.evidence.aktualniPocetLidi.ToString();
+
+        }
+
+        public void SmazPbox()
+        {
+            vzhled.Dispose();
+        }
+
+
+    }
+  
 
     public abstract class Path : MapObjects
     {

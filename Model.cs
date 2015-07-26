@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace LunaparkGame
 {
     
     public class Model //todo: Mozna nahradit Evidenci modelem, aby se musela synchronizovat jen jedna vec
     {
+        
         private const int initialMoney = 1;
         public readonly int width = 10, height = 15; //todo: virtual metoda u atrakci pocita s tim, ze jsou to ty viditelne uzivatelem
         public Queue<MapObjects> dirtyNew;
@@ -62,7 +64,7 @@ namespace LunaparkGame
            */
             list.Add(a);
         }
-        public int ReturnFreeID()
+        public int GetFreeID()
         {
             //return list.Count;
             try
@@ -105,28 +107,86 @@ namespace LunaparkGame
 
     public class PersonList
     {
-        private List<Person> list;
-        public void Action()
-        {
-            foreach (var p in list)
-            {
-                p.Action();//todo: casem idealne ve vice vlaknech
-            }
+       // private List<Person> list;
+        const int max = 65536;//2^16  //131072; //2^17
+        const int maxPeopleCountInPark=1000;
+        private int[] interChangablePeopleId=new int[max];
+        private Person[] people=new Person[maxPeopleCountInPark];
+        private int countOfPeopleArray;
+        private int totalPeopleCount;
+       
+        public PersonList() {
+            //for (int = 0; i < people.Length; i++) people[i] = null; inicialni hodnota je uz nastavena
+            for (int i = 0; i < interChangablePeopleId.Length; i++) interChangablePeopleId[i] = -1;
+            countOfPeopleArray = 0;
+            totalPeopleCount = 0;
         }
-        public void Demolish(int id)
-        {
-            Person p = list.Find(q => q.id == id);
-            p.Destruct();//todo: mozna v opacnem smeru, tj. list.demolish vola person.demolish
-            throw new NotImplementedException();
+        public int GetActualPeopleCount() {
+            return countOfPeopleArray;
+        }
+        public int GetTotalPeopleCount() {
+            return totalPeopleCount;
+        }
+        public int GetFreeId() {
+            //todo: musi byt thread-safe!!!
+            return totalPeopleCount++ % max; //Ed. for sure: after all it incremets 
+            //it could happen potentially that this id has an another person, never mind - checking in adding person
         }
         public void Add(Person p)
         {
-            throw new NotImplementedException();
+            if (interChangablePeopleId[p.id] != -1) {  }//todo: smaz tuto osobu - preziva moc dlouho  -rucni smazani+smazani cloveka-pozor, nesmi odstranovat z mapy
+           //vyse uvedene je Thread-safe, protoze pri porovnani se nestihne novy cyklus (tj. vytvorit nekolik tisic osob)
+            //a je odjinud zaruceno, ze jinak nez novym cyklem nedostaneme stejne id          
+#warning zeptat se Jezka, jestli  to nize je opravdu atomicke, jestli to nekazi aktPeopleCount+1
+            int interId = Interlocked.Exchange(ref countOfPeopleArray, countOfPeopleArray + 1);//misto:  int interId = aktPeopleCount++;//todo: ulozeni a zvyseni musi probehnout atomicky!!
+            interChangablePeopleId[p.id] = interId;
+            //todo: dodelat, dost chybi
+
         }
-        private int GetFreeID()
+        public void Action()//todo: thread-safe - zamek people pro cteni
         {
-            throw new NotImplementedException();
+            Person p;
+            //todo: casem idealne ve vice vlaknech (experimentalne overit, zda je zapotrebi)
+            try
+            {
+                for (int i = 0; i < countOfPeopleArray; i++)//hash: jak funguje threading?, tj. co se stane, kdyz se jinde zmeni countOfPeopleArray
+                {
+                    people[i].Action(); 
+                }
+            }
+            catch (NullReferenceException e) {
+                throw new MyDebugException("PersonList.Action - people[i]==null0"+e.ToString());
+            }
+            
         }
+        /// <summary>
+        /// a method which should be called only from the class Person
+        /// </summary>
+        /// <param name="p">the person which will be removed</param>
+        public void Remove(Person p)//todo: thread-safe"!!! pri praci s polem se do nej nesmi nic pridavat
+        {
+            int id=interChangablePeopleId[p.id];
+            interChangablePeopleId[p.id]=-1;
+            int newId;
+            //DEBUG check
+            if (people[id] != p) throw new MyDebugException("PeopleList.Remove - person[id]!=p: p.id: "+p.id.ToString()+", p: "+p.ToString());
+            if(id==countOfPeopleArray-1){ //p is the last item
+                people[id]=null;//due to GC
+                countOfPeopleArray--;
+            }
+            else {
+                people[id] = people[countOfPeopleArray - 1];
+                people[countOfPeopleArray - 1] = null;//due to GC
+                countOfPeopleArray--;
+            }
+            
+
+            /*Person p = list.Find(q => q.id == id);
+            p.Destruct();//todo: mozna v opacnem smeru, tj. list.demolish vola person.demolish
+            throw new NotImplementedException();*/
+        }
+        
+        
 
     }
     public class Map: IActionable 
