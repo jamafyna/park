@@ -40,7 +40,7 @@ namespace LunaparkGame
        
     }
     /// <summary>
-    /// list of all amusements, at position i is an amusement with id==i
+    ///
     /// </summary>
     public class ListOfAmusements
     { //todo: nejspis by mela byt thread-safe
@@ -52,10 +52,12 @@ namespace LunaparkGame
         public int amusementsCount { get { return list.Count; } private set { } }
         public int restaurantsCount { get { return foodIds.Count; } private set { } }
        // private int reallyId=1;
+       
         public ListOfAmusements(int maxAmusCount)
         {
             //todo:create brana
             list = new List<Amusements>();
+            foodIds = new List<int>();
             freeId = new Queue<int>(maxAmusCount);
             for (int i = maxAmusCount; i > 0; i--) freeId.Enqueue(i);            
         }
@@ -91,14 +93,19 @@ namespace LunaparkGame
             freeId.Enqueue(a.id);
         }
         /// <summary>
-        /// 
+        /// Returns id of an amusement (except of the gate) if it is possible(at least one another amusement), if not - returns the gate's id
         /// </summary>
-        /// <returns>returns id of an amusement (except of the gate) if it is possible, if not - returns the gate's id</returns>
+        /// <returns>A positive int which represents id of an amusement or 0 which represents id of the gate.</returns>
         public int GetRandomAmusement() {
             if (list.Count > 1) return list[rand.Next(1, list.Count)].id;
             else return 0;
         }
-        public int GetRandomRestaurant() { 
+        /// <summary>
+        /// Returns id of an restaurant if it is possible, if not - returns id of the gate.
+        /// </summary>
+        /// <returns>A positive int which represents id of an restaurant or 0 if there is no restaurant</returns>
+        public int GetRandomRestaurant() {
+            if (foodIds.Count == 0) return 0;
             return foodIds[rand.Next(foodIds.Count)];
         }
         public void ForeachAction()
@@ -466,33 +473,33 @@ namespace LunaparkGame
             }
         }
         /// <summary>
-        /// return direction to the amusement with id==amusId
+        /// Returns a current direction (only over Paths) to the amusement with id==amusId.
         /// </summary>
         /// <param name="amusId">id of the amusements</param>
         /// <param name="x">the real! x-coordinate</param>
         /// <param name="y">the real! y-coordinate</param>
-        /// <returns></returns>
+        /// <returns>A Direction item</returns>
         public Direction GetDirectionToAmusement(int amusId, int x, int y) {
             Path p = objectsInMapSquares[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare] as Path;
             return p.signpostAmus[amusId];
         //todo: misto as pouzivat opravdu 2 mapy - 1 atrakce, 2. chodniky
         }
         /// <summary>
-        /// return the amusement which lies on the specified coordinates
+        /// Returns the amusement which lies on the specified coordinates.
         /// </summary>
         /// <param name="x">the real! x-coordinate</param>
         /// <param name="y">the real! y-coordinate</param>
-        /// <returns></returns>
+        /// <returns>An Amusements item which stretch to [x,y] or null.</returns>
         public Amusements GetAmusement(int x, int y) { //x,y jsou nejspis souradnice vstupu, tj. chce to samostastne pole amusements, kam se ulozi i na vstup a vystup dana atrakce
             
             throw new NotImplementedException();
         }
         /// <summary>
-        /// 
+        /// Determines whether a path is on the point [x,y].
         /// </summary>
         /// <param name="x">the real! x-coordinate</param>
         /// <param name="y">the real! y-coordinate</param>
-        /// <returns>returns true if on the point [x,y] is a path, otherwise false </returns>
+        /// <returns> true if a path is on the coordinates[x,y]; otherwise, false.</returns>
         public bool IsPath(int x, int y) {
             if (auxPathMap[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare] == null) return false;
             else return true;

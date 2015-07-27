@@ -24,9 +24,6 @@ namespace LunaparkGame
         Control map;
         Model model;      
        
-        private AmusementEnterPath aEnterHelp;
-        private AmusementExitPath aExitHelp;
-       
 
      /*   public MainForm() {
             InitializeComponent();
