@@ -108,6 +108,8 @@ namespace LunaparkGame
     public class PersonList
     {
        // private List<Person> list;
+        //Mozna je jednodussi pouzit List misto sloziteho pole, nekolikrat se prochazi - ok, add-ok, smazani projde cele pole (tak 400-1000 prvku)
+        //zkusit udelat list2 s Listem
         const int max = 65536;//2^16  //131072; //2^17
         const int maxPeopleCountInPark=1000;
         private int[] interChangablePeopleId=new int[max];
@@ -132,21 +134,23 @@ namespace LunaparkGame
             return totalPeopleCount++ % max; //Ed. for sure: after all it incremets 
             //it could happen potentially that this id has an another person, never mind - checking in adding person
         }
-        public void Add(Person p)
+        public void Add(Person p)//todo:thread-safe
         {
-            if (interChangablePeopleId[p.id] != -1) {  }//todo: smaz tuto osobu - preziva moc dlouho  -rucni smazani+smazani cloveka-pozor, nesmi odstranovat z mapy
-           //vyse uvedene je Thread-safe, protoze pri porovnani se nestihne novy cyklus (tj. vytvorit nekolik tisic osob)
+            if (interChangablePeopleId[p.id] != -1)  {
+                //todo: smaz tuto osobu - preziva moc dlouho  -rucni smazani+smazani cloveka-pozor, nesmi odstranovat z mapy
+            }
+                //vyse uvedene je Thread-safe, protoze pri porovnani se nestihne novy cyklus (tj. vytvorit nekolik tisic osob)
             //a je odjinud zaruceno, ze jinak nez novym cyklem nedostaneme stejne id          
-#warning zeptat se Jezka, jestli  to nize je opravdu atomicke, jestli to nekazi aktPeopleCount+1
-            int interId = Interlocked.Exchange(ref countOfPeopleArray, countOfPeopleArray + 1);//misto:  int interId = aktPeopleCount++;//todo: ulozeni a zvyseni musi probehnout atomicky!!
+#warning zeptat se Jezka, jestli  to nize je opravdu atomicke, jestli to nekazi aktPeopleCount+1            
+            int interId = countOfPeopleArray++;//todo: ulozeni a zvyseni musi probehnout atomicky!! //mozna:int interId = Interlocked.Exchange(ref countOfPeopleArray, countOfPeopleArray + 1);
+         
             interChangablePeopleId[p.id] = interId;
             people[interId] = p;
-            //todo: dodelat, dost chybi?
+            
 
         }
         public void Action()//todo: thread-safe - zamek people pro cteni
-        {
-            
+        {           
             //todo: casem idealne ve vice vlaknech (experimentalne overit, zda je zapotrebi)
             try
             {
@@ -169,6 +173,8 @@ namespace LunaparkGame
             int id=interChangablePeopleId[p.id];
             interChangablePeopleId[p.id]=-1;
             Person temp;
+            //DEBUG check
+            if (id == -1) throw new MyDebugException("PeopleList.Remove - id=-1, tj. p nebyla nejspis v seznamu");//pozdeji nedat nebo ignorovat
             //DEBUG check
             if (people[id] != p) throw new MyDebugException("PeopleList.Remove - person[id]!=p: p.id: "+p.id.ToString()+", p: "+p.ToString());
             if(id==countOfPeopleArray-1){ //p is the last item
@@ -275,7 +281,8 @@ namespace LunaparkGame
             try
             {
                 objectsInMapSquares[a.entrance.coord.x][a.entrance.coord.y] = a.entrance;
-                //not add to auxPathMap, because I want to people can't go over entrance               
+                //not add to auxPathMap, because I want to people can't go over entrance-UZ NEPLATNE 
+                auxPathMap[a.entrance.coord.x][a.entrance.coord.y] = new DirectionItem(a.entrance.coord);
                 objectsInMapSquares[a.exit.coord.x][a.exit.coord.y] = a.exit;
                 auxPathMap[a.exit.coord.x][a.exit.coord.y] = new DirectionItem(a.exit.coord);
 
@@ -370,7 +377,7 @@ namespace LunaparkGame
         }
         
         private void InitializeQueue(Queue<DirectionItem> queue, Coordinates start, DirectionItem[][] paths) {
-            //paths[start.x][start.y].dir = Direction.here; ...null - people can't go over entrance
+            paths[start.x][start.y].dir = Direction.here; //...null - people can't go over entrance
             DirectionItem aux;
             if ((start.x - 1 >= 0) && (aux=paths[start.x - 1][start.y]) != null) {             
                 aux.dir= Direction.E;

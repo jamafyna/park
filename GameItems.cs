@@ -404,14 +404,23 @@ namespace LunaparkGame
 
     public class Person : MapObjects,IActionable
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
-        public enum Status { walking, onCrossroad, inAmusQueue, inAmus,choosesAmus, end, initialWalking  }
+        private static Random rand = new Random();
+        static const int minMoney = 200, maxMoney = 2000;
+        public enum Status {initialWalking, walking, onCrossroad, inAmusQueue, inAmus,choosesAmus, end }
         public int money;
-        public int id { get; private set; }
+        public readonly int id;
         public Status status { set; private get; }
         public Person(Model m) : base(m) {
             //must set money
-
-
+            this.id = m.persList.GetFreeId();
+            this.status = Status.initialWalking;
+            this.money = rand.Next(Person.minMoney,Person.maxMoney);
+            
+            m.persList.Add(this);
+        }
+        public void Action()
+        {
+            throw new NotImplementedException();
         }
         protected override void Click(object sender, EventArgs e)
         {
@@ -423,12 +432,10 @@ namespace LunaparkGame
         }
         public override void Destruct()
         {
-            throw new NotImplementedException();
+            //todo: vlozit do destruct fronty v modelu
+            model.persList.Remove(this);
         }
-        public void Action()
-        {
-            throw new NotImplementedException();
-        }
+       
 
 
     }
