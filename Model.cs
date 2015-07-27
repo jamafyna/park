@@ -233,9 +233,10 @@ namespace LunaparkGame
         }
 
         private DirectionItem[][] auxPathMap;//null = there isnt path
-        private MapObjects[][] objectsInMapSquares;
+      //  private MapObjects[][] objectsInMapSquares;
         private Amusements[][] amusementMap;
         private Path[][] pathMap;
+        //todo: neni nyni auxPathMap uplne zbytecna???, nestacilo by misto ni pouzivat pathMap?
         private Model model;
         private Queue<Amusements> lastAddedAmus=new Queue<Amusements>();
 
@@ -277,37 +278,50 @@ namespace LunaparkGame
             auxPathMap=new DirectionItem[width][];
             for (int i = 0; i < width; i++)  auxPathMap[i] = new DirectionItem[height];
            
-            //---initialize objectsInMap
+          /*  //---initialize objectsInMap
             objectsInMapSquares=new MapObjects[width][];
             for (int i = 0; i < width; i++) objectsInMapSquares[i] = new MapObjects[height];
-            
+          */  
+            //---initialize pathMap
+            pathMap = new Path[width][];
+            for (int i = 0; i < width; i++) pathMap[i] = new Path[height];
+
+            //---initialize amusementMap
+            amusementMap=new Amusements[width][];
+            for (int i = 0; i < width; i++) amusementMap[i] = new Amusements[height];
         }
 #warning isFree metody jsou 2
         public bool isFree(byte x, byte y) {
-            if (objectsInMapSquares[x][y] == null) return true;
+            /*if (objectsInMapSquares[x][y] == null) return true;
+            else return false;*/
+            if (amusementMap[x][y] == null && pathMap[x][y] == null) return true;
             else return false;
         }
         public bool isFree(Coordinates c){
-            if (objectsInMapSquares[c.x][c.y] == null) return true;
-            else return false;
-        /*    if (amusementMap[c.x][c.y] == null && pathMap[c.x][c.y] == null) return true;
+           /* if (objectsInMapSquares[c.x][c.y] == null) return true;
             else return false;*/
+            if (amusementMap[c.x][c.y] == null && pathMap[c.x][c.y] == null) return true;
+            else return false;
         }
         public void RemoveAmus(Amusements a) {          
-            foreach (var c in a.GetAllPoints()) objectsInMapSquares[c.x][c.y] = null;
+          //  foreach (var c in a.GetAllPoints()) objectsInMapSquares[c.x][c.y] = null;
+            foreach (var c in a.GetAllPoints()) amusementMap[c.x][c.y] = null;
+            if (a.entrance != null)  amusementMap[a.entrance.coord.x][a.entrance.coord.y]=null;
+            if (a.exit != null)  amusementMap[a.entrance.coord.x][a.entrance.coord.y] = null;
+            //todo:vyse uvedene by nemelo byt null, entrance a exit musi vzdy existovat, byt to je stejne policko jako atrakce
+            //don't set null to pathMap - it made entrance.Destruct()
             amusDeletedId = a.id;
-          /*  if (a.entrance != null) { isFree[a.entrance.coord.x][a.entrance.coord.y]=true;}//mel by udelat chodnik
-            if (a.exit != null) { isFree[a.entrance.coord.x][a.entrance.coord.y] = true; }*/
         }
         public void AddAmus(Amusements a) {
             
-            foreach (var c in a.GetAllPoints()) objectsInMapSquares[c.x][c.y] = a;
+            foreach (var c in a.GetAllPoints()) amusementMap[c.x][c.y] = a;
             try
             {
-                objectsInMapSquares[a.entrance.coord.x][a.entrance.coord.y] = a.entrance;
-                //not add to auxPathMap, because I want to people can't go over entrance-UZ NEPLATNE 
+                amusementMap[a.entrance.coord.x][a.entrance.coord.y] = a;
+                amusementMap[a.exit.coord.x][a.exit.coord.y] = a;
+                pathMap[a.entrance.coord.x][a.entrance.coord.y] = a.entrance;
                 auxPathMap[a.entrance.coord.x][a.entrance.coord.y] = new DirectionItem(a.entrance.coord);
-                objectsInMapSquares[a.exit.coord.x][a.exit.coord.y] = a.exit;
+                pathMap[a.exit.coord.x][a.exit.coord.y] = a.exit;
                 auxPathMap[a.exit.coord.x][a.exit.coord.y] = new DirectionItem(a.exit.coord);
 
             }
@@ -332,27 +346,20 @@ namespace LunaparkGame
             for (int i = 0; i < widthMap; i++) 
                 for (int j = 0; j < heightMap; j++)
                 { 
-                    p=objectsInMapSquares[i][j] as Path;
-                    if (p!=null) p.signpostAmus[amusId] = Direction.no;
+                   /* p=objectsInMapSquares[i][j] as Path;
+                    if (p!=null) p.signpostAmus[amusId] = Direction.no;*/
+                    if ((p = pathMap[i][j]) != null) p.signpostAmus[amusId] = Direction.no;
                 }
             amusDeletedId = -1;
         }
 
         public void AddPath(Path p) { 
-            /*path[p.coord.x][p.coord.y]=new Direction[maxAmusCount];
-            isFree[p.coord.x][p.coord.y] = false;
-            pathChanged = true;*/
-
-            objectsInMapSquares[p.coord.x][p.coord.y] = p;
+            pathMap[p.coord.x][p.coord.y] = p;
             auxPathMap[p.coord.x][p.coord.y] = new DirectionItem(p.coord);
             pathChanged = true;
         }
-        public void RemovePath(Path p) {
-           /* path[p.coord.x][p.coord.y] = null;
-            isFree[p.coord.x][p.coord.y] = true;
-            pathChanged = true;
-            */
-            objectsInMapSquares[p.coord.x][p.coord.y] = null;
+        public void RemovePath(Path p) {          
+            pathMap[p.coord.x][p.coord.y] = null;
             auxPathMap[p.coord.x][p.coord.y] = null;
             pathChanged = true;
         }
@@ -371,9 +378,10 @@ namespace LunaparkGame
             {
                 for (int j = 0; j < heightMap; i++)
                 {
-                    if ((item = paths[i][j]) != null && (p = objectsInMapSquares[i][j]) is Path)
+                    if ((item = paths[i][j]) != null)// && (p = objectsInMapSquares[i][j]) is Path)
                     {
-                        ((Path)p).signpostAmus[a.id] = item.dir;
+                        pathMap[i][j].signpostAmus[a.id] = item.dir;
+                        //((Path)p).signpostAmus[a.id] = item.dir;
                     }
                 }
             }
@@ -480,9 +488,10 @@ namespace LunaparkGame
         /// <param name="y">the real! y-coordinate</param>
         /// <returns>A Direction item</returns>
         public Direction GetDirectionToAmusement(int amusId, int x, int y) {
-            Path p = objectsInMapSquares[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare] as Path;
-            return p.signpostAmus[amusId];
-        //todo: misto as pouzivat opravdu 2 mapy - 1 atrakce, 2. chodniky
+            /* Path p = objectsInMapSquares[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare] as Path;
+            return p.signpostAmus[amusId];*/
+            //todo: mozna by bylo vhodne try blok a v pripade null vratit smer.no() v release rezimu a v debug rezimu vyhodit vyjimku
+            return pathMap[x/MainForm.sizeOfSquare][y/MainForm.sizeOfSquare].signpostAmus[amusId];
         }
         /// <summary>
         /// Returns the amusement which lies on the specified coordinates.
@@ -491,8 +500,8 @@ namespace LunaparkGame
         /// <param name="y">the real! y-coordinate</param>
         /// <returns>An Amusements item which stretch to [x,y] or null.</returns>
         public Amusements GetAmusement(int x, int y) { //x,y jsou nejspis souradnice vstupu, tj. chce to samostastne pole amusements, kam se ulozi i na vstup a vystup dana atrakce
-            
-            throw new NotImplementedException();
+            return amusementMap[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare];
+            //todo: overit, ze toto staci          
         }
         /// <summary>
         /// Determines whether a path is on the point [x,y].
