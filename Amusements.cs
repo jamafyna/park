@@ -6,5 +6,10 @@ using System.Threading.Tasks;
 
 namespace LunaparkGame
 {
+    public abstract class Restaurant : SquareAmusements
+    {//todo: nema byt abstract, ale virtual, akorat ted nechci vyplnovat
+        public Restaurant(Model m, Coordinates c) : base(m, c) { }
+    }
+
 
 }

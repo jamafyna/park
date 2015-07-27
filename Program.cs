@@ -8,7 +8,7 @@ namespace LunaparkGame
 {
     static class Program
     {
-        public enum Direction { N, S, W, E, no };//smer
+       // public enum Direction { N, S, W, E, no };//smer
 
 
         public class ExponentialRandom

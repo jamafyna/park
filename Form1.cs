@@ -18,7 +18,7 @@ namespace LunaparkGame
         /// </summary>
         
        
-        static int sizeOfSquare = 50;
+        public const int sizeOfSquare = 50;
         AmusementsForm amusform;
         PathForm pathform;
         Control map;

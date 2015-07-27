@@ -7,10 +7,17 @@ using System.Windows.Forms;
 
 namespace LunaparkGame
 {
-    public enum Direction { no, here, N, S, W, E };
+    public enum Direction { no, N = 1, E = 2, S = 3, W = 4, here };
    
     public interface IActionable {
         void Action();    
+    }
+    public interface IUnmoving {
+        Coordinates coord{get;set;}
+    }
+    public interface IMoving {
+        byte x { get; set; }
+        byte y { get; set; }
     }
     public class MyDebugException : Exception
     {
@@ -31,16 +38,15 @@ namespace LunaparkGame
         public Coordinates coord { protected set; get; }
         protected readonly Model model;
         public Control control { get; set; } //picture
-        virtual protected int price { get; set; } //todo: This must be abstract!!!
+        virtual protected int price { get; set; } //todo: This must be abstract!!! - az budu znat ceny
 
         protected MapObjects(Model m) {
             this.model = m;
-        }
-        public MapObjects(Model m,Coordinates coord)
-        {
             control.Click += new EventHandler(Click);
-            this.model = m;
             model.money -= this.price;
+        }
+        public MapObjects(Model m,Coordinates coord):this(m)
+        {
             this.coord = coord;
         }
         /// <summary>
@@ -62,6 +68,8 @@ namespace LunaparkGame
 
     }
 
+
+
     public abstract class Amusements : MapObjects,IActionable
     {
         #region
@@ -82,7 +90,8 @@ namespace LunaparkGame
             private set { }
         }
         protected int waitingTime = 0, actRunningTime=0;
-        public int visitPrice;
+        public int currVisitPrice;
+        //public abstract int originalVisitPrice{get;protected set;}//todo:patri jinam
         protected bool isRunningOut=false;
         protected bool isRunning = false;
         //-------popisove vlastnosti
@@ -133,7 +142,7 @@ namespace LunaparkGame
                 {
                     p.status = Person.Status.inAmus;
                     peopleInList.Add(p);
-                    p.money -= this.visitPrice;              
+                    p.money -= this.currVisitPrice;              
                     //todo: p.Zneviditelni();     Control.visible=false; - co takhle zde vytvorit metodu a pak predat delegata?              
                 }
                 catch (NullReferenceException e) {
@@ -143,13 +152,14 @@ namespace LunaparkGame
                     throw new MyDebugException("Not expected null in pickUpPeople: " + e.ToString());
                 }
             }
-            model.money += n * this.visitPrice;        
+            model.money += n * this.currVisitPrice;        
         }
         protected void DropPeopleOff(){
             foreach (Person p in peopleInList)
 	        {
 		        p.status=Person.Status.choosesAmus;
-               //todo: p.coord=this.exit.coord;
+                p.SetCoordinates(this.exit.coord);
+               
                 //todo:clovek.Premisti(vystupX,vystupY);
                 //todo:clovek.Zviditelni();
 	        }
@@ -405,27 +415,177 @@ namespace LunaparkGame
     public class Person : MapObjects,IActionable
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
         private static Random rand = new Random();
-        static const int minMoney = 200, maxMoney = 2000;
+        const int minMoney = 200, maxMoney = 2000, minPatience=1, maxPatience=10;
         public enum Status {initialWalking, walking, onCrossroad, inAmusQueue, inAmus,choosesAmus, end }
-        public int money;
+ 
+        public int money { get; set; } //{ if (value >= 0) return value; } } - spatna syntaxe
+        private readonly int patience;
         public readonly int id;
+        public readonly int maxAcceptablePrice;//max price which he is willing to pay per an amusement
+        //----provozni hodnoty-----
+        private int remainingStepsCount=0;//pocet zbyvajicich kroku
+        private int waitingTimeInQueue = 0, initialWalkingTime=2*MainForm.sizeOfSquare;
+        private int contenment = 0;//spokojenost
+        private int hunger=0;
+        protected int x, y; //instead of coord //todo: casem s tim neco udelat, napr. 2 abstract tridy od MapObjects apod.
+        private Direction currDirection = Direction.no;
+        private int currAmusId;
         public Status status { set; private get; }
-        public Person(Model m) : base(m) {
+        
+        public Person(Model m, byte x, byte y) : base(m) {
             //must set money
             this.id = m.persList.GetFreeId();
             this.status = Status.initialWalking;
             this.money = rand.Next(Person.minMoney,Person.maxMoney);
-            
+            this.patience = rand.Next(Person.minPatience, Person.maxPatience);
+            this.maxAcceptablePrice = 100;//todo: nastavit nejak podle vstupnich cen vstupu na atrakce
+            this.price = 0;
+            this.x = x;
+            this.y = y;
+
             m.persList.Add(this);
+
         }
         public void Action()
         {
-            throw new NotImplementedException();
+            switch (status)
+            {
+                case Status.walking:{
+                    #region
+                    if (remainingStepsCount > 0) {
+                        remainingStepsCount++;
+                        switch (currDirection)
+                        {
+                            case Direction.N: y--;//todo: add to move fronta in model
+                                break;
+                            case Direction.S: y++;//todo: add to move fronta in model
+                                break;
+                            case Direction.W: x--;//todo: add to move fronta in model
+                                break;
+                            case Direction.E: x++;//todo: add to move fronta in model
+                                break;
+                            case Direction.no: { status = Status.choosesAmus;}
+                                break;
+                            case Direction.here: { 
+                                Amusements a=model.maps.GetAmusement(x,y);
+                                if (a.id != currAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
+                                if (a.currVisitPrice > maxAcceptablePrice || a.currVisitPrice > money)
+                                {
+                                    contenment = contenment - 10;//todo: nastavit poradne
+                                    status = Status.choosesAmus;
+                                }
+                                else
+                                {
+                                    status = Status.inAmusQueue;
+                                    waitingTimeInQueue = 0;
+                                    a.QueuesPerson(this);
+                                }
+                            }
+                                break;
+                        }
+                    }
+                    else {
+                        status = Status.onCrossroad;
+                    }
+                    #endregion
+                }
+                    break;
+                case Status.onCrossroad: {
+                    #region               
+                    currDirection=model.maps.GetDirectionToAmusement(currAmusId,x,y);
+                    status = Status.walking;
+                    remainingStepsCount = MainForm.sizeOfSquare;
+                    #endregion
+                }                 
+                    break;
+                case Status.inAmusQueue:{
+                    #region
+                        if (waitingTimeInQueue > patience) {
+                             contenment = contenment - 10;//todo: mozna udelat: odejde, pokud prekroci patience a vzdy jindy se drobne snizi spokojenost
+                        }
+                        else waitingTimeInQueue++;
+                    #endregion
+                     }
+                    break;
+                case Status.inAmus:{
+                        contenment = Math.Min(contenment+1,100);//todo: lepe zbavit se konstant a mit nekde lepe rozmyslene
+                    }
+                    break;
+                case Status.choosesAmus: {
+                    currAmusId = ChooseAmusement();
+                    status = Status.onCrossroad;
+                }
+                    break;
+                case Status.initialWalking:
+                    {
+                    #region
+                    if (initialWalkingTime > 0)
+                    {
+                        initialWalkingTime--;
+                                                                    
+                        switch (currDirection)
+                        {
+                            case Direction.E:  
+                                if (model.maps.IsPath(x + 1, y)) { x++; //todo: Zaradit do move fronty
+                                }
+                                else currDirection=(Direction)rand.Next(1,5);
+                                break;
+                            case Direction.N:
+                                if (model.maps.IsPath(x , y-1)) { y--; }
+                                else currDirection = (Direction)rand.Next(1, 5);
+                                break;
+                            case Direction.S: 
+                                if (model.maps.IsPath(x , y+1)) { y++; }
+                                else currDirection = (Direction)rand.Next(1, 5);
+                                break;
+                            case Direction.W: 
+                               if (model.maps.IsPath(x -1, y)) { x--; }
+                               else currDirection = (Direction)rand.Next(1, 5);
+                                break;
+                            default: currDirection = (Direction)rand.Next(1,5);
+                                break;
+                        }
+                        if (rand.Next(1, 12) % 7 == 0) currDirection = (Direction)rand.Next(1, 4);  
+                    }
+                    else status = Status.choosesAmus;
+                    #endregion
+                    }
+
+                    break;               
+                case Status.end://todo: je vubec k necemu???
+                    break;
+                default:
+                    break;
+            }
+        }
+              
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>id of the chosen amusements</returns>
+        public int ChooseAmusement() {
+            //todo: mam mene penez nez stoji nejlevnejsi atrakce -> jdu domu
+            if (contenment == 0) return model.amusList.GetGateId();
+            if (hunger > 1800) //2000=100 %, i.e. 2000*0.9
+                return model.amusList.GetRandomRestaurant(); //kdyz je hlad 90%, vybira obcerstveni
+           
+            int temp = rand.Next(101); //0-100
+            //---- less contenment increases the probability of leaving the park
+            if (temp > contenment) return model.amusList.GetGateId(); 
+            //---- more hunger -> bigger probability of visiting a restaurant
+            if (temp < hunger / 20) return model.amusList.GetRandomRestaurant();
+            //---- go to an amusement
+            return model.amusList.GetRandomAmusement();
+        }
+        public void SetCoordinates(Coordinates c) {
+            this.x = c.x;
+            this.y = c.y;
         }
         protected override void Click(object sender, EventArgs e)
         {
             throw new NotImplementedException();
         }
+       
         public override bool Create(int x, int y)
         {
             throw new NotImplementedException();
@@ -439,7 +599,8 @@ namespace LunaparkGame
 
 
     }
-    public class Clovek
+    #region
+   /* public class Clovek
     {
         int trpelivost; // cas cekani ve fronte pri kterem se nesnizuje spokojenost
         public int pocetPenez, spokojenost, hlad;
@@ -694,9 +855,9 @@ namespace LunaparkGame
             }
             //jinak vybira z normalnich atrakci
 
-            int vyberTypAtrakce = hlform.random.Next(101); //nah. cislo 0-100
-            if (vyberTypAtrakce > this.spokojenost) return 0; //tj. spokojenost je slaba a tj. vetsi pst opustit park 
-            else if (vyberTypAtrakce < this.hlad / 20) //tj. roste hlad, vetsi pst jit do obcerstveni | 2000=100%, tj./20=pocet procent
+            int temp = hlform.random.Next(101); //nah. cislo 0-100
+            if (temp > this.spokojenost) return 0; //tj. spokojenost je slaba a tj. vetsi pst opustit park 
+            else if (temp < this.hlad / 20) //tj. roste hlad, vetsi pst jit do obcerstveni | 2000=100%, tj./20=pocet procent
             {
                 int pom2 = hlform.random.Next(hlform.evidence.obcerstveniLSS.PocetUzlu());
                 return hlform.evidence.obcerstveniLSS.VratIdNtehoClenu(pom2);
@@ -745,7 +906,8 @@ namespace LunaparkGame
 
 
     }
-  
+   */
+    #endregion
 
     public abstract class Path : MapObjects
     {

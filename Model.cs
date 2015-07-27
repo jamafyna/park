@@ -9,8 +9,7 @@ namespace LunaparkGame
 {
     
     public class Model //todo: Mozna nahradit Evidenci modelem, aby se musela synchronizovat jen jedna vec
-    {
-        
+    {       
         private const int initialMoney = 1;
         public readonly int width = 10, height = 15; //todo: virtual metoda u atrakci pocita s tim, ze jsou to ty viditelne uzivatelem
         public Queue<MapObjects> dirtyNew;
@@ -45,11 +44,14 @@ namespace LunaparkGame
     /// </summary>
     public class ListOfAmusements
     { //todo: nejspis by mela byt thread-safe
+        static Random rand = new Random();
         private List<Amusements> list;
         private Queue<int> freeId;
+        private List<int> foodIds;
 #warning overit, ze v count je opravdu spravne
-        public int count { get { return list.Count; } private set { } }
-        private int reallyId=1;
+        public int amusementsCount { get { return list.Count; } private set { } }
+        public int restaurantsCount { get { return foodIds.Count; } private set { } }
+       // private int reallyId=1;
         public ListOfAmusements(int maxAmusCount)
         {
             //todo:create brana
@@ -63,6 +65,7 @@ namespace LunaparkGame
             else throw new MyDebugException("nesedi id a count v ListOfAmusements-Add()"); //todo: nemelo by se stavat, protoze by vzdy melo jit vytvorit jen jednu atrakci
            */
             list.Add(a);
+            if (a is Restaurant) foodIds.Add(a.id);
         }
         public int GetFreeID()
         {
@@ -84,9 +87,20 @@ namespace LunaparkGame
             reallyIdArray[list.Count - 1] = 0;
             list.RemoveAt(list.Count - 1);*/
             list.Remove(a);
+            if(a is Restaurant) foodIds.Remove(a.id);
             freeId.Enqueue(a.id);
         }
-        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>returns id of an amusement (except of the gate) if it is possible, if not - returns the gate's id</returns>
+        public int GetRandomAmusement() {
+            if (list.Count > 1) return list[rand.Next(1, list.Count)].id;
+            else return 0;
+        }
+        public int GetRandomRestaurant() { 
+            return foodIds[rand.Next(foodIds.Count)];
+        }
         public void ForeachAction()
         {
             list.ForEach(a=>a.Action());
@@ -97,6 +111,9 @@ namespace LunaparkGame
         }
         public Coordinates GetGateCoordinate() {
             return list[0].coord;       
+        }
+        public int GetGateId() {
+            return 0;
         }
         public Amusements[] GetCopyArray() { 
             Amusements[] a=new Amusements[list.Count];
@@ -448,7 +465,39 @@ namespace LunaparkGame
                 if (amusDeletedId >= 0) { DeleteDirectionToAmusement(amusDeletedId); }
             }
         }
-        
+        /// <summary>
+        /// return direction to the amusement with id==amusId
+        /// </summary>
+        /// <param name="amusId">id of the amusements</param>
+        /// <param name="x">the real! x-coordinate</param>
+        /// <param name="y">the real! y-coordinate</param>
+        /// <returns></returns>
+        public Direction GetDirectionToAmusement(int amusId, int x, int y) {
+            Path p = objectsInMapSquares[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare] as Path;
+            return p.signpostAmus[amusId];
+        //todo: misto as pouzivat opravdu 2 mapy - 1 atrakce, 2. chodniky
+        }
+        /// <summary>
+        /// return the amusement which lies on the specified coordinates
+        /// </summary>
+        /// <param name="x">the real! x-coordinate</param>
+        /// <param name="y">the real! y-coordinate</param>
+        /// <returns></returns>
+        public Amusements GetAmusement(int x, int y) { //x,y jsou nejspis souradnice vstupu, tj. chce to samostastne pole amusements, kam se ulozi i na vstup a vystup dana atrakce
+            
+            throw new NotImplementedException();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="x">the real! x-coordinate</param>
+        /// <param name="y">the real! y-coordinate</param>
+        /// <returns>returns true if on the point [x,y] is a path, otherwise false </returns>
+        public bool IsPath(int x, int y) {
+            if (auxPathMap[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare] == null) return false;
+            else return true;
+        }
+    
     }
     
 }
