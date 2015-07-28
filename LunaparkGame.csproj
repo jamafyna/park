@@ -68,6 +68,11 @@
     </Compile>
     <Compile Include="GameItems.cs" />
     <Compile Include="Model.cs" />
+    <Compile Include="Notices.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Notices.resx</DependentUpon>
+    </Compile>
     <Compile Include="Path.cs" />
     <Compile Include="PathForm.cs">
       <SubType>Form</SubType>
@@ -99,6 +104,11 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Labels.cs-CZ.resx" />
+    <EmbeddedResource Include="Notices.cs-CZ.resx" />
+    <EmbeddedResource Include="Notices.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Notices.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="PathForm.resx">
       <DependentUpon>PathForm.cs</DependentUpon>
     </EmbeddedResource>

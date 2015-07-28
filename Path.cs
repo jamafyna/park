@@ -58,7 +58,7 @@ namespace LunaparkGame
             //not to add to model.maps
             price = 0;
             control.Click += new EventHandler(Click);
-            model.money -= this.price;
+            model.MoneyAdd(- this.price);
             this.coord = coord;
             signpostAmus = new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit
@@ -77,7 +77,7 @@ namespace LunaparkGame
             //not to add to model.maps
             price = 0;
             control.Click += new EventHandler(Click);
-            model.money -= this.price;
+            model.MoneyAdd(-this.price);
             this.coord = coord;
             signpostAmus = new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit

@@ -30,5 +30,9 @@ namespace LunaparkGame
 
 
         }
+        private void ClickDirty() { 
+            //nezapomenout zmenit spravne click v danem objektu
+        
+        }
     }
 }

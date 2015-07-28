@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Threading;
+using System.Collections.Concurrent;
 
 
 namespace LunaparkGame
@@ -19,7 +21,10 @@ namespace LunaparkGame
         byte x { get; set; }
         byte y { get; set; }
     }
-  
+    public interface IClickable { 
+    
+    }
+
     public class MyDebugException : Exception
     {
         public MyDebugException() : base() { }
@@ -39,12 +44,14 @@ namespace LunaparkGame
         public Coordinates coord { protected set; get; }
         protected readonly Model model;
         public Control control { get; set; } //picture
+        public bool isClicked = false;
         virtual protected int price { get; set; } //todo: This must be abstract!!! - az budu znat ceny
 
         protected MapObjects(Model m) {
             this.model = m;
             control.Click += new EventHandler(Click);
-            model.money -= this.price;
+            model.MoneyAdd(-this.price);
+            model.dirtyNew.Enqueue(this);
         }
         public MapObjects(Model m,Coordinates coord):this(m)
         {
@@ -58,7 +65,9 @@ namespace LunaparkGame
         /// <summary>
         /// user action
         /// </summary>
-        public abstract void Destruct();
+        public virtual void Destruct() {
+            model.dirtyDestruct.Enqueue(this);
+        }
         
 
 
@@ -70,10 +79,13 @@ namespace LunaparkGame
     {
         #region
         public enum Status { waitingForPeople, running, outOfService, runningOut }
+       
         public int id { get; private set; }
         public AmusementEnterPath entrance { get; protected set; } //todo: je opravdu potreba protected, nestaci private nebo dokonce readonly?
         public AmusementExitPath exit { get; protected set; }
-        protected Queue<Person> queue;
+        protected  ConcurrentQueue<Person> queue=new ConcurrentQueue<Person>();
+        protected object queueDeleteLock = new object();
+        protected object queueAddLock = new object();
         protected List<Person> peopleInList;
         private Status status=Status.outOfService;
         public int countOfWaitingPeople
@@ -86,17 +98,17 @@ namespace LunaparkGame
             private set { }
         }
         protected int waitingTime = 0, actRunningTime=0;
-        public int currVisitPrice;
+        protected int currFee;//todo: odnekud nacist
         //public abstract int originalVisitPrice{get;protected set;}//todo:patri jinam
         protected bool isRunningOut=false;
         protected bool isRunning = false;
         //-------popisove vlastnosti
         public int capacity { get; protected set; }
-        public int workingPrice { get; protected set; }//provozniCena
+        public int workingPrice { get; protected set; }//todo: mozna nebude treba a pevne se vzdy urci procenta z provozu nebo tak nejak
         protected int maxWaitingTime, fixedRunningTime;
         public bool hasEntranceExit { get; protected set; }
-        protected readonly int initialVisitPrice;
-        protected int refundCoef;
+        //protected readonly int initialVisitPrice; nebude potreba, ziska se odnekud
+        protected int refundCoef;//todo: maybe zvolit pevna procenta vzdy stejna - napr. Amusement mit static polozku ebo tak nejak
         //----------------------------
         #endregion
 
@@ -104,43 +116,51 @@ namespace LunaparkGame
         {
             model.lastBuiltAmus = this;                 
             model.mustBeEnter = true;
-            this.id = model.amusList.GetFreeID();//mozna lepe nastavovat az pri pridani do listu
+            this.id = model.amusList.GetFreeID();
            
             peopleInList = new List<Person>(capacity);
-            queue = new Queue<Person>();
+            
             this.coord = coord;
             model.amusList.Add(this);
-            model.maps.AddAmus(this);
-            //todo: dodelat
+            model.maps.AddAmus(this);         
                        
            // mimoProvoz = true;
            // klikForm = new KlikNaAtrakciForm(this, (LSSAtrakce)form.evidence.atrakceLSS, form);
            // zacatek = true;
-           // stav = Stav.mimoProvoz;
+         
         }
-        
+
+        public int GetEntranceFee() {
+            return currFee;
+        }
+        public void SetEntranceFee(int value){
+            if(value>0) Interlocked.Exchange(ref currFee,value);        
+        }
         public override void Destruct()
         {
             entrance.Destruct();
             exit.Destruct();
-            model.money += refundCoef * price;//refund money
+            model.MoneyAdd(refundCoef * price);//refund money
             model.amusList.Remove(this);
             model.maps.RemoveAmus(this);
-            //todo:odstranit z mapy
+            model.dirtyDestruct.Enqueue(this);
+            
         } 
-        
+        /// <summary>
+        /// Puts n waiting people from queue to the amusment. It is assumed that nobody can dequeu while running this method, queue can only growth.
+        /// </summary>
+        /// <param name="n">count of items to be relocated, assumed that n isn't bigger than queue.Count anywhere</param>
         protected void PickUpPeople(int n) { //naloz lidi
             Person p;           
             for (int i = 1; i <= n; i++)
             {
-                p = queue.Dequeue(); 
+                if (!queue.TryDequeue(out p)) throw new MyDebugException("Amusements.PickUpPeople: TryDequeu neuspelo, i kdyz by melo" ); 
                 try //melo by jit jen o zbytecne ujisteni
                 {
                     p.visible = false;
                     p.status = Person.Status.inAmus;
                     peopleInList.Add(p);
-                    p.money -= this.currVisitPrice;              
-                    //todo: p.Zneviditelni();     Control.visible=false; - co takhle zde vytvorit metodu a pak predat delegata?              
+                    p.money -= this.currFee;                    
                 }
                 catch (NullReferenceException e) {
                     throw new MyDebugException("Not expected null in pickUpPeople: " + e.ToString());
@@ -149,33 +169,33 @@ namespace LunaparkGame
                     throw new MyDebugException("Not expected null in pickUpPeople: " + e.ToString());
                 }
             }
-            model.money += n * this.currVisitPrice;        
+            model.MoneyAdd(n * this.currFee);        
         }
         protected void DropPeopleOff(){
             foreach (Person p in peopleInList)
 	        {
 		        p.status=Person.Status.choosesAmus;
-                p.visible = true;
                 p.SetCoordinates(this.exit.coord);
-               
-                //todo:clovek.Premisti(vystupX,vystupY);
-                //todo:clovek.Zviditelni();
+                p.visible = true;
 	        }
             peopleInList.Clear();       
         }
         protected virtual void WaitingForPeopleAction() {
-            int temp = queue.Count;
-            if (temp >= 0.8 * capacity || (waitingTime >= maxWaitingTime && temp > 0))
+            lock (queueDeleteLock)
             {
-                waitingTime = 0;
-                actRunningTime = 0; //aktualni doba toceni atrakce
-                temp = Math.Min(temp, capacity);
-                PickUpPeople(temp); //vlozi lidi z fronty do atrakce, zmeni jim stav na VAtrakci a zneviditelni je
-                status = Status.running;
-                isRunning = true;
+                int temp = queue.Count;
+                if (temp >= 0.8 * capacity || (waitingTime >= maxWaitingTime && temp > 0))
+                {
+                    waitingTime = 0;
+                    actRunningTime = 0; //aktualni doba toceni atrakce
+                    temp = Math.Min(temp, capacity);
+                    PickUpPeople(temp); //vlozi lidi z fronty do atrakce, zmeni jim stav na VAtrakci a zneviditelni je
+                    status = Status.running;
+                    isRunning = true;
+                }
+                else waitingTime++;
             }
-            else waitingTime++;
-            model.money -= this.workingPrice; //provozni cena        
+            model.MoneyAdd(-this.workingPrice); //provozni cena        
         }
         protected virtual void RunningAction() {
             if (actRunningTime < fixedRunningTime) actRunningTime++;
@@ -187,11 +207,11 @@ namespace LunaparkGame
                 isRunning = false;
                 actRunningTime = 0;
             }
-            model.money -= workingPrice;
+            model.MoneyAdd( - this.workingPrice);
         }
         protected virtual void RunningOutAction()
         {//todo: neni lepsi, aby se lide cekajici ve fronte museli vratit? tj. nikdo dalsi se nesveze, snizi se spokojenost, ale asi neni proveditelne, protoze to pak lide stale mohou vybirat tuto atrakci
-            model.money -= workingPrice;
+            model.MoneyAdd(-workingPrice);
             if (queue.Count == 0 && (!isRunning)) //!bezi-aby se nezmenilo, kdyz uzivatel klikne uprostred behu
             {
                 status = Status.outOfService;
@@ -224,18 +244,17 @@ namespace LunaparkGame
         }
         public void DeletePersonFromQueue(Person p)
         {
-            Person q;
-            int c = queue.Count;
+            Person q; 
             Person[] atemp = queue.ToArray();//due to keep queue in its original order
-            queue.Clear();           
-            for (int i = c; i >= 0; i--)
+#warning queue.Clear musi byt, akorat ted nevim, jak to vyresit
+         //   queue.Clear();           
+            for (int i = atemp.Length-1; i >= 0; i--)
 			{
                 if ((q=atemp[i]) != p) queue.Enqueue(q);
             }           
         }
-       // public void ChangeId(int id) { this.id = id; }
         public abstract bool CheckFreeLocation(byte x,byte y);  //hack: nezkontrolovano
-        protected virtual bool CheckFreeLocation(byte x,byte y, byte width, byte height,bool hasEntranceAndExit=true) { 
+        protected bool CheckFreeLocation(byte x,byte y, byte width, byte height,bool hasEntranceAndExit=true) { 
             if (x + width > model.width || y + height > model.height) return false;
             for (byte i = x; i < x+width; i++)
             {
@@ -292,6 +311,7 @@ namespace LunaparkGame
                 IsInsideInAmusement(x, y + 1))
             {
                 this.exit = new AmusementExitPath(model,new Coordinates((byte)x,(byte)y));
+                status = Status.waitingForPeople;
                 model.mustBeExit = false;
                 return true;
             }
@@ -312,15 +332,16 @@ namespace LunaparkGame
                     if (status == Status.outOfService)
                     {
                         Destruct();
-                        model.lastClick = null; //v tomto se lisi od funkce predka; v pripade, ze se nejprve rusil vstup a pak atrakce
+                        model.lastClick = null; //must be there due to automaticall set lastClick=enter when enter is destructed
                     }
                     else
-                    {  //todo: MessageBox.Show("Nelze zbořit, dokud atrakce běží.", "Upozornění", MessageBoxButtons.OK);
+                    {  
+                        MessageBox.Show(Notices.cannotDemolishAmusement, Labels.warningMessBox, MessageBoxButtons.OK);
                     }
                 }
                 else
                 {
-                    // todo: HlaskaPoKliknuti();
+                    model.dirtyClick.Enqueue(this);
                 }
            // }
         }
@@ -329,11 +350,13 @@ namespace LunaparkGame
     public abstract class SquareAmusements : Amusements
     {
         public byte width { get; protected set; }
-        public SquareAmusements(Model m, Coordinates c) : base(m,c) { }
+        public SquareAmusements(Model m, Coordinates c) : base(m,c) {
+            model.CheckCheapestFee(this.currFee);
+        }
         
         public override bool CheckFreeLocation(byte x, byte y)
         {          
-            return base.CheckFreeLocation(x, y, width, width, hasEntranceAndExit: true);
+            return CheckFreeLocation(x, y, width, width, hasEntranceAndExit: true);
         }
         protected override bool IsInsideInAmusement(int x, int y)
         {
@@ -365,6 +388,7 @@ namespace LunaparkGame
         public RectangleAmusements(Model m,Coordinates c,bool isHorizontal=true):base(m,c)
         {
             isHorizontalOriented = isHorizontal;
+            model.CheckCheapestFee(this.currFee);
         }
         
         public override bool CheckFreeLocation(byte x, byte y)
@@ -394,11 +418,17 @@ namespace LunaparkGame
 
     public abstract class FreeShapedAmusements : Amusements
     {
-        public FreeShapedAmusements(Model m, Coordinates c) : base(m,c) { }
+        public FreeShapedAmusements(Model m, Coordinates c) : base(m,c) {
+            model.CheckCheapestFee(this.currFee);
+        }
        
     }
-
-
+    /// <summary>
+    /// napr. pro lavicky
+    /// </summary>
+    public abstract class LittleComplementaryAmusements : Amusements {
+        public LittleComplementaryAmusements(Model m, Coordinates c) : base(m, c) { }
+    }
 
     public class Person : MapObjects,IActionable
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
@@ -422,7 +452,7 @@ namespace LunaparkGame
         public Status status { set; protected get; }
         
         public Person(Model m, byte x, byte y) : base(m) {
-            //must set money
+            
             this.id = m.persList.GetFreeId();
             this.status = Status.initialWalking;
             this.money = rand.Next(Person.minMoney,Person.maxMoney);
@@ -446,13 +476,13 @@ namespace LunaparkGame
                         remainingStepsCount++;
                         switch (currDirection)
                         {
-                            case Direction.N: y--;//todo: add to move fronta in model
+                            case Direction.N: Interlocked.Decrement(ref y);
                                 break;
-                            case Direction.S: y++;//todo: add to move fronta in model
+                            case Direction.S: Interlocked.Increment(ref y);
                                 break;
-                            case Direction.W: x--;//todo: add to move fronta in model
+                            case Direction.W: Interlocked.Decrement(ref x);
                                 break;
-                            case Direction.E: x++;//todo: add to move fronta in model
+                            case Direction.E: Interlocked.Increment(ref x);
                                 break;
                             case Direction.no: { status = Status.choosesAmus;}
                                 break;
@@ -463,7 +493,7 @@ namespace LunaparkGame
                                     status = Status.choosesAmus;
                                 }
                                 if (a.id != currAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
-                                if (a.currVisitPrice > maxAcceptablePrice || a.currVisitPrice > money)
+                                if (a.GetEntranceFee() > maxAcceptablePrice || a.GetEntranceFee() > money)
                                 {
                                     contenment = contenment - 10;//todo: nastavit poradne
                                     status = Status.choosesAmus;
@@ -517,10 +547,10 @@ namespace LunaparkGame
                     {
                         initialWalkingTime--;
                                                                     
-                        switch (currDirection)
+                        switch (currDirection)//doesnt matter that it is not "thread-safe", nobody else couldnt change x,y while initialWalkingTime
                         {
                             case Direction.E:  
-                                if (model.maps.IsPath(x + 1, y)) { x++; //todo: Zaradit do move fronty
+                                if (model.maps.IsPath(x + 1, y)) { x++;
                                 }
                                 else currDirection=(Direction)rand.Next(1,5);
                                 break;
@@ -558,7 +588,7 @@ namespace LunaparkGame
         /// </summary>
         /// <returns>An nonnegative int, which represents the id of an amusement</returns>
         public int ChooseAmusement() {
-            //todo: mam mene penez nez stoji nejlevnejsi atrakce -> jdu domu
+            if(money<model.currCheapestFee) return model.amusList.GetGateId();//person cannot afford pay any amusement
             if (contenment == 0) return model.amusList.GetGateId();
             if (hunger > 1800) //2000=100 %, i.e. 2000*0.9
                 return model.amusList.GetRandomRestaurant(); //kdyz je hlad 90%, vybira obcerstveni
@@ -572,19 +602,23 @@ namespace LunaparkGame
             return model.amusList.GetRandomAmusement();
         }
         public void SetCoordinates(Coordinates c) {
-            this.x = c.x;
-            this.y = c.y;
+            Interlocked.Exchange(ref this.x,c.x);
+            Interlocked.Exchange(ref this.y,c.y);
         }
         protected override void Click(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+           /* if (!isClicked)
+            {*/
+                model.dirtyClick.Enqueue(this);
+            /*    isClicked = true;
+            }*/
         }
        
        
         public override void Destruct()
         {
-            //todo: vlozit do destruct fronty v modelu
             model.persList.Remove(this);
+            model.dirtyDestruct.Enqueue(this);
         }
        
 

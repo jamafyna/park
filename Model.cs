@@ -14,7 +14,12 @@ namespace LunaparkGame
         private const int initialMoney = 1;
         public readonly byte width, height; //todo: virtual metoda u atrakci pocita s tim, ze jsou to ty viditelne uzivatelem
         public readonly int maxAmusementsCount;//todo: nejspis nepocita lavicky
-        public int money;
+        private int money;
+        public int currCheapestFee { private set; get; }//todo: postarat se o vytvoreni
+        /// <summary>
+        /// use for manipulation with currCheapestFee
+        /// </summary>
+        private object feeLock=new object();
 
        //---containers---
         public ConcurrentQueue<MapObjects> dirtyNew=new ConcurrentQueue<MapObjects>();
@@ -46,7 +51,14 @@ namespace LunaparkGame
             amusList = new ListOfAmusements(maxAmusementsCount);
             maps=new Map(width,height,this);
         }
-        
+        public void MoneyAdd(int value) {
+            Interlocked.Add(ref money,value);
+        }
+        public void CheckCheapestFee(int fee) {
+            lock(feeLock){
+                if(fee<currCheapestFee) currCheapestFee=fee;          
+            }        
+        }
        
     }
    

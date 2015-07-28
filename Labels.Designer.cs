@@ -257,5 +257,14 @@ namespace LunaparkGame {
                 return ResourceManager.GetString("viewItem", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning.
+        /// </summary>
+        internal static string warningMessBox {
+            get {
+                return ResourceManager.GetString("warningMessBox", resourceCulture);
+            }
+        }
     }
 }

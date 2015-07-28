@@ -189,4 +189,7 @@
   <data name="viewItem" xml:space="preserve">
     <value>ZOBRAZ</value>
   </data>
+  <data name="warningMessBox" xml:space="preserve">
+    <value>Upozornění</value>
+  </data>
 </root>
