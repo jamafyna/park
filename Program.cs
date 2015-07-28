@@ -6,6 +6,10 @@ using System.Windows.Forms;
 
 namespace LunaparkGame
 {
+    public interface IUpdatable {
+        void Update();
+    }
+    
     static class Program
     {
        // public enum Direction { N, S, W, E, no };//smer

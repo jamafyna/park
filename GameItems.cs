@@ -140,6 +140,7 @@ namespace LunaparkGame
                 p = queue.Dequeue(); 
                 try //melo by jit jen o zbytecne ujisteni
                 {
+                    p.visible = false;
                     p.status = Person.Status.inAmus;
                     peopleInList.Add(p);
                     p.money -= this.currVisitPrice;              
@@ -158,6 +159,7 @@ namespace LunaparkGame
             foreach (Person p in peopleInList)
 	        {
 		        p.status=Person.Status.choosesAmus;
+                p.visible = true;
                 p.SetCoordinates(this.exit.coord);
                
                 //todo:clovek.Premisti(vystupX,vystupY);
@@ -422,6 +424,7 @@ namespace LunaparkGame
         private readonly int patience;
         public readonly int id;
         public readonly int maxAcceptablePrice;//max price which he is willing to pay per an amusement
+        public bool visible { get; set; }
         //----provozni hodnoty-----
         private int remainingStepsCount=0;//pocet zbyvajicich kroku
         private int waitingTimeInQueue = 0, initialWalkingTime=2*MainForm.sizeOfSquare;
@@ -442,6 +445,7 @@ namespace LunaparkGame
             this.price = 0;
             this.x = x;
             this.y = y;
+            this.visible = true;
 
             m.persList.Add(this);
 
@@ -468,6 +472,10 @@ namespace LunaparkGame
                                 break;
                             case Direction.here: { 
                                 Amusements a=model.maps.GetAmusement(x,y);
+                                if (a == null) { 
+                                    //todo: ubrat spokojenost
+                                    status = Status.choosesAmus;
+                                }
                                 if (a.id != currAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
                                 if (a.currVisitPrice > maxAcceptablePrice || a.currVisitPrice > money)
                                 {

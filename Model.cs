@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
+using System.Collections.Concurrent;
 
 namespace LunaparkGame
 {
@@ -11,27 +12,36 @@ namespace LunaparkGame
     public class Model //todo: Mozna nahradit Evidenci modelem, aby se musela synchronizovat jen jedna vec
     {       
         private const int initialMoney = 1;
-        public readonly int width = 10, height = 15; //todo: virtual metoda u atrakci pocita s tim, ze jsou to ty viditelne uzivatelem
-        public Queue<MapObjects> dirtyNew;
-        public Queue<Control> dirtyDestruct;//pouze pbox.Destruct, mozna jen zadat souradnice
-        public ListOfAmusements amusList;
-        public PersonList persList = new PersonList();
+        public readonly byte width, height; //todo: virtual metoda u atrakci pocita s tim, ze jsou to ty viditelne uzivatelem
+        public readonly int maxAmusementsCount;//todo: nejspis nepocita lavicky
+        public int money;
+
+       //---containers---
+        public ConcurrentQueue<MapObjects> dirtyNew=new ConcurrentQueue<MapObjects>();
+        public ConcurrentQueue<MapObjects> dirtyDestruct=new ConcurrentQueue<MapObjects>();//mozna misto mapObjects staci byt Control
+        public ConcurrentQueue<MapObjects> dirtyClick = new ConcurrentQueue<MapObjects>();
+
+        public List<IUpdatable> updatableItems;//todo: sem dat taky hlavni form, udelat thread-safe      
+        
+        public ListOfAmusements amusList;//todo:thread-safe
+        public PersonList persList = new PersonList();//todo: thread-safe
         public Map maps;
-        //todo: ostatni user akce - kliky a formy...
-        public Amusements lastBuiltAmus;
+       
+        //---running fields for Form1
+        public Amusements lastBuiltAmus{get;set;}
         public MapObjects lastClick { set; get; }
         public bool mustBeEnter = false;
         public bool mustBeExit = false;
         public bool demolishOn = false;
-        public int money;
-        public readonly int maxAmusementsCount;
+       
+        
         
         
         public Model(byte height, byte width){
             this.height=height;
             this.width=width;
             money = initialMoney;
-           
+                        
             maxAmusementsCount = height * width+1;//todo: pokud zde bude uz myslenkove height+2, upravit, ale nezapomenout na +1 za branu
             amusList = new ListOfAmusements(maxAmusementsCount);
             maps=new Map(width,height,this);
@@ -39,15 +49,13 @@ namespace LunaparkGame
         
        
     }
-    /// <summary>
-    ///
-    /// </summary>
-    public class ListOfAmusements
+   
+    public class ListOfAmusements:IActionable
     { //todo: nejspis by mela byt thread-safe
         static Random rand = new Random();
-        private List<Amusements> list;
-        private Queue<int> freeId;
-        private List<int> foodIds;
+        private List<Amusements> list; //nejspise zde pouzit ReaderWriterLockSlim - casto se cte, z plna vlaken a malo se zapisuje
+        private ConcurrentQueue<int> freeId;
+        private List<int> foodIds;//nejspise zde pouzit ReaderWriterLockSlim - casto se cte, z plna vlaken a malo se zapisuje
 #warning overit, ze v count je opravdu spravne
         public int amusementsCount { get { return list.Count; } private set { } }
         public int restaurantsCount { get { return foodIds.Count; } private set { } }
@@ -58,7 +66,8 @@ namespace LunaparkGame
             //todo:create brana
             list = new List<Amusements>();
             foodIds = new List<int>();
-            freeId = new Queue<int>(maxAmusCount);
+           // freeId = new Queue<int>(maxAmusCount);
+            freeId = new ConcurrentQueue<int>();
             for (int i = maxAmusCount; i > 0; i--) freeId.Enqueue(i);            
         }
         public void Add(Amusements a)
@@ -71,25 +80,21 @@ namespace LunaparkGame
         }
         public int GetFreeID()
         {
-            //return list.Count;
             try
             {
-                return freeId.Dequeue();
+                int tempId;
+                while (!freeId.TryDequeue(out tempId)) { }//hash:overit, zda funguje
+                return tempId;
             }
             catch (InvalidOperationException e) {
                 throw new MyDebugException("Pocet atrakci prekrocil maximalni povoleny pocet"+e.ToString());
             }
         }
         public void Remove(Amusements a)
-        {
-           /* Amusements b = list[list.Count - 1];
-            b.ChangeId(a.id);
-            list[a.id] = b;
-            reallyIdArray[a.id] = reallyIdArray[list.Count - 1];
-            reallyIdArray[list.Count - 1] = 0;
-            list.RemoveAt(list.Count - 1);*/
+        {//todo: TS
             list.Remove(a);
             if(a is Restaurant) foodIds.Remove(a.id);
+           
             freeId.Enqueue(a.id);
         }
         /// <summary>
@@ -108,13 +113,12 @@ namespace LunaparkGame
             if (foodIds.Count == 0) return 0;
             return foodIds[rand.Next(foodIds.Count)];
         }
-        public void ForeachAction()
+        public void Action()
         {
+            //todo: vytvorit lokalni kopii, na te pracovat - mozna neni nejvhodnejsi, proste pouzit readrewriterLockSlim
+
             list.ForEach(a=>a.Action());
-           /* foreach (Amusements a in list)
-            {
-                a.Action();
-            }*/
+           
         }
         public Coordinates GetGateCoordinate() {
             return list[0].coord;       
@@ -122,7 +126,7 @@ namespace LunaparkGame
         public int GetGateId() {
             return 0;
         }
-        public Amusements[] GetCopyArray() { 
+        public Amusements[] GetCopyArray() { //todo: mozna dat list[] jako properties a pri ziskavani se da pouze kopie..., ale spis ne
             Amusements[] a=new Amusements[list.Count];
             list.CopyTo(a);
             return a;
@@ -140,7 +144,8 @@ namespace LunaparkGame
         private Person[] people=new Person[maxPeopleCountInPark];
         private int countOfPeopleArray;
         private int totalPeopleCount;
-       
+        private object countOfPeopleArrayLock = new object();
+
         public PersonList() {
             //for (int = 0; i < people.Length; i++) people[i] = null; inicialni hodnota je uz nastavena
             for (int i = 0; i < interChangablePeopleId.Length; i++) interChangablePeopleId[i] = -1;
@@ -153,25 +158,30 @@ namespace LunaparkGame
         public int GetTotalPeopleCount() {
             return totalPeopleCount;
         }
-        public int GetFreeId() {
-            //todo: musi byt thread-safe!!!
-            return totalPeopleCount++ % max; //Ed. for sure: after all it incremets 
+        public int GetFreeId() {//je TS
+            int temp = totalPeopleCount;
+            while (temp != Interlocked.CompareExchange(ref totalPeopleCount, temp + 1, temp)) { temp = totalPeopleCount; }
+            //todo:?nelze zjednodusit na: int temp = Interlocked.CompareExchange(ref totalPeopleCount, totalPeopleCount+1);
+            return temp % max; //Ed. for sure: after all it incremets 
             //it could happen potentially that this id has an another person, never mind - checking in adding person
         }
-        public void Add(Person p)//todo:thread-safe
+        public void Add(Person p)//todo:neni thread-safe, nize problem v todo
         {
             if (interChangablePeopleId[p.id] != -1)  {
                 //todo: smaz tuto osobu - preziva moc dlouho  -rucni smazani+smazani cloveka-pozor, nesmi odstranovat z mapy
+                //je TS, protoze ziskavani Id je TS, tj. nenastane situace, ze by se narychlo zmenilo
             }
-                //vyse uvedene je Thread-safe, protoze pri porovnani se nestihne novy cyklus (tj. vytvorit nekolik tisic osob)
-            //a je odjinud zaruceno, ze jinak nez novym cyklem nedostaneme stejne id          
+                         
 #warning zeptat se Jezka, jestli  to nize je opravdu atomicke, jestli to nekazi aktPeopleCount+1            
-            int interId = countOfPeopleArray++;//todo: ulozeni a zvyseni musi probehnout atomicky!! //mozna:int interId = Interlocked.Exchange(ref countOfPeopleArray, countOfPeopleArray + 1);
-         
-            interChangablePeopleId[p.id] = interId;
+           
+            int interId = countOfPeopleArray;
+            while (interId != Interlocked.CompareExchange(ref countOfPeopleArray, interId + 1, interId)) { interId = totalPeopleCount; }
+            //todo: neni vyse uvedene totez jako: int interId = Interlocked.Exchange(ref countOfPeopleArray, countOfPeopleArray + 1);?
+            //todo: zvyseni countOfPeople a vlozeni do people by melo probehnout atomicky, nebo vlozeni drive nez zvyseni - to nejde, tj nutno nejspis pouzit zamek count..Object
             people[interId] = p;
+            interChangablePeopleId[p.id] = interId;
+           
             
-
         }
         public void Action()//todo: thread-safe - zamek people pro cteni
         {           
@@ -201,6 +211,7 @@ namespace LunaparkGame
             if (id == -1) throw new MyDebugException("PeopleList.Remove - id=-1, tj. p nebyla nejspis v seznamu");//pozdeji nedat nebo ignorovat
             //DEBUG check
             if (people[id] != p) throw new MyDebugException("PeopleList.Remove - person[id]!=p: p.id: "+p.id.ToString()+", p: "+p.ToString());
+            //todo: zde nejspise zamknout
             if(id==countOfPeopleArray-1){ //p is the last item
                 people[id]=null;//due to GC
                 countOfPeopleArray--;
@@ -212,6 +223,7 @@ namespace LunaparkGame
                 people[countOfPeopleArray - 1] = null;//due to GC
                 countOfPeopleArray--;
             }
+            //todo: zde odemknout
             
 
           
@@ -220,6 +232,7 @@ namespace LunaparkGame
         
 
     }
+    
     public class Map: IActionable 
     {
         //private bool[][] isFree;
@@ -236,13 +249,16 @@ namespace LunaparkGame
       //  private MapObjects[][] objectsInMapSquares;
         private Amusements[][] amusementMap;
         private Path[][] pathMap;
-        //todo: neni nyni auxPathMap uplne zbytecna???, nestacilo by misto ni pouzivat pathMap?
+        //todo: neni nyni auxPathMap uplne zbytecna???, nestacilo by misto ni pouzivat pathMap? ano stacilo
         private Model model;
-        private Queue<Amusements> lastAddedAmus=new Queue<Amusements>();
+        /// <summary>
+        /// for setting direction to a new amusement, dequeue can be called only in Action()
+        /// </summary>
+        private ConcurrentQueue<Amusements> lastAddedAmus=new ConcurrentQueue<Amusements>();
 
        // private Direction[][][] path;
-        private bool pathChanged = false, amusAdd=false;//,amusDeleted = false;
-        private int amusDeletedId = -1;
+        private bool pathChanged = false;
+       // private int amusDeletedId = -1;
         public byte widthMap { get; private set; }
         public byte heightMap{get;private set;}
         private int maxAmusCount;
@@ -304,13 +320,12 @@ namespace LunaparkGame
             else return false;
         }
         public void RemoveAmus(Amusements a) {          
-          //  foreach (var c in a.GetAllPoints()) objectsInMapSquares[c.x][c.y] = null;
             foreach (var c in a.GetAllPoints()) amusementMap[c.x][c.y] = null;
             if (a.entrance != null)  amusementMap[a.entrance.coord.x][a.entrance.coord.y]=null;
             if (a.exit != null)  amusementMap[a.entrance.coord.x][a.entrance.coord.y] = null;
             //todo:vyse uvedene by nemelo byt null, entrance a exit musi vzdy existovat, byt to je stejne policko jako atrakce
             //don't set null to pathMap - it made entrance.Destruct()
-            amusDeletedId = a.id;
+            //amusDeletedId = a.id;
         }
         public void AddAmus(Amusements a) {
             
@@ -329,19 +344,11 @@ namespace LunaparkGame
             {
                 throw new MyDebugException("Entry or exit is null in AddAmus" + e.ToString());
             }
-            amusAdd = true;
+            
             lastAddedAmus.Enqueue(a);
         }
         public void DeleteDirectionToAmusement(int amusId)//mozna nebude treba, principialne neni spatne, kdyz jde clovek dal
         {
-           /* Direction[] temp;
-            
-            for (int i = 0; i < widthMap; i++)
-            {
-                for (int j = 0; j < heightMap; j++)
-                    if ((temp = path[i][j]) != null) temp[amusId] = Direction.no;
-            }
-           */
             Path p;
             for (int i = 0; i < widthMap; i++) 
                 for (int j = 0; j < heightMap; j++)
@@ -350,19 +357,26 @@ namespace LunaparkGame
                     if (p!=null) p.signpostAmus[amusId] = Direction.no;*/
                     if ((p = pathMap[i][j]) != null) p.signpostAmus[amusId] = Direction.no;
                 }
-            amusDeletedId = -1;
+            //amusDeletedId = -1;
         }
 
-        public void AddPath(Path p) { 
+        public void AddPath(Path p)
+        { //todo:TS, kdyby jednotlive radky byly atomicke, staci to? Tj. jak jsou mezi sebou provazane?
             pathMap[p.coord.x][p.coord.y] = p;
             auxPathMap[p.coord.x][p.coord.y] = new DirectionItem(p.coord);
             pathChanged = true;
         }
-        public void RemovePath(Path p) {          
+        public void RemovePath(Path p) {   //todo:TS, kdyby jednotlive radky byly atomicke, staci to? Tj. jak jsou mezi sebou provazane?       
             pathMap[p.coord.x][p.coord.y] = null;
             auxPathMap[p.coord.x][p.coord.y] = null;
             pathChanged = true;
         }
+        /// <summary>
+        /// Set calculated directions to paths in pathMap
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="queue"></param>
+        /// <param name="paths"></param>
         private void UpdateDirectionToAmusementPrivate(Amusements a,Queue<DirectionItem> queue, DirectionItem[][] paths) {
             DirectionItem item;
             InitializeQueue(queue, a.entrance.coord, paths);
@@ -373,13 +387,14 @@ namespace LunaparkGame
             }
             //---set calculated directions
             //hash: takto divne kvuli vice vlaknum
-            MapObjects p;
+           
             for (int i = 0; i < widthMap; i++)
             {
-                for (int j = 0; j < heightMap; i++)
+                for (int j = 0; j < heightMap; i++) 
                 {
                     if ((item = paths[i][j]) != null)// && (p = objectsInMapSquares[i][j]) is Path)
                     {
+                        //paths[][] can't be changed anywhere during running this method -> if is thread-safe
                         pathMap[i][j].signpostAmus[a.id] = item.dir;
                         //((Path)p).signpostAmus[a.id] = item.dir;
                     }
@@ -464,20 +479,23 @@ namespace LunaparkGame
         }      
         public void Action() {
 
-            if (pathChanged) { pathChanged = false; UpdateDirections(); }
+            if (pathChanged) { 
+                pathChanged = false;
+                //an another thread can potentially set pathChanged=true in this moment, it can cause a useless call UpdateDirection() in the next Action(); -> I decided, it doesn't matter. 
+                UpdateDirections(); }
             else
             {
-                if (lastAddedAmus.Count > 0)
-                {
-                    Amusements[] a = new Amusements[lastAddedAmus.Count];
-                    lastAddedAmus.CopyTo(a, 0);
+                    /*Amusements[] a = lastAddedAmus.ToArray();
                     lastAddedAmus.Clear();
                     foreach (var item in a)
                     {
                         UpdateDirectionToAmusement(item);
-                    }
+                    }*/
+                Amusements a;
+                while(!lastAddedAmus.IsEmpty){ //is T-S, dequeu can be done only here
+                    if (lastAddedAmus.TryDequeue(out a)) UpdateDirectionToAmusement(a);
                 }
-                if (amusDeletedId >= 0) { DeleteDirectionToAmusement(amusDeletedId); }
+              //todo:  if (amusDeletedId >= 0) { DeleteDirectionToAmusement(amusDeletedId); }//todo: nejspis zbytecne, nepotrebujeme, clovek dojde na misto a zjisti, ze tam nic neni, vybere tedy novou atrakci
             }
         }
         /// <summary>
@@ -510,7 +528,7 @@ namespace LunaparkGame
         /// <param name="y">the real! y-coordinate</param>
         /// <returns> true if a path is on the coordinates[x,y]; otherwise, false.</returns>
         public bool IsPath(int x, int y) {
-            if (auxPathMap[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare] == null) return false;
+            if (pathMap[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare] == null) return false;
             else return true;
         }
     

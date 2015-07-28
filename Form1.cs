@@ -106,7 +106,7 @@ namespace LunaparkGame
                     {
                         object[] arg = { x, y, model };
                         //todo:nize nejspise neni nutne ukladat, udelano v konstruktoru atrakce a nastavovat 
-                        model.lastBuiltAmus = (Amusements)Activator.CreateInstance(model.lastClick.GetType(), arg);                                               
+                        model.lastBuiltAmus = (Amusements)Activator.CreateInstance(model.lastClick.GetType(), arg);  //todo: melo by se vytvorit v novem vlakne                                          
                     }
                     return;
                 }
