@@ -22,7 +22,7 @@ namespace LunaparkGame
         {
             foreach (var item in model.dirtyDestruct)
             {
-                item.Dispose();
+                //item.Dispose();
             }
         }
         private void NewDirty()

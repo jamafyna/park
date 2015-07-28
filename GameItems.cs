@@ -19,6 +19,7 @@ namespace LunaparkGame
         byte x { get; set; }
         byte y { get; set; }
     }
+  
     public class MyDebugException : Exception
     {
         public MyDebugException() : base() { }
@@ -49,12 +50,7 @@ namespace LunaparkGame
         {
             this.coord = coord;
         }
-        /// <summary>
-        /// Create an instance and show it in the game map
-        /// </summary>
-        /// <param name="x">the left coordinate</param>
-        /// <param name="y">the top coordinate</param>
-        public abstract bool Create(int x, int y); //todo mozna system.drawing.point
+       
         /// <summary>
         /// user action
         /// </summary>
@@ -334,10 +330,7 @@ namespace LunaparkGame
     {
         public byte width { get; protected set; }
         public SquareAmusements(Model m, Coordinates c) : base(m,c) { }
-        public override bool Create(int x, int y)
-        {
-            throw new NotImplementedException();
-        }
+        
         public override bool CheckFreeLocation(byte x, byte y)
         {          
             return base.CheckFreeLocation(x, y, width, width, hasEntranceAndExit: true);
@@ -373,11 +366,7 @@ namespace LunaparkGame
         {
             isHorizontalOriented = isHorizontal;
         }
-        public override bool Create(int x, int y)
-        {
-            throw new NotImplementedException();
-           
-        }
+        
         public override bool CheckFreeLocation(byte x, byte y)
         {
             if (isHorizontalOriented) return CheckFreeLocation(x, y, width, height, hasEntranceAndExit: true);
@@ -406,10 +395,7 @@ namespace LunaparkGame
     public abstract class FreeShapedAmusements : Amusements
     {
         public FreeShapedAmusements(Model m, Coordinates c) : base(m,c) { }
-        public override bool Create(int x, int y)
-        {
-            throw new NotImplementedException();
-        }
+       
     }
 
 
@@ -594,10 +580,7 @@ namespace LunaparkGame
             throw new NotImplementedException();
         }
        
-        public override bool Create(int x, int y)
-        {
-            throw new NotImplementedException();
-        }
+       
         public override void Destruct()
         {
             //todo: vlozit do destruct fronty v modelu
@@ -618,10 +601,7 @@ namespace LunaparkGame
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
             model.maps.AddPath(this);
         }
-        public override bool Create(int x, int y) {
-            throw new NotImplementedException();
-        }
-
+       
         protected override void Click(object sender, EventArgs e)
         {
             //nothing
