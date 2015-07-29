@@ -53,7 +53,7 @@ namespace LunaparkGame
       
         private void map_Click(object sender, EventArgs e) {
            
-            if (!model.demolishOn && model.lastClick!=null)
+            if (!model.demolishOn && model.LastClick!=null)
             {
                 #region
                 MouseEventArgs mys = (MouseEventArgs)e;
@@ -75,21 +75,21 @@ namespace LunaparkGame
                     model.lastBuiltAmus.CheckExitAndBuild(x, y); //if not succeed, no annoing error-text                  
                     return;
                 }
-                if (model.lastClick.price > model.GetMoney()) { MessageBox.Show(Notices.cannotBuyNoMoney, Labels.warningMessBox, MessageBoxButtons.OK); return; }
-                if (model.lastClick is Amusements)
+                if (model.LastClick.price > model.GetMoney()) { MessageBox.Show(Notices.cannotBuyNoMoney, Labels.warningMessBox, MessageBoxButtons.OK); return; }
+                if (model.LastClick is Amusements)
                 {
-                    if (((Amusements)model.lastClick).CheckFreeLocation(x, y))
+                    if (((Amusements)model.LastClick).CheckFreeLocation(x, y))
                     {
                         object[] arg = { x, y, model };
                         //todo:nize nejspise neni nutne ukladat, udelano v konstruktoru atrakce a nastavovat 
-                        model.lastBuiltAmus = (Amusements)Activator.CreateInstance(model.lastClick.GetType(), arg);  //todo: melo by se vytvorit v novem vlakne                                          
+                        model.lastBuiltAmus = (Amusements)Activator.CreateInstance(model.LastClick.GetType(), arg);  //todo: melo by se vytvorit v novem vlakne                                          
                     }
                     return;
                 }
                 else
                 {
                     object[] arg = {x,y,model };
-                    Activator.CreateInstance(model.lastClick.GetType(), arg);
+                    Activator.CreateInstance(model.LastClick.GetType(), arg);
                 }
                 #endregion
 #warning rusim tu schopnost prekladace spravne kontrolovat - nezajisti mi, ze dana trida bude mit spravny konstruktor

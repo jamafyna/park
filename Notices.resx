@@ -123,4 +123,7 @@
   <data name="cannotDemolishAmusement" xml:space="preserve">
     <value>"It cannot be demolished. The amusement is running."</value>
   </data>
+  <data name="unfinishedBuilding" xml:space="preserve">
+    <value>"The building have not finnished. Finish it first."</value>
+  </data>
 </root>

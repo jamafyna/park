@@ -11,10 +11,11 @@ namespace LunaparkGame
     public partial class PathForm : WeifenLuo.WinFormsUI.Docking.DockContent
     {
         Panel lastPanel;
-        public PathForm()
+        Model model;
+        public PathForm(Model m)
         {
             InitializeComponent();
-
+            model = m;
             for (int i = 0; i < 30; i++)
             {
                 CreateNewItem("pokud", 125, Properties.Images.path_asphalt, new AsphaltPath());
@@ -23,8 +24,14 @@ namespace LunaparkGame
             CreateNewItem("b", 125, Properties.Images.path_asphalt, new AsphaltPath());
             CreateNewItem("c", 125, Properties.Images.path_asphalt, new AsphaltPath());
         }
-
-        public void CreateNewItem(string name, int value, Image image, MapObjects click) {
+        /// <summary>
+        /// Creates new menu item. User can after build it.
+        /// </summary>
+        /// <param name="name">Name of item which is displayed to user.</param>
+        /// <param name="cost">Purchase price.</param>
+        /// <param name="image">An image of the new item. </param>
+        /// <param name="click">Specific MapObjects which the item represents. It is return if user clicks on this item.</param>
+        public void CreateNewItem(string name, int cost, Image image, MapObjects click) {
 
             
             Panel p = new Panel();
@@ -64,17 +71,24 @@ namespace LunaparkGame
             b.Tag = click;
             b.Top = 25;
             b.Left = 10;
+            b.Click +=new System.EventHandler(this.Click);
             l = new Label();
             l.Parent = p;
-            l.Text = value.ToString();
+            l.Text = cost.ToString();
             l.TextAlign = ContentAlignment.TopCenter;
             l.Height = 15;
             l.Top = 80;
             l.Left = 0;
             l.Width = 70;
-
-
         
+        }
+        //todo:overit, co z toho se pouziva
+        private void Click(Button sender, EventArgs e )
+        {
+            model.LastClick = (MapObjects)sender.Tag;
+        }
+        private void Click(object sender, EventArgs e) {
+            model.LastClick = (MapObjects)((Button)sender).Tag;
         }
     }
 

@@ -340,7 +340,7 @@ namespace LunaparkGame
                     if (status == Status.outOfService)
                     {
                         Destruct();
-                        model.lastClick = null; //must be there due to automaticall set lastClick=enter when enter is destructed
+                        model.LastClick = null; //must be there due to automaticall set lastClick=enter when enter is destructed
                     }
                     else
                     {  

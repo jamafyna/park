@@ -77,5 +77,14 @@ namespace LunaparkGame {
                 return ResourceManager.GetString("cannotDemolishAmusement", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;The building have not finnished. Finish it first.&quot;.
+        /// </summary>
+        internal static string unfinishedBuilding {
+            get {
+                return ResourceManager.GetString("unfinishedBuilding", resourceCulture);
+            }
+        }
     }
 }

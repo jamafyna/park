@@ -123,4 +123,7 @@
   <data name="cannotDemolishAmusement" xml:space="preserve">
     <value>"Nelze zbořit, dokud atrakce běží."</value>
   </data>
+  <data name="unfinishedBuilding" xml:space="preserve">
+    <value>"Stavba nebyla dokončena. Nejprve dokončete stavbu."</value>
+  </data>
 </root>

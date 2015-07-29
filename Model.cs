@@ -35,7 +35,14 @@ namespace LunaparkGame
        
         //---running fields for Form1
         public Amusements lastBuiltAmus{get;set;}
-        public MapObjects lastClick { set; get; }
+        private MapObjects lastClick;
+        public MapObjects LastClick {
+            set {
+                if (!mustBeEnter && !mustBeExit) lastClick = value;
+                else MessageBox.Show(Notices.unfinishedBuilding,Labels.warningMessBox,MessageBoxButtons.OK);
+            }
+            get { return lastClick; }
+        }
         public bool mustBeEnter = false;
         public bool mustBeExit = false;
         public bool demolishOn = false;
