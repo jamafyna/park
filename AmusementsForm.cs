@@ -5,22 +5,28 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace LunaparkGame
 {
-    public partial class AmusementsForm : WeifenLuo.WinFormsUI.Docking.DockContent,IUpdatable
+    public partial class AmusementsForm : WeifenLuo.WinFormsUI.Docking.DockContent
     {
-        public AmusementsForm()
+        AmusementDetailForm detailForm;
+        DockPanel dockP;
+        public AmusementsForm(Model model, DockPanel parent)
         {
             InitializeComponent();
-           // CreateNewButton();
+           CreateNewButton();
+           dockP = parent;
+            detailForm = new AmusementDetailForm(model,parent);
+           // this.IsMdiContainer = true;
         }
 
         private void AmusementsForm_Load(object sender, EventArgs e)
         {
 
         }
-        public void CreateNewButton(Control c) {
+        public void CreateNewButton() {
            
             
             Button b = new Button();
@@ -28,12 +34,21 @@ namespace LunaparkGame
 
             b.Parent = this;
             b.Click += new EventHandler(Click);
+            //todo: b.Tag=potrebne
         }
         
         private new void Click(object sender, EventArgs e) {
-           //todo: if povoleni stavit jine nez IO
-            MessageBox.Show(sender.ToString());
-            ((Button)sender).BackColor = Color.Purple;
+            detailForm.Set("neco","blabla",Properties.Images.amus_iceCream);//todo: udelat spravne, ziskat neco z .Tag a dohledat spravne info
+           // if (detailForm.IsHidden) 
+            detailForm.Show(dockP);
+            
         }
+
+        private void AmusementsForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+
+        }
+
+       
     }
 }

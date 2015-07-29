@@ -20,7 +20,7 @@ namespace LunaparkGame
         /// use for manipulation with currCheapestFee
         /// </summary>
         private object feeLock=new object();
-
+        public int currPeopleCount { get { return persList.GetTotalPeopleCount(); } }
        //---containers---
         public ConcurrentQueue<MapObjects> dirtyNew=new ConcurrentQueue<MapObjects>();
         public ConcurrentQueue<MapObjects> dirtyDestruct=new ConcurrentQueue<MapObjects>();//mozna misto mapObjects staci byt Control

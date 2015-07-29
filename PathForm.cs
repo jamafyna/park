@@ -83,11 +83,11 @@ namespace LunaparkGame
         
         }
         //todo:overit, co z toho se pouziva
-        private void Click(Button sender, EventArgs e )
+        private new void Click(Button sender, EventArgs e )
         {
             model.LastClick = (MapObjects)sender.Tag;
         }
-        private void Click(object sender, EventArgs e) {
+        private new void Click(object sender, EventArgs e) {
             model.LastClick = (MapObjects)((Button)sender).Tag;
         }
     }

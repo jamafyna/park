@@ -38,6 +38,7 @@
             this.HideOnClose = true;
             this.Name = "AmusementsForm";
             this.Text = "Amusements";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.AmusementsForm_FormClosing);
             this.Load += new System.EventHandler(this.AmusementsForm_Load);
             this.ResumeLayout(false);
 

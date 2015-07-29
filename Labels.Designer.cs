@@ -97,6 +97,24 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to BUY.
+        /// </summary>
+        internal static string buyButton {
+            get {
+                return ResourceManager.GetString("buyButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CHANGE COLOR.
+        /// </summary>
+        internal static string changeColor {
+            get {
+                return ResourceManager.GetString("changeColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CONTINUE.
         /// </summary>
         internal static string continueMenu {

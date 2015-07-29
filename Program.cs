@@ -7,7 +7,7 @@ using System.Windows.Forms;
 namespace LunaparkGame
 {
     public interface IUpdatable {
-        void Update();
+        void MyUpdate();
     }
     
     static class Program

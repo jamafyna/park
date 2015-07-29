@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace LunaparkGame
 {
-    public partial class MainForm : Form
+    public partial class MainForm : Form, IUpdatable
     {
         //public Type lastClick{get; private set;}
         /// <summary>
@@ -41,13 +41,11 @@ namespace LunaparkGame
             map.Parent = mainDockPanel;
             this.map.Click += new System.EventHandler(this.map_Click);
 
-            amusform = new AmusementsForm();
-            pathform = new PathForm();
+            amusform = new AmusementsForm(model, mainDockPanel);
+            pathform = new PathForm(model);
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
-            var a = new AsphaltPath(model,new Coordinates(1,2));
-            a.Control = new PictureBox();
-            MessageBox.Show(a.Control.Anchor.ToString());
+           
         }
 
       
@@ -165,8 +163,9 @@ namespace LunaparkGame
             //model.dirtyClick
 
         }
-        public void Update() { 
-        
+        public void MyUpdate() {
+            this.moneyCount_toolStripMenuItem.Text = model.GetMoney().ToString();
+            this.peopleCount_toolStripMenuItem.Text = model.currPeopleCount.ToString();
         }
         
     }

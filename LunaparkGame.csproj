@@ -53,6 +53,12 @@
     <Compile Include="AccessoriesForm.Designer.cs">
       <DependentUpon>AccessoriesForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="AmusementDetailForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AmusementDetailForm.Designer.cs">
+      <DependentUpon>AmusementDetailForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Amusements.cs" />
     <Compile Include="AmusementsForm.cs">
       <SubType>Form</SubType>
@@ -68,7 +74,17 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="GameItems.cs" />
+    <Compile Include="Labels.cs-CZ.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Labels.cs-CZ.resx</DependentUpon>
+    </Compile>
     <Compile Include="Model.cs" />
+    <Compile Include="Notices.cs-CZ.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Notices.cs-CZ.resx</DependentUpon>
+    </Compile>
     <Compile Include="Notices.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -104,14 +120,23 @@
     <EmbeddedResource Include="AccessoriesForm.resx">
       <DependentUpon>AccessoriesForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="AmusementDetailForm.resx">
+      <DependentUpon>AmusementDetailForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="AmusementsForm.resx">
       <DependentUpon>AmusementsForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Labels.cs-CZ.resx" />
-    <EmbeddedResource Include="Notices.cs-CZ.resx" />
+    <EmbeddedResource Include="Labels.cs-CZ.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Labels.cs-CZ.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Notices.cs-CZ.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Notices.cs-CZ.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="Notices.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Notices.Designer.cs</LastGenOutput>
