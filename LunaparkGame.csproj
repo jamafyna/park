@@ -60,6 +60,7 @@
     <Compile Include="AmusementsForm.Designer.cs">
       <DependentUpon>AmusementsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Data.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -87,6 +88,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Labels.resx</DependentUpon>
     </Compile>
+    <Compile Include="Properties\Images.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Images.resx</DependentUpon>
+    </Compile>
+    <Compile Include="SpecialEffects.cs" />
     <Compile Include="StartForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -111,6 +118,10 @@
     </EmbeddedResource>
     <EmbeddedResource Include="PathForm.resx">
       <DependentUpon>PathForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Images.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Images.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -140,6 +151,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\path_sand.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\amus_iceCream.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\path_stone.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\path_marble.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\path_asphalt.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

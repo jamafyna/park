@@ -192,4 +192,7 @@
   <data name="warningMessBox" xml:space="preserve">
     <value>Upozornění</value>
   </data>
+  <data name="pokus" xml:space="preserve">
+    <value />
+  </data>
 </root>

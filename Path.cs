@@ -20,7 +20,7 @@ namespace LunaparkGame
     public class AsphaltPath : Path
     {
         public AsphaltPath(Model m, Coordinates c) : base(m,c) { }
-       
+        public AsphaltPath() { }
         public override void Destruct()
         {
             throw new NotImplementedException();
@@ -55,9 +55,10 @@ namespace LunaparkGame
         public AmusementEnterPath(Model m, Coordinates c):base(m)//not call base(m,c) because dont want to add to maps
         { 
             price=0;
-            //not to add to model.maps
+            //todo: opravdu nechci pridatavt do maps???
+            //not to add to model.maps 
             price = 0;
-            control.Click += new EventHandler(Click);
+            Control.Click += new EventHandler(Click);
             model.MoneyAdd(- this.price);
             this.coord = coord;
             signpostAmus = new Direction[m.maxAmusementsCount];
@@ -67,7 +68,7 @@ namespace LunaparkGame
         }
         public override void Destruct()
         {
-            //not to remove from model.maps
+            //not to remove from model.maps, fakt? nerekla bych
             //todo:signal pro view
         }
     }
@@ -76,7 +77,7 @@ namespace LunaparkGame
             price = 0;
             //not to add to model.maps
             price = 0;
-            control.Click += new EventHandler(Click);
+            Control.Click += new EventHandler(Click);
             model.MoneyAdd(-this.price);
             this.coord = coord;
             signpostAmus = new Direction[m.maxAmusementsCount];

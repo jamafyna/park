@@ -21,8 +21,11 @@ namespace LunaparkGame
         public const int sizeOfSquare = 50;
         AmusementsForm amusform;
         PathForm pathform;
-        Control map;
-        Model model;      
+       public Control map;
+        Model model;
+        View view;
+
+        int timerTime = 0;
        
 
      /*   public MainForm() {
@@ -32,74 +35,47 @@ namespace LunaparkGame
         {
             InitializeComponent();
             IsMdiContainer = true;
-            amusform = new AmusementsForm();
-            pathform = new PathForm();         
-            amusform.Show(mainDockPanel);
-            pathform.Show(mainDockPanel);
-            CreateVisualMap(width,height,50);
             model = new Model(height,width);
-            
-           
-        }
-
-        private void CreateVisualMap(int width,int height, int sizeOfSquare) {
-
-           // Model m = new Model();
-            //todo: lepe vyrobit ve view
-            map=new PictureBox();
-            map.BackColor = Color.LightGreen;
-            map.Top = 0;//mainDockPanel.Top;
-            map.Left = 0;// mainDockPanel.Left;
-            map.Width=width*(sizeOfSquare+2);
-            map.Height=height*(sizeOfSquare);
+            view = new View(model,this);
+            map=view.CreateVisualMap(width, height, sizeOfSquare);
             map.Parent = mainDockPanel;
             this.map.Click += new System.EventHandler(this.map_Click);
 
-
-            //-----vytvoreni PictureBoxu
-            Bitmap bmp = new Bitmap(width * sizeOfSquare, height * sizeOfSquare);
-            ((PictureBox)map).Image = bmp;
-            map.Size = bmp.Size;
-            Graphics gr = Graphics.FromImage(bmp);
-            
-            //-----nakresleni mrizky-------------
-            Pen pen = new Pen(Color.DarkSeaGreen, 1);
-            for (int i = 0; i <= height; i++) 
-                gr.DrawLine(pen, 0, i * sizeOfSquare, width * sizeOfSquare, i * sizeOfSquare);
-            for (int i = 0; i <= width; i++)
-                gr.DrawLine(pen, i * sizeOfSquare, 0, i * sizeOfSquare, height * sizeOfSquare);
-             
-            map.Refresh();//musime provest, pokud se zmenila bitmapa a zmenu chceme videt na obrazovce
-
-            //stavba plotu a brany
-         //   plot = new Plot(this);
-         //   brana = new Brana(this);
-            
+            amusform = new AmusementsForm();
+            pathform = new PathForm();
+            amusform.Show(mainDockPanel);
+            pathform.Show(mainDockPanel);
+            var a = new AsphaltPath(model,new Coordinates(1,2));
+            a.Control = new PictureBox();
+            MessageBox.Show(a.Control.Anchor.ToString());
         }
 
+      
         private void map_Click(object sender, EventArgs e) {
+           
             if (!model.demolishOn && model.lastClick!=null)
             {
+                #region
                 MouseEventArgs mys = (MouseEventArgs)e;
-                byte x = (byte)(mys.X - mys.X % sizeOfSquare);
-                byte y = (byte)(mys.Y - mys.Y % sizeOfSquare);
-               // System.Drawing.Point loc = mys.Location;
-
+               // byte x = (byte)(mys.X - mys.X % sizeOfSquare);
+               // byte y = (byte)(mys.Y - mys.Y % sizeOfSquare);
+                byte x = (byte)(mys.X / sizeOfSquare);
+                byte y = (byte)(mys.Y / sizeOfSquare);
+               
                 //todo: kontrola na co vse mohl uzivatel kliknout, nejspise poslat udalost do modelu spolu se souradnicemi
-                //todo: kontrola, zda neni neco rozestavene
+                //todo: kontrola, zda neni neco rozestavene - mysleno pro free-shaped atrakce
                 if(model.mustBeEnter){
                          if(!model.lastBuiltAmus.CheckEntranceAndBuild(x,y)) {
-                                    //todo: show chybu, idalne ulozit do modelu, aby si ji view vzal
+                                    //todo: nejspis nechci nic delat
+                           //  MessageBox.Show(Notices.cannotDemolishAmusement, Labels.warningMessBox, MessageBoxButtons.OK);
                          }
                          return;
                 }
                 if(model.mustBeExit){
-                     if(!model.lastBuiltAmus.CheckExitAndBuild(x,y)) {
-                                    //todo: show chybu
-                     }
+                    model.lastBuiltAmus.CheckExitAndBuild(x, y); //if not succeed, no annoing error-text                  
                     return;
                 }
-               
+                if (model.lastClick.price > model.GetMoney()) { MessageBox.Show(Notices.cannotBuyNoMoney, Labels.warningMessBox, MessageBoxButtons.OK); return; }
                 if (model.lastClick is Amusements)
                 {
                     if (((Amusements)model.lastClick).CheckFreeLocation(x, y))
@@ -115,8 +91,10 @@ namespace LunaparkGame
                     object[] arg = {x,y,model };
                     Activator.CreateInstance(model.lastClick.GetType(), arg);
                 }
-#warning rusim tu schopnost prekladace spravne kontrolovat - nezajisti mi, ze dana trida bude mit spravny konstruktor                            
+                #endregion
+#warning rusim tu schopnost prekladace spravne kontrolovat - nezajisti mi, ze dana trida bude mit spravny konstruktor
             }
+            
         }
         
         
@@ -168,6 +146,27 @@ namespace LunaparkGame
                 formA.Show(mainDockPanel);
                 itemA.Checked = true;
             } 
+        }
+
+        private void timer_Tick(object sender, EventArgs e)
+        {
+           //todo: rozvrstvit do vlaken
+            //---actions
+            model.persList.Action();
+            if (timerTime >= 10)
+            {
+                timerTime = 0;
+                model.amusList.Action();
+                model.effects.Action();
+                model.maps.Action();
+                
+            }
+            //---visual
+            //model.dirtyClick
+
+        }
+        public void Update() { 
+        
         }
         
     }

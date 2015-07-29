@@ -61,6 +61,15 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &quot;No money to buy this.&quot;.
+        /// </summary>
+        internal static string cannotBuyNoMoney {
+            get {
+                return ResourceManager.GetString("cannotBuyNoMoney", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &quot;It cannot be demolished. The amusement is running.&quot;.
         /// </summary>
         internal static string cannotDemolishAmusement {

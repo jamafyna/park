@@ -26,11 +26,12 @@ namespace LunaparkGame
         public ConcurrentQueue<MapObjects> dirtyDestruct=new ConcurrentQueue<MapObjects>();//mozna misto mapObjects staci byt Control
         public ConcurrentQueue<MapObjects> dirtyClick = new ConcurrentQueue<MapObjects>();
 
-        public List<IUpdatable> updatableItems;//todo: sem dat taky hlavni form, udelat thread-safe      
+        public List<IUpdatable> updatableItems;//todo: sem dat taky hlavni form, udelat thread-safe, spis vlozit do view      
         
         public ListOfAmusements amusList;//todo:thread-safe
         public PersonList persList = new PersonList();//todo: thread-safe
         public Map maps;
+        public SpecialEffects effects=new SpecialEffects();
        
         //---running fields for Form1
         public Amusements lastBuiltAmus{get;set;}
@@ -50,10 +51,16 @@ namespace LunaparkGame
             maxAmusementsCount = height * width+1;//todo: pokud zde bude uz myslenkove height+2, upravit, ale nezapomenout na +1 za branu
             amusList = new ListOfAmusements(maxAmusementsCount);
             maps=new Map(width,height,this);
+
         }
         public void MoneyAdd(int value) {
             Interlocked.Add(ref money,value);
         }
+        /// <summary>
+        /// Returns value of the current money acount.
+        /// </summary>
+        /// <returns>Int that represents current money.</returns>
+        public int GetMoney() { return this.money; }
         public void CheckCheapestFee(int fee) {
             lock(feeLock){
                 if(fee<currCheapestFee) currCheapestFee=fee;          
@@ -62,6 +69,7 @@ namespace LunaparkGame
        
     }
    
+
     public class ListOfAmusements:IActionable
     { //todo: nejspis by mela byt thread-safe
         static Random rand = new Random();

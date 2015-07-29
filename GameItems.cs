@@ -43,13 +43,21 @@ namespace LunaparkGame
     {
         public Coordinates coord { protected set; get; }
         protected readonly Model model;
-        public Control control { get; set; } //picture
+        private Control control;
+        public Control Control
+        {
+            get { return control; }
+            set
+            {              
+                control = value;
+                control.Click += new EventHandler(Click); //hash: overit, ze se opravdu nastavi
+        } } //picture
         public bool isClicked = false;
-        virtual protected int price { get; set; } //todo: This must be abstract!!! - az budu znat ceny
-
+        virtual public int price { get; protected set; } //todo: This must be abstract!!! - az budu znat ceny
+        public MapObjects() { }
         protected MapObjects(Model m) {
             this.model = m;
-            control.Click += new EventHandler(Click);
+            
             model.MoneyAdd(-this.price);
             model.dirtyNew.Enqueue(this);
         }
@@ -421,7 +429,7 @@ namespace LunaparkGame
         public FreeShapedAmusements(Model m, Coordinates c) : base(m,c) {
             model.CheckCheapestFee(this.currFee);
         }
-       
+       //nejspis v sobe jeste jednu vnorenou tridu reprezentujici kousky atrakce
     }
     /// <summary>
     /// napr. pro lavicky
@@ -635,7 +643,7 @@ namespace LunaparkGame
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
             model.maps.AddPath(this);
         }
-       
+        public Path() { }
         protected override void Click(object sender, EventArgs e)
         {
             //nothing
