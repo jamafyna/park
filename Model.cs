@@ -77,12 +77,18 @@ namespace LunaparkGame
     }
    
 
+   /// <summary>
+   /// Keeps all Amusement items in the current game, is thread-safe.
+   /// </summary>
     public class AmusementsList:IActionable
     { 
         static Random rand = new Random();
         private List<Amusements> list; 
         private ConcurrentQueue<int> freeId;
         private List<int> foodIds;
+        /// <summary>
+        /// use for list and foodIds
+        /// </summary>
         private ReaderWriterLockSlim rwLock=new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         private readonly Amusements gate;
 
@@ -192,6 +198,9 @@ namespace LunaparkGame
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class PersonList //todo: is TS, ale rozdelit si pole na casti a zamykat vice zamky (napr. %50)
     {
        // private List<Person> list;
@@ -308,36 +317,49 @@ namespace LunaparkGame
         
 
     }
-    
+     
     public class Map: IActionable 
     {
 #warning bude potreba udelat TS - urcite pro vylouceni remove a ostatnich veci, kde se porovnava !=null, RWLockSlim, mozna zvolit vice na casti pole, zamyslet se, jak casto se bude menit (asi spis ne, uzivatel bori malo)
-        //private bool[][] isFree;
+       
         class DirectionItem {
             public Direction dir;
-            public readonly Coordinates c;
-            public DirectionItem(Coordinates c){
+         //   public readonly Coordinates c;
+            public readonly byte x;
+            public readonly byte y;
+            public DirectionItem(byte x, byte y) {
+                this.x = x;
+                this.y = y;
+                dir = Direction.no;
+            }
+        /*    public DirectionItem(Coordinates c){
                 this.c = c;
                 dir = Direction.no; 
-            }       
+            }  */     
         }
 
-        private DirectionItem[][] auxPathMap; // null = there isnt path
-      
-        private Amusements[][] amusementMap;
-        private Path[][] pathMap;
-        //todo: neni nyni auxPathMap uplne zbytecna???, nestacilo by misto ni pouzivat pathMap? ano stacilo
-        private Model model;
+        private readonly DirectionItem[][] auxPathMap; // null = there isnt path     
+        private readonly Amusements[][] amusementMap;
+        private readonly Path[][] pathMap;
+        private readonly Model model;
         /// <summary>
         /// for setting direction to a new amusement, dequeue can be called only in Action()
         /// </summary>
         private ConcurrentQueue<Amusements> lastAddedAmus=new ConcurrentQueue<Amusements>();
+        private volatile bool pathChanged = false;
+        /// <summary>
+        /// use for adding to queue (due to .Clear) and for "clear"
+        /// </summary>
+        private object lastAddedAmusLock = new object();
+        //todo: misto Lock pouzit aktivni zamek, ale jak? private SpinLock lastAddedAmusSLock = new SpinLock();
+        private ReaderWriterLockSlim pathRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private ReaderWriterLockSlim amusRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
-        private bool pathChanged = false;
+       
        // private int amusDeletedId = -1;
-        public readonly byte widthMap;
-        public readonly byte heightMap;
-        private int maxAmusCount;
+        public readonly byte realWidthMap;
+        public readonly byte realHeightMap;
+        private int maxAmusCount; //todo: nejspis neni potreba, smazat
         
         /// <summary>
         /// Represents current playing map, includes maps of paths and amusements, provides algorithms for navigation.
@@ -346,14 +368,16 @@ namespace LunaparkGame
         /// <param name="height"></param>
         /// <param name="m"></param>
         public Map(byte width, byte height, Model m) {
-            this.widthMap = width;
-            this.heightMap = height;
+            this.realWidthMap = width;
+            this.realHeightMap = height;
             this.model = m;
             this.maxAmusCount = model.maxAmusementsCount;
              
             //---initialize helpPath
             auxPathMap=new DirectionItem[width][];
-            for (int i = 0; i < width; i++)  auxPathMap[i] = new DirectionItem[height];
+            for (int i = 0; i < width; i++) {
+                auxPathMap[i] = new DirectionItem[height];
+            }
          
             //---initialize pathMap
             pathMap = new Path[width][];
@@ -365,121 +389,210 @@ namespace LunaparkGame
         }
 #warning isFree metody jsou 2
         public bool isFree(byte x, byte y) {
-            /*if (objectsInMapSquares[x][y] == null) return true;
-            else return false;*/
-            if (amusementMap[x][y] == null && pathMap[x][y] == null) return true;
-            else return false;
+#if (DEBUG)
+            if(x==0 || x==realWidthMap-1||y==0||y==realHeightMap-1) throw new MyDebugException("Map.isFree - bad coordination between maps");
+#endif
+            amusRWLock.EnterReadLock();
+            pathRWLock.EnterReadLock();
+            try {
+                if (amusementMap[x][y] == null && pathMap[x][y] == null) return true;
+                else return false;
+            }
+            finally {
+                amusRWLock.ExitReadLock();
+                pathRWLock.ExitReadLock();
+            }
         }
         public bool isFree(Coordinates c){
-           /* if (objectsInMapSquares[c.x][c.y] == null) return true;
-            else return false;*/
-            if (amusementMap[c.x][c.y] == null && pathMap[c.x][c.y] == null) return true;
-            else return false;
+#if (DEBUG)
+            if (c.x == 0 ||c.x == realWidthMap - 1 || c.y == 0 || c.y == realHeightMap - 1) throw new MyDebugException("Map.isFree - bad coordination between maps");
+#endif
+            amusRWLock.EnterReadLock();
+            pathRWLock.EnterReadLock();
+            try {
+                if (amusementMap[c.x][c.y] == null && pathMap[c.x][c.y] == null) return true;
+                else return false;
+            }
+            finally {
+                amusRWLock.ExitReadLock();
+                pathRWLock.ExitReadLock();
+            }
         }
-        public void RemoveAmus(Amusements a) {          
-            foreach (var c in a.GetAllPoints()) amusementMap[c.x][c.y] = null;
-            if (a.entrance != null)  amusementMap[a.entrance.coord.x][a.entrance.coord.y]=null;
-            if (a.exit != null)  amusementMap[a.entrance.coord.x][a.entrance.coord.y] = null;
-            //todo:vyse uvedene by nemelo byt null, entrance a exit musi vzdy existovat, byt to je stejne policko jako atrakce
-            //don't set null to pathMap - it made entrance.Destruct()
-            //amusDeletedId = a.id;
+       
+        public void RemoveAmus(Amusements a) {
+            amusRWLock.EnterWriteLock();
+            try {
+                foreach (var c in a.GetAllPoints()) amusementMap[c.x][c.y] = null;
+                if (a.entrance != null) amusementMap[a.entrance.coord.x][a.entrance.coord.y] = null;
+                if (a.exit != null) amusementMap[a.entrance.coord.x][a.entrance.coord.y] = null;
+                //todo:vyse uvedene by nemelo byt null, entrance a exit musi vzdy existovat, byt to je stejne policko jako atrakce
+                //don't set null to pathMap - it made entrance.Destruct()
+            }
+            finally {
+                amusRWLock.ExitReadLock();
+            }
         }
         public void AddAmus(Amusements a) {
-            
-            foreach (var c in a.GetAllPoints()) amusementMap[c.x][c.y] = a;
-            try
-            {
-                amusementMap[a.entrance.coord.x][a.entrance.coord.y] = a;
-                amusementMap[a.exit.coord.x][a.exit.coord.y] = a;
-                pathMap[a.entrance.coord.x][a.entrance.coord.y] = a.entrance;
-                auxPathMap[a.entrance.coord.x][a.entrance.coord.y] = new DirectionItem(a.entrance.coord);
-                pathMap[a.exit.coord.x][a.exit.coord.y] = a.exit;
-                auxPathMap[a.exit.coord.x][a.exit.coord.y] = new DirectionItem(a.exit.coord);
+            amusRWLock.EnterWriteLock();
+            pathRWLock.EnterWriteLock();
+            try {
+                foreach (var c in a.GetAllPoints()) amusementMap[c.x][c.y] = a;
+                try {
+                    amusementMap[a.entrance.coord.x][a.entrance.coord.y] = a;
+                    amusementMap[a.exit.coord.x][a.exit.coord.y] = a;
+                    pathMap[a.entrance.coord.x][a.entrance.coord.y] = a.entrance;
+                    pathMap[a.exit.coord.x][a.exit.coord.y] = a.exit;
+                }
+                catch (NullReferenceException e) {//todo: PO OVERENI ODSTRANIT
+                    throw new MyDebugException("Entry or exit is null in AddAmus" + e.ToString());
+                }
+            }
+            finally {
+                amusRWLock.ExitWriteLock();
+                pathRWLock.ExitWriteLock();
+            }
 
+            lock (lastAddedAmusLock) {
+                lastAddedAmus.Enqueue(a);
             }
-            catch (NullReferenceException e)
-            {
-                throw new MyDebugException("Entry or exit is null in AddAmus" + e.ToString());
+            //todo:zamek s aktivnim cekanim - co dela nize uvedene??? Vypada to, ze vyhodi vyjimku - to je opravdu rychlejsi nez odplanovani vlakna???
+            /*bool lockTaken = false;
+            try {
+                lastAddedAmusSLock.Enter(ref lockTaken);
+                lastAddedAmus.Enqueue(a);
             }
+            finally {
+                if (lockTaken) lastAddedAmusSLock.Exit(false);
+            } 
+            */
             
-            lastAddedAmus.Enqueue(a);
+           
         }
-        public void DeleteDirectionToAmusement(int amusId)//mozna nebude treba, principialne neni spatne, kdyz jde clovek dal
+        public void DeleteDirectionToAmusement(int amusId)//TODO: nejspis nepotrebna metoda
         {
             Path p;
-            for (int i = 0; i < widthMap; i++) 
-                for (int j = 0; j < heightMap; j++)
-                { 
-                   if ((p = pathMap[i][j]) != null) p.signpostAmus[amusId] = Direction.no;
-                }
-            //amusDeletedId = -1;
+            pathRWLock.EnterReadLock();// can be in first forcycle but there is probably better
+            try {
+                for (int i = 0; i < realWidthMap; i++)
+                    for (int j = 0; j < realHeightMap; j++) {
+                        if ((p = pathMap[i][j]) != null) p.signpostAmus[amusId] = Direction.no;
+                    }
+            }
+            finally {
+                pathRWLock.ExitReadLock();
+            }
         }
 
         public void AddPath(Path p)
-        { //todo:TS, kdyby jednotlive radky byly atomicke, staci to? Tj. jak jsou mezi sebou provazane?
-            pathMap[p.coord.x][p.coord.y] = p;
-            auxPathMap[p.coord.x][p.coord.y] = new DirectionItem(p.coord);
-            pathChanged = true;
+        { 
+            pathRWLock.EnterWriteLock();
+            try {
+                pathMap[p.coord.x][p.coord.y] = p;
+                
+            }
+            finally {
+                pathRWLock.ExitWriteLock();
+            }
+            pathChanged = true; //important that it is set after changing pathMap
         }
-        public void RemovePath(Path p) {   //todo:TS, kdyby jednotlive radky byly atomicke, staci to? Tj. jak jsou mezi sebou provazane?       
-            pathMap[p.coord.x][p.coord.y] = null;
-            auxPathMap[p.coord.x][p.coord.y] = null;
-            pathChanged = true;
+        public void RemovePath(Path p) {
+            pathRWLock.EnterWriteLock();
+            try {
+                pathMap[p.coord.x][p.coord.y] = null;             
+            }                
+            finally { pathRWLock.ExitWriteLock(); }
+            pathChanged = true; //important that it is set after changing pathMap
         }
         /// <summary>
-        /// Set calculated directions to paths in pathMap
+        /// Set to paths in pathMap calculated directions to the amusement.
         /// </summary>
-        /// <param name="a"></param>
-        /// <param name="queue"></param>
-        /// <param name="paths"></param>
-        private void UpdateDirectionToAmusementPrivate(Amusements a,Queue<DirectionItem> queue, DirectionItem[][] paths) {
+        /// <param name="a">an amusement to which directions are updated</param>
+        /// <param name="queue">an empty instance of Queue</param>
+        /// <param name="paths">a new auxilary array of builded paths</param>
+        private void UpdateDirectionToAmusement(Amusements a,Queue<DirectionItem> queue, DirectionItem[][] paths) {
             DirectionItem item;
-            InitializeQueue(queue, a.entrance.coord, paths);
+            if (!InitializeQueue(queue, a.entrance.coord, paths)) return;
             while (queue.Count != 0)
             {
                 item = queue.Dequeue();
-                ProcessQueueItem(item.c, queue, paths);
+                ProcessQueueItem(item.x,item.y, queue, paths);
             }
-            //---set calculated directions
-            //hash: takto divne kvuli vice vlaknum
-           
-            for (int i = 0; i < widthMap; i++)
-            {
-                for (int j = 0; j < heightMap; i++) 
-                {
-                    if ((item = paths[i][j]) != null)// && (p = objectsInMapSquares[i][j]) is Path)
-                    {
-                        //paths[][] can't be changed anywhere during running this method -> if is thread-safe
-                        pathMap[i][j].signpostAmus[a.id] = item.dir;
-                        //((Path)p).signpostAmus[a.id] = item.dir;
+            // ---set calculated directions
+            pathRWLock.EnterReadLock();
+            try {
+                for (int i = 0; i < realWidthMap; i++) {
+                    for (int j = 0; j < realHeightMap; i++) {
+                        if ((item = paths[i][j]) != null && pathMap[i][j] != null) {
+                            pathMap[i][j].signpostAmus[a.id] = item.dir;
+                        }
                     }
                 }
+            }
+            finally {
+                pathRWLock.ExitReadLock();
             }
             
         
         }
-        public void UpdateDirectionToAmusement(Amusements a) {
-            Queue<DirectionItem> queue = new Queue<DirectionItem>(widthMap*heightMap+5);
-            DirectionItem[][] paths=(DirectionItem[][])auxPathMap.Clone();
-            UpdateDirectionToAmusementPrivate(a,queue,paths);      
+       /// <summary>
+       /// Set to paths in pathMap calculated directions to the amusement. It should be used only for a particular update (for updating all amusements use UpdateDirectionToAmusement()).
+       /// </summary>
+       /// <param name="a">An Amusements item</param>
+        private void UpdateDirectionToOnlyOneAmusement(Amusements a) {
+            Queue<DirectionItem> queue = new Queue<DirectionItem>(realWidthMap*realHeightMap+5);
+            for (int i = 0; i < realWidthMap; i++) {
+                for (int j = 0; j < realHeightMap; j++) {
+                    // here isnt a Lock, auxPathMap is not always actual -> lock here=nonsence
+                    if (pathMap[i][j] == null) auxPathMap[i][j] = null;
+                    else auxPathMap[i][j] = new DirectionItem((byte)i, (byte)j);
+                }
+            }
+            UpdateDirectionToAmusement(a,queue,auxPathMap);      
         }
-        public void UpdateDirections()
+       /// <summary>
+       /// Updates directions to all amusements. Useful when paths changed.
+       /// </summary>
+        private void UpdateDirections()
         {
             Amusements[] amusA = model.amusList.GetCopyArray();
-            DirectionItem[][] paths = (DirectionItem[][])auxPathMap.Clone();
+            for (int i = 0; i < realWidthMap; i++) {
+                for (int j = 0; j < realHeightMap; j++) {
+                    // here isnt a Lock, auxPathMap is not always actual -> lock here=nonsence
+                    if (pathMap[i][j] == null) auxPathMap[i][j] = null;
+                    else auxPathMap[i][j] = new DirectionItem((byte)i, (byte)j);
+                }
+            }
             Queue<DirectionItem> queue = new Queue<DirectionItem>();
             foreach (var a in amusA)
             {
-                UpdateDirectionToAmusementPrivate(a,queue,paths);
+                UpdateDirectionToAmusement(a,queue,auxPathMap);
                 queue.Clear();
-                for (int i = 0; i < widthMap; i++)
-                    for (int j = 0; j < heightMap; j++)                 
-                        if (paths[i][j] != null) paths[i][j].dir = Direction.no;                
+                for (int i = 0; i < realWidthMap; i++)
+                    for (int j = 0; j < realHeightMap; j++) {
+                        if (auxPathMap[i][j] != null) auxPathMap[i][j].dir = Direction.no;
+                       //todo:rozhodnout, kterou variantu pouzit
+                        /* if (pathMap[i][j] != null) auxPathMap[i][j] = new DirectionItem((byte)i, (byte)j);
+                        else auxPathMap[i][j] = null;*/
+                    }  
             }
         }
         
-        private void InitializeQueue(Queue<DirectionItem> queue, Coordinates start, DirectionItem[][] paths) {
-            paths[start.x][start.y].dir = Direction.here; //uz ne...null - people can't go over entrance
+        /// <summary>
+        /// Set start and get its neighbours to the queue.
+        /// </summary>
+        /// <param name="queue">An empty queue which has to be initialized.</param>
+        /// <param name="start">Coordinates of an entrance of an amusement entrance.</param>
+        /// <param name="paths">An auxilary array which represents "copy" of pathMap</param>
+        /// <returns>true if the initialization was done successful, otherwise false.</returns>
+        private bool InitializeQueue(Queue<DirectionItem> queue, Coordinates start, DirectionItem[][] paths) {
+            // dont use pathRWLock (or change it to recursive mode)
+            if (paths[start.x][start.y] == null) {
+#if(DEBUG)
+                throw new MyDebugException("Map.InitializeQueue");
+#endif
+                return false;
+            }
+            paths[start.x][start.y].dir = Direction.here; 
             DirectionItem aux;
             if ((start.x - 1 >= 0) && (aux=paths[start.x - 1][start.y]) != null) {             
                 aux.dir= Direction.E;
@@ -497,36 +610,38 @@ namespace LunaparkGame
                 aux.dir = Direction.W;
                 queue.Enqueue(aux);
             }
+            return true;
         
         }
         /// <summary>
         /// analyse item's neighbours, eventually enque them and set them right direction
         /// </summary>
-        /// <param name="item">coordinates of queue item which is analysed</param>
+        /// <param name="item">coordinates of the queue item which is analysed</param>
         /// <param name="queue">queue which realise BFS</param>
-        /// <param name="paths">a copy of auxPathMap </param>
-        private void ProcessQueueItem(Coordinates item, Queue<DirectionItem> queue, DirectionItem[][] paths)
+        /// <param name="paths">An auxilary array which represents a "copy" of pathMap </param>
+        private void ProcessQueueItem(byte x, byte y, Queue<DirectionItem> queue, DirectionItem[][] paths)
         {
-            //border fields (except the gate) don't matter because there is a fence (i.e. null) around the playing map
-            //direction is set the other way around because it is correct from a person perspective.
-            //todo:neni TS, nejspis vyloucit s odebranim chodniku
+            // dont use pathRWLock (or change it to recursive mode)!!
+            // border fields (except the gate) don't matter because there is a fence (i.e. null) around the playing map
+            // direction is set the other way around because it is correct from a person perspective.
+           //todo: pokud nechci, aby mi lidi chodili pres vstupy/vystupy atrakci, nastavit zde a v InitializeQueue, ale DirectionItem by v sobe musela jeste uchovavat typ chodniku (nebo bool isIO)
             DirectionItem aux;
-            if ((item.x - 1 >= 0) && (aux = paths[item.x - 1][item.y]) != null && aux.dir==Direction.no) //item.x-1>=0 due to the gate
+            if ((x - 1 >= 0) && (aux = paths[x - 1][y]) != null && aux.dir == Direction.no) // item.x - 1 >= 0 due to the gate
             {
                 aux.dir = Direction.E;
                 queue.Enqueue(aux);
             }
-            if ((aux = paths[item.x][item.y - 1]) != null && aux.dir == Direction.no)
+            if ((aux = paths[x][y - 1]) != null && aux.dir == Direction.no)
             {
                 aux.dir = Direction.S;
                 queue.Enqueue(aux);
             }
-            if ((aux = paths[item.x][item.y + 1]) != null && aux.dir == Direction.no)
+            if ((aux = paths[x][y + 1]) != null && aux.dir == Direction.no)
             {
                 aux.dir = Direction.N;
                 queue.Enqueue(aux);
             }
-            if ((aux = paths[item.x + 1][item.y]) != null && aux.dir == Direction.no)
+            if ((aux = paths[x + 1][y]) != null && aux.dir == Direction.no)
             {
                 aux.dir = Direction.W;
                 queue.Enqueue(aux);
@@ -534,22 +649,24 @@ namespace LunaparkGame
         }   
 #warning Odsud nize je TS
     /// <summary>
-    /// Updates the navigation, i.e. sets current directions to paths.
+    /// Updates the navigation, i.e. sets current directions to paths. Only one thread can call this method.
     /// </summary>
         public void Action() {
 
             if (pathChanged) { // OK, false can be set only here
+                // an another thread can potentially set pathChanged=true at this moment, it doesnt matter - an item pathChanged is set after the actual execution changed in the array              
                 pathChanged = false;
-                // an another thread can potentially set pathChanged=true in this moment, it can cause a useless call UpdateDirection() in the next Action(); -> I decided, it doesn't matter. 
+                lock (lastAddedAmus) {
+                    lastAddedAmus = new ConcurrentQueue<Amusements>();
+                }
                 UpdateDirections(); }
             else
             {
                 Amusements a;
-                while(!lastAddedAmus.IsEmpty){ //is T-S, dequeu can be done only here
-                    if (lastAddedAmus.TryDequeue(out a)) UpdateDirectionToAmusement(a);
+                while(!lastAddedAmus.IsEmpty){ //is T-S, dequeu can be done only in this method
+                    if (lastAddedAmus.TryDequeue(out a)) UpdateDirectionToOnlyOneAmusement(a);
                 }
-              //todo:  if (amusDeletedId >= 0) { DeleteDirectionToAmusement(amusDeletedId); }//todo: nejspis zbytecne, nepotrebujeme, clovek dojde na misto a zjisti, ze tam nic neni, vybere tedy novou atrakci
-            }
+             }
         }
         /// <summary>
         /// Returns a current direction (only over Paths) to the amusement with id==amusId.
@@ -577,8 +694,7 @@ namespace LunaparkGame
         /// <param name="y">the real! y-coordinate</param>
         /// <returns>An Amusements item which stretch to [x,y] or null.</returns>
         public Amusements GetAmusement(int x, int y) { 
-            return amusementMap[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare];
-            //todo: overit, ze toto staci          
+            return amusementMap[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare];          
         }
         /// <summary>
         /// Determines whether a path is on the point [x,y].
