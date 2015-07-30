@@ -63,14 +63,14 @@ namespace LunaparkGame
                 //todo: kontrola na co vse mohl uzivatel kliknout, nejspise poslat udalost do modelu spolu se souradnicemi
                 //todo: kontrola, zda neni neco rozestavene - mysleno pro free-shaped atrakce
                 if(model.mustBeEnter){
-                         if(!model.lastBuiltAmus.CheckEntranceAndBuild(x,y)) {
+                         if(!model.LastBuiltAmus.CheckEntranceAndBuild(x,y)) {
                                     //todo: nejspis nechci nic delat
                            //  MessageBox.Show(Notices.cannotDemolishAmusement, Labels.warningMessBox, MessageBoxButtons.OK);
                          }
                          return;
                 }
                 if(model.mustBeExit){
-                    model.lastBuiltAmus.CheckExitAndBuild(x, y); //if not succeed, no annoing error-text                  
+                    model.LastBuiltAmus.CheckExitAndBuild(x, y); //if not succeed, no annoing error-text                  
                     return;
                 }
                 if (model.LastClick.price > model.GetMoney()) { MessageBox.Show(Notices.cannotBuyNoMoney, Labels.warningMessBox, MessageBoxButtons.OK); return; }
@@ -80,7 +80,7 @@ namespace LunaparkGame
                     {
                         object[] arg = { x, y, model };
                         //todo:nize nejspise neni nutne ukladat, udelano v konstruktoru atrakce a nastavovat 
-                        model.lastBuiltAmus = (Amusements)Activator.CreateInstance(model.LastClick.GetType(), arg);  //todo: melo by se vytvorit v novem vlakne                                          
+                        model.LastBuiltAmus = (Amusements)Activator.CreateInstance(model.LastClick.GetType(), arg);  //todo: melo by se vytvorit v novem vlakne                                          
                     }
                     return;
                 }
@@ -165,7 +165,7 @@ namespace LunaparkGame
         }
         public void MyUpdate() {
             this.moneyCount_toolStripMenuItem.Text = model.GetMoney().ToString();
-            this.peopleCount_toolStripMenuItem.Text = model.currPeopleCount.ToString();
+            this.peopleCount_toolStripMenuItem.Text = model.CurrPeopleCount.ToString();
         }
         
     }

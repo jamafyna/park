@@ -36,7 +36,7 @@ namespace LunaparkGame
             this.pictureBox.Image = image;
             this.pictureBox.Width = image.Width;
             this.pictureBox.Height = image.Height;
-            
+             
             this.pictureBox.BackColor = color;
         
         }
@@ -48,7 +48,7 @@ namespace LunaparkGame
 
         private void buy_button_Click(object sender, EventArgs e)
         {
-            model.LastClick = (MapObjects)((Button)sender).Tag;
+            model.SetLastClick((MapObjects)((Button)sender).Tag);
             MessageBox.Show("podarilos e");
             this.Hide();
         }

@@ -122,7 +122,7 @@ namespace LunaparkGame
 
          public Amusements( Model m, Coordinates c) :base(m,c)       
         {
-            model.lastBuiltAmus = this;                 
+            model.LastBuiltAmus = this;                 
             model.mustBeEnter = true;
             this.id = model.amusList.GetFreeID();
            
@@ -263,7 +263,7 @@ namespace LunaparkGame
         }
         public abstract bool CheckFreeLocation(byte x,byte y);  //hack: nezkontrolovano
         protected bool CheckFreeLocation(byte x,byte y, byte width, byte height,bool hasEntranceAndExit=true) { 
-            if (x + width > model.width || y + height > model.height) return false;
+            if (x + width > model.playingWidth || y + height > model.playingHeight) return false;
             for (byte i = x; i < x+width; i++)
             {
                 for (byte j = y; j < y+height; j++)
@@ -275,11 +275,11 @@ namespace LunaparkGame
                 bool free = false;
                 if (x - 1 > 0) for (byte i = y; i < y + height; i++)
                         if (model.maps.isFree((byte)(x-1),i)) { if (free) return free; else free = true; }
-                if (x + 1 < model.width) for (byte i = y; i < y + height; i++)
+                if (x + 1 < model.playingWidth) for (byte i = y; i < y + height; i++)
                         if (model.maps.isFree((byte)(x + 1), i)) { if (free) return free; else free = true; }
                 if (y - 1 > 0) for (byte i = x; i < x + width; i++)
                         if (model.maps.isFree(i,(byte)(y-1))) { if (free) return free; else free = true; }
-                if (y + 1 < model.width) for (byte i = y; i < y + height; i++)
+                if (y + 1 < model.playingWidth) for (byte i = y; i < y + height; i++)
                         if (model.maps.isFree(i,(byte)(y+1))) { if (free) return free; else free = true; }
                 return free;
             }
@@ -340,7 +340,7 @@ namespace LunaparkGame
                     if (status == Status.outOfService)
                     {
                         Destruct();
-                        model.LastClick = null; //must be there due to automaticall set lastClick=enter when enter is destructed
+                        model.SetLastClick(null); //must be there due to automaticall set lastClick=enter when enter is destructed
                     }
                     else
                     {  
