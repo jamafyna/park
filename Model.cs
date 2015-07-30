@@ -9,8 +9,11 @@ using System.Collections.Concurrent;
 namespace LunaparkGame
 {
     
+    /// <summary>
+    /// Keeps all items of the current game, is thread-safe.
+    /// </summary>
     public class Model //todo: Mozna prejmenovat na evidenci
-    {       
+    {     
         private const int initialMoney = 1;
         public const int maxPeopleInPark=1000;
         public readonly byte playingWidth, playingHeight; 
@@ -30,7 +33,7 @@ namespace LunaparkGame
 
         public List<IUpdatable> updatableItems;// todo: sem dat taky hlavni form, udelat thread-safe, spis vlozit do view      
         
-        public ListOfAmusements amusList;// todo:thread-safe
+        public AmusementsList amusList;// todo:thread-safe
         public PersonList persList = new PersonList(maxPeopleInPark);//todo: thread-safe
         public Map maps;
         public SpecialEffects effects=new SpecialEffects();
@@ -50,7 +53,7 @@ namespace LunaparkGame
             money = initialMoney;
                         
             maxAmusementsCount = playingHeight * playingWidth + 1; // max. count of amusements that can user build, + 1 due to the gate which does not lie on the playing place
-            amusList = new ListOfAmusements(maxAmusementsCount);
+            amusList = new AmusementsList(maxAmusementsCount);
             maps=new Map(width,height,this);
 
         }
@@ -74,32 +77,40 @@ namespace LunaparkGame
     }
    
 
-    public class ListOfAmusements:IActionable
-    { //todo: nejspis by mela byt thread-safe
+    public class AmusementsList:IActionable
+    { 
         static Random rand = new Random();
-        private List<Amusements> list; //nejspise zde pouzit ReaderWriterLockSlim - casto se cte, z plna vlaken a malo se zapisuje
+        private List<Amusements> list; 
         private ConcurrentQueue<int> freeId;
-        private List<int> foodIds;//nejspise zde pouzit ReaderWriterLockSlim - casto se cte, z plna vlaken a malo se zapisuje
-#warning overit, ze v count je opravdu spravne
-        public int AmusementsCount { get { return list.Count; } private set { } }
+        private List<int> foodIds;
+        private ReaderWriterLockSlim rwLock=new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private readonly Amusements gate;
+
+        public int AmusementsCount { get { return list.Count; } private set { } } //hash: zeptat se, ale nemel by byt problem, maximalne je neaktualni
         public int RestaurantsCount { get { return foodIds.Count; } private set { } }
      
-        public ListOfAmusements(int maxAmusCount)
+        public AmusementsList(int maxAmusCount)
         {
-            //todo:create brana
+            //todo:create brana gate
             list = new List<Amusements>();
             foodIds = new List<int>();
            // freeId = new Queue<int>(maxAmusCount);
             freeId = new ConcurrentQueue<int>();
-            for (int i = maxAmusCount; i > 0; i--) freeId.Enqueue(i);            
+            for (int i = maxAmusCount; i > 0; i--) freeId.Enqueue(i);  //0 is not free, gate.id==0;          
         }
         public void Add(Amusements a)
         {
             /*if (a.id == list.Count) list.Add(a);
-            else throw new MyDebugException("nesedi id a count v ListOfAmusements-Add()"); //todo: nemelo by se stavat, protoze by vzdy melo jit vytvorit jen jednu atrakci
+            else throw new MyDebugException("nesedi id a count v AmusementsList-Add()"); //todo: nemelo by se stavat, protoze by vzdy melo jit vytvorit jen jednu atrakci
            */
-            list.Add(a);
-            if (a is Restaurant) foodIds.Add(a.id);
+            try {
+                rwLock.EnterWriteLock();
+                list.Add(a);
+                if (a is Restaurant) foodIds.Add(a.id);
+            }
+            finally {
+                rwLock.ExitWriteLock();
+            }
         }
         public int GetFreeID()
         {
@@ -114,10 +125,16 @@ namespace LunaparkGame
             }
         }
         public void Remove(Amusements a)
-        {//todo: TS
-            list.Remove(a);
-            if(a is Restaurant) foodIds.Remove(a.id);
-           
+        {
+            rwLock.EnterWriteLock();
+            try {
+                list.Remove(a);
+                if (a is Restaurant) foodIds.Remove(a.id);
+            }
+            finally {
+                rwLock.ExitWriteLock();
+            }
+
             freeId.Enqueue(a.id);
         }
         /// <summary>
@@ -125,38 +142,57 @@ namespace LunaparkGame
         /// </summary>
         /// <returns>A positive int which represents id of an amusement or 0 which represents id of the gate.</returns>
         public int GetRandomAmusement() {
-            if (list.Count > 1) return list[rand.Next(1, list.Count)].id;
-            else return 0;
+            rwLock.EnterReadLock(); 
+            try {
+                if (list.Count > 1) return list[rand.Next(1, list.Count)].id;
+                else return 0;
+            }
+            finally{
+                rwLock.ExitReadLock();
+            }
         }
         /// <summary>
         /// Returns id of an restaurant if it is possible, if not - returns id of the gate.
         /// </summary>
         /// <returns>A positive int which represents id of an restaurant or 0 if there is no restaurant</returns>
         public int GetRandomRestaurant() {
-            if (foodIds.Count == 0) return 0;
-            return foodIds[rand.Next(foodIds.Count)];
+            rwLock.EnterReadLock(); //zbytecne zamykat, list.count vrati cislo, nejhure neaktualni (aktualita se ale stejne dale neda zajistit)
+            try {
+                if (foodIds.Count == 0) return 0;
+                return foodIds[rand.Next(foodIds.Count)];
+            }
+            finally {
+                rwLock.ExitReadLock();
+            }
         }
         public void Action()
         {
-            //todo: vytvorit lokalni kopii, na te pracovat - mozna neni nejvhodnejsi, proste pouzit readrewriterLockSlim
-
-            list.ForEach(a=>a.Action());
-           
+            rwLock.EnterReadLock();
+            try {
+                list.ForEach(a => a.Action());
+            }
+            finally {
+                rwLock.ExitReadLock();
+            }
         }
         public Coordinates GetGateCoordinate() {
-            return list[0].coord;       
+            return gate.coord;       
         }
         public int GetGateId() {
-            return 0;
+            return gate.id;
         }
-        public Amusements[] GetCopyArray() { //todo: mozna dat list[] jako properties a pri ziskavani se da pouze kopie..., ale spis ne
-            Amusements[] a=new Amusements[list.Count];
-            list.CopyTo(a);
-            return a;
+        public Amusements[] GetCopyArray() { 
+            rwLock.EnterReadLock();
+            try {
+                return list.ToArray();
+            }
+            finally {
+                rwLock.ExitReadLock();
+            }
         }
     }
 
-    public class PersonList
+    public class PersonList //todo: is TS, ale rozdelit si pole na casti a zamykat vice zamky (napr. %50)
     {
        // private List<Person> list;
         //Mozna je jednodussi pouzit List misto sloziteho pole, nekolikrat se prochazi - ok, add-ok, smazani projde cele pole (tak 400-1000 prvku)
@@ -173,7 +209,7 @@ namespace LunaparkGame
         /// <summary>
         /// useful only for a very unlikely situation - a person p survived more people then maxUniquePeople and it is called Remove(p) and Add(q) where p.id=q.id in the same time
         /// </summary>
-        private object unlikelyLock = new object();
+       // private object unlikelyLock = new object();
 
         public PersonList(int maxPeopleCount) {
             //for (int = 0; i < people.Length; i++) people[i] = null; inicialni hodnota je uz nastavena           
@@ -197,30 +233,26 @@ namespace LunaparkGame
         public void Add(Person p)//ts
         {
 
+            lock (peopleLock) { //todo: povoluje zamek rekurzivni zamykani??? Zde muze za velmi nepst.situace nastat (pri zavolani Remove)
+                if (internChangablePeopleId[p.id] != -1) { // very unlikely situation - a person p survived more people then maxUniquePeople; and must be locked - more it is called Remove(p) and Add(q) where p.id=q.id in the same time
 
-            if (internChangablePeopleId[p.id] != -1) { // very unlikely situation - a person p survived more people then maxUniquePeople; and must be locked - more it is called Remove(p) and Add(q) where p.id=q.id in the same time
-        
-                lock (unlikelyLock) {
 #if (DEBUG)
-                    if (internChangablePeopleId[p.id] != -1) {
-                        throw new MyDebugException("PersList.Add - Is the total number of visitors really bigger then chosen const?");
+                    throw new MyDebugException("PersList.Add - Is the total number of visitors really bigger then chosen const?");
 #else
-                        Remove(p);
-                        p.DestructWithoutListRemove(); // only p.Destruct cannot be called, it could remove from this new added person
+                    Remove(p);
+                    p.DestructWithoutListRemove(); // only p.Destruct cannot be called, it could remove from this new added person
 #endif
-                    }
                 }
-            }
-            lock (peopleLock) {
+
                 // lock is necessary (adding to the array must be done before or in the same time increment countOfPeople
-               
-              //  int internId = Interlocked.Increment(ref currPeopleCount); zbytecne, kdyz mam zamceno
+
+                //  int internId = Interlocked.Increment(ref currPeopleCount); zbytecne, kdyz mam zamceno
                 int internId = currPeopleCount++; // e.d. for sure: + 1 is done after setting
                 people[internId] = p;
                 internChangablePeopleId[p.id] = internId;
-            }
-            
+            }          
         }
+
         public void Action()
         {           
             //todo: casem idealne ve vice vlaknech (experimentalne overit, zda je zapotrebi)

@@ -232,7 +232,11 @@ namespace LunaparkGame
                 else status = Status.waitingForPeople;             
             }       
         }
+        /// <summary>
+        /// Simmulate an activity of the amusement. 
+        /// </summary>
         public virtual void Action() {
+            // Cannot use anything from AmusementsList (it could create an cycle)!
             switch (status)
             {
                 case Status.waitingForPeople: WaitingForPeopleAction();
@@ -628,7 +632,9 @@ namespace LunaparkGame
             model.persList.Remove(this);
             model.dirtyDestruct.Enqueue(this);
         }
-       
+        public void DestructWithoutListRemove() {
+            model.dirtyDestruct.Enqueue(this);
+        }
 
 
     }
