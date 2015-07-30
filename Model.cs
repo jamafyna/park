@@ -317,7 +317,10 @@ namespace LunaparkGame
         
 
     }
-     
+    
+    /// <summary>
+    /// Keeps information about how are amusements and paths placed on the playing map. Takes care of updating directions.
+    /// </summary>
     public class Map: IActionable 
     {
 #warning bude potreba udelat TS - urcite pro vylouceni remove a ostatnich veci, kde se porovnava !=null, RWLockSlim, mozna zvolit vice na casti pole, zamyslet se, jak casto se bude menit (asi spis ne, uzivatel bori malo)
