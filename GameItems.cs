@@ -177,7 +177,7 @@ namespace LunaparkGame
                     p.visible = false;
                     p.status = Person.Status.inAmus;
                     peopleInList.Add(p);
-                    p.money -= this.currFee;                    
+                    p.AddMoney (- this.currFee);                    
                 }
                 catch (NullReferenceException e) {
                     throw new MyDebugException("Not expected null in pickUpPeople: " + e.ToString());
@@ -189,10 +189,16 @@ namespace LunaparkGame
             model.MoneyAdd(n * this.currFee);        
         }
         protected void DropPeopleOff(){
+            int quarter=MainForm.sizeOfSquare/4;
+            int i = 0;
+            int j = 0;
+            
             foreach (Person p in peopleInList)
 	        {
 		        p.status=Person.Status.choosesAmus;
-                p.SetCoordinates(this.exit.coord);
+                p.SetRealCoordinates(exit.coord.x*MainForm.sizeOfSquare+2*quarter+i,exit.coord.y*MainForm.sizeOfSquare+2*quarter+j);
+                i = -(i + 1) % quarter;
+                j = -(j + 2) % quarter;
                 p.visible = true;
 	        }
             peopleInList.Clear();       
@@ -300,7 +306,9 @@ namespace LunaparkGame
                 }
             }
             finally { queueAddRWLock.ExitWriteLock(); }
-        
+            foreach (var q in l) {
+                q.SetContentment(-20);                
+            }
         }
         public abstract bool CheckFreeLocation(byte x,byte y);  
         protected bool CheckFreeLocation(byte x,byte y, byte width, byte height,bool hasSeparatedEntranceAndExit=true) { 
@@ -496,25 +504,28 @@ namespace LunaparkGame
         public LittleComplementaryAmusements(Model m, Coordinates c) : base(m, c) { }
     }
 #warning po sem je Thread safe
+  
     public class Person : MapObjects,IActionable
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
         private static Random rand = new Random();
         const int minMoney = 200, maxMoney = 2000, minPatience=1, maxPatience=10;
         public enum Status {initialWalking, walking, onCrossroad, inAmusQueue, inAmus,choosesAmus, end }
- 
-        public int money { get; set; } //{ if (value >= 0) return value; } } - spatna syntaxe
+
+        private int money; 
         private readonly int patience;
         public readonly int id;
         public readonly int maxAcceptablePrice;//max price which he is willing to pay per an amusement
         public bool visible { get; set; }
         //----provozni hodnoty-----
         private int remainingStepsCount=0;//pocet zbyvajicich kroku
-        private int waitingTimeInQueue = 0, initialWalkingTime=2*MainForm.sizeOfSquare;
-        private int contenment = 0;//spokojenost
+        private int waitingTimeInQueue = 0, startingWalkingTime=2*MainForm.sizeOfSquare;
+        private int contentment = 0;//spokojenost
         private int hunger=0;
         protected int x, y; //instead of coord //todo: casem s tim neco udelat, napr. 2 abstract tridy od MapObjects apod.
+        protected object xyLock = new object(); //use for every manipulation with x and y together
         private Direction currDirection = Direction.no;
         private int currAmusId;
+        private Amusements currAmus;
         public Status status { set; protected get; }
         
         public Person(Model m, byte x, byte y) : base(m) {
@@ -534,6 +545,7 @@ namespace LunaparkGame
         }
         public void Action()
         {
+            hunger = Math.Min(hunger+1,2000);
             switch (status)
             {
                 case Status.walking:{
@@ -552,23 +564,29 @@ namespace LunaparkGame
                                 break;
                             case Direction.no: { status = Status.choosesAmus;}
                                 break;
-                            case Direction.here: { 
-                                Amusements a=model.maps.GetAmusement(x,y);
-                                if (a == null) { 
-                                    //todo: ubrat spokojenost
+                            case Direction.here: {
+                                
+                                lock (xyLock) {  // lock is not necessary here, only an amusement changes x and y together and the person is not in an amusement, yet.
+                                    currAmus = model.maps.GetAmusement(x, y);
+                                }
+                                if (currAmus == null) {
+                                    AddContentment(-20); //todo: ubrat spokojenost
                                     status = Status.choosesAmus;
                                 }
-                                if (a.id != currAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
-                                if (a.GetEntranceFee() > maxAcceptablePrice || a.GetEntranceFee() > money)
-                                {
-                                    contenment = contenment - 10;//todo: nastavit poradne
+                                if (currAmus.id != currAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
+                                if (currAmus.GetEntranceFee() > maxAcceptablePrice){
+                                    AddContentment(-40);//todo: nastavit poradne
                                     status = Status.choosesAmus;
                                 }
-                                else
-                                {
+                                else if (currAmus.GetEntranceFee() > money) {
+                                    AddContentment(-10);//todo: nastavit poradne
+                                    status = Status.choosesAmus;
+                                
+                                }
+                                else {
                                     status = Status.inAmusQueue;
                                     waitingTimeInQueue = 0;
-                                    a.QueuesPerson(this);
+                                    currAmus.QueuesPerson(this);
                                 }
                             }
                                 break;
@@ -591,14 +609,15 @@ namespace LunaparkGame
                 case Status.inAmusQueue:{
                     #region
                         if (waitingTimeInQueue > patience) {
-                             contenment = contenment - 10;//todo: mozna udelat: odejde, pokud prekroci patience a vzdy jindy se drobne snizi spokojenost
+                            AddContentment(-10);//todo: mozna udelat: odejde, pokud prekroci patience a vzdy jindy se drobne snizi spokojenost
+                            currAmus.DeletePersonFromQueue(this);
                         }
                         else waitingTimeInQueue++;
                     #endregion
                      }
                     break;
                 case Status.inAmus:{
-                        contenment = Math.Min(contenment+1,100);//todo: lepe zbavit se konstant a mit nekde lepe rozmyslene
+                        AddContentment(2);
                     }
                     break;
                 case Status.choosesAmus: {
@@ -609,9 +628,9 @@ namespace LunaparkGame
                 case Status.initialWalking:
                     {
                     #region
-                    if (initialWalkingTime > 0)
+                    if (startingWalkingTime > 0)
                     {
-                        initialWalkingTime--;
+                        startingWalkingTime--;
                                                                     
                         switch (currDirection)//doesnt matter that it is not "thread-safe", nobody else couldnt change x,y while initialWalkingTime
                         {
@@ -655,22 +674,61 @@ namespace LunaparkGame
         /// <returns>An nonnegative int, which represents the id of an amusement</returns>
         public int ChooseAmusement() {
             if(money<model.currCheapestFee) return model.amusList.GetGateId();//person cannot afford pay any amusement
-            if (contenment == 0) return model.amusList.GetGateId();
+            if (contentment == 0) return model.amusList.GetGateId();
             if (hunger > 1800) //2000=100 %, i.e. 2000*0.9
-                return model.amusList.GetRandomRestaurant(); //kdyz je hlad 90%, vybira obcerstveni
+                return model.amusList.GetRandomRestaurant(); //kdyz je hlad > 90%, vybira obcerstveni
            
-            int temp = rand.Next(101); //0-100
+            int number = rand.Next(101); //0-100
             //---- less contenment increases the probability of leaving the park
-            if (temp > contenment) return model.amusList.GetGateId(); 
+            if (number > contentment) return model.amusList.GetGateId(); 
             //---- more hunger -> bigger probability of visiting a restaurant
-            if (temp < hunger / 20) return model.amusList.GetRandomRestaurant();
+            if (number < hunger / 20) return model.amusList.GetRandomRestaurant();
             //---- go to an amusement
             return model.amusList.GetRandomAmusement();
         }
-        public void SetCoordinates(Coordinates c) {
-            Interlocked.Exchange(ref this.x,c.x);
-            Interlocked.Exchange(ref this.y,c.y);
+        public void SetRealCoordinates(int x, int y) {
+            lock (xyLock) {
+                this.x = x;
+                this.y = y;
+            }
         }
+        public System.Drawing.Point GetRealCoordinates() {
+            lock (xyLock) {
+                return new System.Drawing.Point(x, y);
+            }
+        }
+
+        public int GetMoney() {
+            return this.money;
+        }
+        public void AddMoney(int addedValue) {
+            Interlocked.Add(ref money, addedValue);
+        }
+        /// <summary>
+        /// Decreases hunger.
+        /// </summary>
+        public void Feed() {
+            hunger = 0;
+        } 
+       /// <summary>
+       /// Sets the contenment to param value.
+       /// </summary>
+       /// <param name="percent">A nonnegtive int that represents count of percent.</param>
+        public void SetContentment(int percent){
+            if(percent >= 0 && percent <= 100) contentment=percent;
+        }
+        /// <summary>
+        /// Increments the contentment of the desired count of percent (or set 100 % or 0 %).
+        /// </summary>
+        /// <param name="percentCount">An integer between -100 and 100 which represents the percent.</param>
+        public void AddContentment(int percentCount) {
+            //It doesnt matter that it is not thread-safe, it leaves the contenment to chance a little bit
+            if (percentCount >= -100 && percentCount <= 0) 
+                contentment = Math.Max(0, contentment+percentCount);
+            else if(percentCount > 0 && percentCount <= 100)
+                contentment = Math.Min(contentment+percentCount,100);            
+        }
+        
         protected override void Click(object sender, EventArgs e)
         {
            /* if (!isClicked)
@@ -680,6 +738,7 @@ namespace LunaparkGame
             }*/
         }
        
+
        
         public override void Destruct()
         {
