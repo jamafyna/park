@@ -22,14 +22,23 @@ namespace LunaparkGame
         }
         public void Action()
         {
+            DestructDirty();
             NewDirty();
+            PeopleMove();
             //throw new NotImplementedException();
+        }
+        private void PeopleMove() {
+            foreach (Person p in model.persList) {
+                p.Control.Location = p.GetRealCoordinates();
+                p.Control.Visible = p.visible;
+            }        
         }
         private void DestructDirty()
         {
-            foreach (var item in model.dirtyDestruct)
+            MapObjects o;
+            while(model.dirtyDestruct.TryDequeue(out o))
             {
-                //item.Dispose();
+                o.Control.Dispose();
             }
         }
         public static PictureBox PictureBoxCopy(PictureBox p) {

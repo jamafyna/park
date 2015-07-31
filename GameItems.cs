@@ -813,6 +813,7 @@ namespace LunaparkGame
         {
             model.persList.Remove(this);
             model.dirtyDestruct.Enqueue(this);
+
         }
         public void DestructWithoutListRemove() {
             model.dirtyDestruct.Enqueue(this);

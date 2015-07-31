@@ -211,7 +211,7 @@ namespace LunaparkGame
     /// <summary>
     /// 
     /// </summary>
-    public class PersonList //todo: is TS, ale rozdelit si pole na casti a zamykat vice zamky (napr. %50)
+    public class PersonList: System.Collections.IEnumerable //todo: is TS, ale rozdelit si pole na casti a zamykat vice zamky (napr. %50)
     {
        // private List<Person> list;
         //Mozna je jednodussi pouzit List misto sloziteho pole, nekolikrat se prochazi - ok, add-ok, smazani projde cele pole (tak 400-1000 prvku)
@@ -287,6 +287,14 @@ namespace LunaparkGame
                 throw new MyDebugException("PersonList.Action - people["+i+"]==null0"+e.ToString());
             }*/
             
+        }
+#warning zkontrolovat metodu GetEnumerator
+        public System.Collections.IEnumerator GetEnumerator() {
+            lock (peopleLock) {
+                for (int i = 0; i < currPeopleCount; i++) {
+                    yield return people[i];
+                }
+            }
         }
         /// <summary>
         /// a method which should be called only from the class Person
