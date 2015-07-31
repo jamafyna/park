@@ -117,12 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="advertiseButton" xml:space="preserve">
-    <value>PROPAGOVAT</value>
+  <data name="advertiseStart" xml:space="preserve">
+    <value>Propaguj</value>
     <comment>mozna dat start a stop advertising</comment>
   </data>
-  <data name="advertisingButton" xml:space="preserve">
-    <value>PROPAGUJI</value>
+  <data name="advertising" xml:space="preserve">
+    <value>Propaguji</value>
   </data>
   <data name="amusementButton" xml:space="preserve">
     <value>ATRAKCE</value>
@@ -132,11 +132,11 @@
     <value>POKRAČOVAT</value>
     <comment>return to current game</comment>
   </data>
-  <data name="demolishingButton" xml:space="preserve">
-    <value>BOŘÍM</value>
+  <data name="demolishing" xml:space="preserve">
+    <value>Bořím</value>
   </data>
-  <data name="demolishStartButton" xml:space="preserve">
-    <value>ZBOŘ</value>
+  <data name="demolishStart" xml:space="preserve">
+    <value>Zboř</value>
   </data>
   <data name="gameItem" xml:space="preserve">
     <value>HRA</value>
@@ -165,10 +165,10 @@
   <data name="peopleCount" xml:space="preserve">
     <value>Počet lidí:</value>
   </data>
-  <data name="researchingButton" xml:space="preserve">
+  <data name="researching" xml:space="preserve">
     <value>ZKOUMÁM</value>
   </data>
-  <data name="researchStartButton" xml:space="preserve">
+  <data name="researchStart" xml:space="preserve">
     <value>VÝZKUM</value>
   </data>
   <data name="saveMenu" xml:space="preserve">

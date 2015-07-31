@@ -73,6 +73,16 @@ namespace LunaparkGame.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap gate {
+            get {
+                object obj = ResourceManager.GetObject("gate", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap path_asphalt {
             get {
                 object obj = ResourceManager.GetObject("path_asphalt", resourceCulture);
@@ -106,6 +116,26 @@ namespace LunaparkGame.Properties {
         internal static System.Drawing.Bitmap path_stone {
             get {
                 object obj = ResourceManager.GetObject("path_stone", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap person_head {
+            get {
+                object obj = ResourceManager.GetObject("person_head", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap plot {
+            get {
+                object obj = ResourceManager.GetObject("plot", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

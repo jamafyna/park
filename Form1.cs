@@ -28,16 +28,14 @@ namespace LunaparkGame
         int timerTime = 0;
        
 
-     /*   public MainForm() {
-            InitializeComponent();
-        }*/
-        public MainForm(byte width, byte height)
+    
+        public MainForm(byte playingWidth, byte playingHeight)
         {
             InitializeComponent();
             IsMdiContainer = true;
-            model = new Model(height,width);
+            model = new Model(playingHeight,playingWidth);
             view = new View(model,this);
-            map=view.CreateVisualMap(width, height, sizeOfSquare);
+            map=view.CreateVisualMap(playingWidth + 2, playingHeight + 2, sizeOfSquare);
             map.Parent = mainDockPanel;
             this.map.Click += new System.EventHandler(this.map_Click);
 
@@ -45,6 +43,8 @@ namespace LunaparkGame
             pathform = new PathForm(model);
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
+            view.ShowGate(model.gate);
+            timer.Enabled = true;
            
         }
 
@@ -63,11 +63,8 @@ namespace LunaparkGame
                 //todo: kontrola na co vse mohl uzivatel kliknout, nejspise poslat udalost do modelu spolu se souradnicemi
                 //todo: kontrola, zda neni neco rozestavene - mysleno pro free-shaped atrakce
                 if(model.mustBeEnter){
-                         if(!model.LastBuiltAmus.CheckEntranceAndBuild(x,y)) {
-                                    //todo: nejspis nechci nic delat
-                           //  MessageBox.Show(Notices.cannotDemolishAmusement, Labels.warningMessBox, MessageBoxButtons.OK);
-                         }
-                         return;
+                    model.LastBuiltAmus.CheckEntranceAndBuild(x, y);
+                    return;
                 }
                 if(model.mustBeExit){
                     model.LastBuiltAmus.CheckExitAndBuild(x, y); //if not succeed, no annoing error-text                  
@@ -86,7 +83,7 @@ namespace LunaparkGame
                 }
                 else
                 {
-                    object[] arg = {x,y,model };
+                    object[] arg = {x, y, model };
                     Activator.CreateInstance(model.LastClick.GetType(), arg);
                 }
                 #endregion
@@ -161,11 +158,55 @@ namespace LunaparkGame
             }
             //---visual
             //model.dirtyClick
-
+            view.Action();
+            MyUpdate();
+            timerTime++;
         }
+       
         public void MyUpdate() {
             this.moneyCount_toolStripMenuItem.Text = model.GetMoney().ToString();
             this.peopleCount_toolStripMenuItem.Text = model.CurrPeopleCount.ToString();
+        }
+
+        private void demolish_toolStripMenuItem_Click(object sender, EventArgs e) {
+            if (model.demolishOn) {
+                model.demolishOn = false;
+                demolish_toolStripMenuItem.Text = Labels.demolishStart;
+                demolish_toolStripMenuItem.ForeColor = Color.Black;
+            }
+            else {
+                model.demolishOn = true;
+                demolish_toolStripMenuItem.Text = Labels.demolishing;
+                demolish_toolStripMenuItem.ForeColor = Color.Red;
+            
+            }
+        }
+
+        private void propagate_toolStripMenuItem_Click(object sender, EventArgs e) {
+            if (model.propagateOn) {
+                model.propagateOn = false;
+                propagate_toolStripMenuItem.Text = Labels.advertiseStart;
+                propagate_toolStripMenuItem.ForeColor = Color.Black;
+            }
+            else {
+                model.propagateOn = true;
+                propagate_toolStripMenuItem.Text = Labels.advertising;
+                propagate_toolStripMenuItem.ForeColor = Color.DarkGreen;           
+            }
+        }
+
+        private void research_toolStripMenuItem_Click(object sender, EventArgs e) {
+            if (model.researchOn) {
+                model.researchOn = false;
+                research_toolStripMenuItem.Text = Labels.researchStart;
+                research_toolStripMenuItem.ForeColor = Color.Black;
+            }
+            else {
+                model.researchOn = true;
+                research_toolStripMenuItem.Text = Labels.researching;
+                research_toolStripMenuItem.ForeColor = Color.DarkGreen;
+            
+            }
         }
         
     }

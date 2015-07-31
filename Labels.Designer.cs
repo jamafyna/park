@@ -70,20 +70,20 @@ namespace LunaparkGame {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ADVERTISE.
+        ///   Looks up a localized string similar to Start advertise.
         /// </summary>
-        internal static string advertiseButton {
+        internal static string advertiseStart {
             get {
-                return ResourceManager.GetString("advertiseButton", resourceCulture);
+                return ResourceManager.GetString("advertiseStart", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ADVERTISING.
+        ///   Looks up a localized string similar to Advertising.
         /// </summary>
-        internal static string advertisingButton {
+        internal static string advertising {
             get {
-                return ResourceManager.GetString("advertisingButton", resourceCulture);
+                return ResourceManager.GetString("advertising", resourceCulture);
             }
         }
         
@@ -124,20 +124,20 @@ namespace LunaparkGame {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to DEMOLISHING.
+        ///   Looks up a localized string similar to Demolishing.
         /// </summary>
-        internal static string demolishingButton {
+        internal static string demolishing {
             get {
-                return ResourceManager.GetString("demolishingButton", resourceCulture);
+                return ResourceManager.GetString("demolishing", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to DEMOLISH.
+        ///   Looks up a localized string similar to Start demolish.
         /// </summary>
-        internal static string demolishStartButton {
+        internal static string demolishStart {
             get {
-                return ResourceManager.GetString("demolishStartButton", resourceCulture);
+                return ResourceManager.GetString("demolishStart", resourceCulture);
             }
         }
         
@@ -223,20 +223,20 @@ namespace LunaparkGame {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to RESEARCHING.
+        ///   Looks up a localized string similar to Researching.
         /// </summary>
-        internal static string researchingButton {
+        internal static string researching {
             get {
-                return ResourceManager.GetString("researchingButton", resourceCulture);
+                return ResourceManager.GetString("researching", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to START RESEARCH.
+        ///   Looks up a localized string similar to Start research.
         /// </summary>
-        internal static string researchStartButton {
+        internal static string researchStart {
             get {
-                return ResourceManager.GetString("researchStartButton", resourceCulture);
+                return ResourceManager.GetString("researchStart", resourceCulture);
             }
         }
         

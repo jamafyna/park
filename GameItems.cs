@@ -42,7 +42,7 @@ namespace LunaparkGame
     public abstract class MapObjects
     {
         public Coordinates coord { protected set; get; }
-        protected readonly Model model;
+        protected Model model;
         private Control control;
         public Control Control
         {
@@ -60,7 +60,7 @@ namespace LunaparkGame
 #warning toto nejspis nefunguje, protoze price bude vzdy 0, nastavuje se az po volani konstruktoru.        
             model.MoneyAdd(-this.price);
             model.dirtyNew.Enqueue(this);
-            Control.Click += new EventHandler(Click);
+            //Control.Click += new EventHandler(Click);
 
         }
         public MapObjects(Model m,Coordinates coord):this(m)
@@ -93,8 +93,8 @@ namespace LunaparkGame
         public enum Status { waitingForPeople, running, outOfService, runningOut }
        
         public int id { get; private set; }
-        public AmusementEnterPath entrance { get; protected set; } //todo: je opravdu potreba protected, nestaci private nebo dokonce readonly?
-        public AmusementExitPath exit { get; protected set; }
+        public AmusementPath entrance { get; protected set; } //todo: je opravdu potreba protected, nestaci private nebo dokonce readonly?
+        public AmusementPath exit { get; protected set; }
         protected  ConcurrentQueue<Person> queue=new ConcurrentQueue<Person>();
         protected object queueDeleteLock = new object();
         protected ReaderWriterLockSlim queueAddRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
@@ -126,15 +126,13 @@ namespace LunaparkGame
         protected int refundCoef;//todo: maybe zvolit pevna procenta vzdy stejna - napr. Amusement mit static polozku ebo tak nejak
         //----------------------------
         #endregion
-
-         public Amusements( Model m, Coordinates c) :base(m,c)       
+        public Amusements(){}
+        public Amusements( Model m, Coordinates c) :base(m,c)       
         {
             model.LastBuiltAmus = this;                 
             model.mustBeEnter = true;
-            this.id = model.amusList.GetFreeID();
-           
-            peopleInList = new List<Person>(capacity);
-            
+            this.id = model.amusList.GetFreeID();           
+            peopleInList = new List<Person>(capacity);           
             this.coord = coord;
             model.amusList.Add(this);
             model.maps.AddAmus(this);         
@@ -409,6 +407,71 @@ namespace LunaparkGame
         }
 
     }
+    public class Gate : Amusements {
+       
+       public int VstupneDoParku { get; set; }
+       private new Path exit;
+       public const int width = 1;
+       public const int height = 3;
+
+       public Gate(Model m, Coordinates c) {
+           this.model = m;
+           this.coord = c;
+       //    Control.Click += new EventHandler(Click);
+           this.entrance = new AmusementEnterPath(m, new Coordinates(c.x,(byte)(c.y+height/2)), this);
+           this.exit = new MarblePath(m, new Coordinates((byte)(c.x + width), entrance.coord.y));
+           MapObjects a;
+           if (!m.dirtyNew.TryDequeue(out a) || a != this.entrance) throw new MyDebugException("Gate konstruktor - takto nelze");
+           m.maps.AddAmus(this);
+       }
+
+       public Gate(Model m, Coordinates c, Coordinates entrance, Coordinates exit){
+           this.model=m;
+           this.coord=c;
+           Control.Click += new EventHandler(Click);
+           this.entrance = new AmusementEnterPath(m,entrance,this);
+           this.exit = new MarblePath(m, exit);
+           MapObjects a;
+           if (!m.dirtyNew.TryDequeue(out a) || a != this.entrance) throw new MyDebugException("Gate konstruktor - takto nelze");
+        }
+       public override void Action() { 
+           Person p;
+           // deleting people from the park
+           while (queue.TryDequeue(out p)) p.Destruct();
+           // a new person can be created
+           int a = exit.coord.x * MainForm.sizeOfSquare;
+           int b = exit.coord.y * MainForm.sizeOfSquare;
+           
+          //todo: if (model.maps.IsPath(a,b) && ShouldCreateNewPerson()) {
+           if (ShouldCreateNewPerson()) {
+               p = new Person(model, a + 1, b + MainForm.sizeOfSquare / 2 );
+           
+           }
+       }
+       public bool ShouldCreateNewPerson() {
+           return true;
+#warning pozdeji dodelat pstni fci vyroby, pouzit exp.rozd. - pouzit castecne rozdelanou tridu v Program.cs
+       
+       }
+       public void Click(object sender, EventArgs e) {
+
+       }
+       public override void Destruct() {
+           // nothing, the gate cannot be demolished
+       }
+       public override List<Coordinates> GetAllPoints() {
+           List<Coordinates> l=new List<Coordinates>();
+           l.Add(entrance.coord);
+           l.Add(exit.coord);
+           return l;
+       }
+        // the two methods below are irrelevant
+      
+       public override bool CheckFreeLocation(byte x, byte y ){return false;}
+       protected override bool IsInsideInAmusement(int x, int y) { return false; }
+       
+    }
+    
     public abstract class SquareAmusements : Amusements
     {
         public abstract byte width { get; protected set; }
@@ -510,7 +573,6 @@ namespace LunaparkGame
     public abstract class LittleComplementaryAmusements : Amusements {
         public LittleComplementaryAmusements(Model m, Coordinates c) : base(m, c) { }
     }
-#warning po sem je Thread safe
   
     public class Person : MapObjects,IActionable
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
@@ -535,7 +597,7 @@ namespace LunaparkGame
         private Amusements currAmus;
         public Status status { set; protected get; }
         
-        public Person(Model m, byte x, byte y) : base(m) {
+        public Person(Model m, int x, int y) : base(m) {
             
             this.id = m.persList.GetFreeId();
             this.status = Status.initialWalking;
@@ -578,7 +640,7 @@ namespace LunaparkGame
                                 }
                                 if (currAmus == null) {
                                     AddContentment(-20); //todo: ubrat spokojenost
-                                    status = Status.choosesAmus;
+                                    status = Status.choosesAmus; return;
                                 }
                                 if (currAmus.id != currAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
                                 if (currAmus.GetEntranceFee() > maxAcceptablePrice){
@@ -790,7 +852,7 @@ namespace LunaparkGame
         public AmusementPath(Model m, Coordinates c, Amusements a)
             : base(m) //not call base(m,c) because dont want to add to maps
         {
-            this.coord = coord;
+            this.coord = c;
             model.maps.AddEntranceExit(this);
         }
     
@@ -807,6 +869,7 @@ namespace LunaparkGame
         }
         public AmusementEnterPath(Model m, Coordinates c, Amusements a) : base(m, c, a)  {
         }
+       
         public override void Destruct() {
             model.maps.RemoveEntranceExit(this);
             model.dirtyDestruct.Enqueue(this);

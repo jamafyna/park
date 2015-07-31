@@ -117,12 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="advertiseButton" xml:space="preserve">
-    <value>ADVERTISE</value>
+  <data name="advertiseStart" xml:space="preserve">
+    <value>Start advertise</value>
     <comment>mozna dat start a stop advertising</comment>
   </data>
-  <data name="advertisingButton" xml:space="preserve">
-    <value>ADVERTISING</value>
+  <data name="advertising" xml:space="preserve">
+    <value>Advertising</value>
   </data>
   <data name="amusementButton" xml:space="preserve">
     <value>AMUSEMENTS</value>
@@ -132,11 +132,11 @@
     <value>CONTINUE</value>
     <comment>return to current game MOZNA DAT RESUME</comment>
   </data>
-  <data name="demolishingButton" xml:space="preserve">
-    <value>DEMOLISHING</value>
+  <data name="demolishing" xml:space="preserve">
+    <value>Demolishing</value>
   </data>
-  <data name="demolishStartButton" xml:space="preserve">
-    <value>DEMOLISH</value>
+  <data name="demolishStart" xml:space="preserve">
+    <value>Start demolish</value>
   </data>
   <data name="gameItem" xml:space="preserve">
     <value>GAME</value>
@@ -165,11 +165,11 @@
   <data name="peopleCount" xml:space="preserve">
     <value>People: </value>
   </data>
-  <data name="researchingButton" xml:space="preserve">
-    <value>RESEARCHING</value>
+  <data name="researching" xml:space="preserve">
+    <value>Researching</value>
   </data>
-  <data name="researchStartButton" xml:space="preserve">
-    <value>START RESEARCH</value>
+  <data name="researchStart" xml:space="preserve">
+    <value>Start research</value>
   </data>
   <data name="saveMenu" xml:space="preserve">
     <value>SAVE THE GAME</value>

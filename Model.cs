@@ -20,6 +20,8 @@ namespace LunaparkGame
         public readonly byte realWidth, realHeight;
         public readonly int maxAmusementsCount;//todo: nejspis nepocita lavicky
         private int money;
+        public int Propagation { get; set; }
+        public int Research { get; set; }
         public int currCheapestFee { private set; get; }//todo: postarat se o vytvoreni
         /// <summary>
         /// use for manipulation with currCheapestFee
@@ -44,17 +46,24 @@ namespace LunaparkGame
         public bool mustBeEnter = false;
         public bool mustBeExit = false;
         public bool demolishOn = false;
-             
-        public Model(byte height, byte width){
-            this.playingHeight=height;
-            this.playingWidth=width;
-            this.realHeight = (byte)(height + 2);
-            this.realWidth = (byte)(width + 2);
+        public bool propagateOn = false;
+        public bool researchOn = false;
+        public Gate gate;
+        
+        public Model(byte playingHeight, byte playingWidth){
+            this.playingHeight=playingHeight;
+            this.playingWidth=playingWidth;
+            this.realHeight = (byte)(playingHeight + 2);
+            this.realWidth = (byte)(playingWidth + 2);
             money = initialMoney;
-                        
+            Propagation = 0;
+            Research = 0;
+            
+            maps = new Map(realWidth, realHeight, this);            
             maxAmusementsCount = playingHeight * playingWidth + 1; // max. count of amusements that can user build, + 1 due to the gate which does not lie on the playing place
-            amusList = new AmusementsList(maxAmusementsCount);
-            maps=new Map(width,height,this);
+            gate=new Gate(this, new Coordinates(0,(byte) (new Random()).Next(1, realHeight - Gate.height -1)) );
+            amusList = new AmusementsList(maxAmusementsCount, gate);
+            
 
         }
         public void MoneyAdd(int value) {
@@ -95,10 +104,11 @@ namespace LunaparkGame
         public int AmusementsCount { get { return list.Count; } private set { } } //hash: zeptat se, ale nemel by byt problem, maximalne je neaktualni
         public int RestaurantsCount { get { return foodIds.Count; } private set { } }
      
-        public AmusementsList(int maxAmusCount)
+        public AmusementsList(int maxAmusCount, Gate gate)
         {
-            //todo:create brana gate
+            this.gate = gate;
             list = new List<Amusements>();
+            list.Add(gate);
             foodIds = new List<int>();
            // freeId = new Queue<int>(maxAmusCount);
             freeId = new ConcurrentQueue<int>();
@@ -265,16 +275,17 @@ namespace LunaparkGame
         public void Action()
         {           
             //todo: casem idealne ve vice vlaknech (experimentalne overit, zda je zapotrebi)
-            try {
+            int i=0;
+         //   try {
                 lock (peopleLock) {
-                    for (int i = 0; i < currPeopleCount; i++){
+                    for ( i = 0; i < currPeopleCount; i++){
                         people[i].Action();
                     }
                 }
-            }
-            catch (NullReferenceException e) {
-                throw new MyDebugException("PersonList.Action - people[i]==null0"+e.ToString());
-            }
+         //   }
+           /* catch (NullReferenceException e) {
+                throw new MyDebugException("PersonList.Action - people["+i+"]==null0"+e.ToString());
+            }*/
             
         }
         /// <summary>
@@ -360,19 +371,19 @@ namespace LunaparkGame
 
        
        // private int amusDeletedId = -1;
-        public readonly byte realWidthMap;
-        public readonly byte realHeightMap;
+        public readonly byte internalWidthMap;
+        public readonly byte internalHeightMap;
         private int maxAmusCount; //todo: nejspis neni potreba, smazat
         
         /// <summary>
         /// Represents current playing map, includes maps of paths and amusements, provides algorithms for navigation.
         /// </summary>
-        /// <param name="width">!!!NAPSAT, JESTLI JDE O REALNOU NEBO HRACI</param>
-        /// <param name="height"></param>
+        /// <param name="width">The internal width of the map.</param>
+        /// <param name="height">The internal height of the map.</param>
         /// <param name="m"></param>
         public Map(byte width, byte height, Model m) {
-            this.realWidthMap = width;
-            this.realHeightMap = height;
+            this.internalWidthMap = width;
+            this.internalHeightMap = height;
             this.model = m;
             this.maxAmusCount = model.maxAmusementsCount;
              
@@ -393,7 +404,7 @@ namespace LunaparkGame
 #warning isFree metody jsou 2
         public bool isFree(byte x, byte y) {
 #if (DEBUG)
-            if(x==0 || x==realWidthMap-1||y==0||y==realHeightMap-1) throw new MyDebugException("Map.isFree - bad coordination between maps");
+            if(x==0 || x==internalWidthMap-1||y==0||y==internalHeightMap-1) throw new MyDebugException("Map.isFree - bad coordination between maps");
 #endif
             amusRWLock.EnterReadLock();
             pathRWLock.EnterReadLock();
@@ -408,7 +419,7 @@ namespace LunaparkGame
         }
         public bool isFree(Coordinates c){
 #if (DEBUG)
-            if (c.x == 0 ||c.x == realWidthMap - 1 || c.y == 0 || c.y == realHeightMap - 1) throw new MyDebugException("Map.isFree - bad coordination between maps");
+            if (c.x == 0 ||c.x == internalWidthMap - 1 || c.y == 0 || c.y == internalHeightMap - 1) throw new MyDebugException("Map.isFree - bad coordination between maps");
 #endif
             amusRWLock.EnterReadLock();
             pathRWLock.EnterReadLock();
@@ -428,7 +439,7 @@ namespace LunaparkGame
                 foreach (var c in a.GetAllPoints()) amusementMap[c.x][c.y] = null;
             }
             finally {
-                amusRWLock.ExitReadLock();
+                amusRWLock.ExitWriteLock();
             }
         }
         public void AddAmus(Amusements a) {
@@ -463,8 +474,8 @@ namespace LunaparkGame
             Path p;
             pathRWLock.EnterReadLock();// can be in first forcycle but there is probably better
             try {
-                for (int i = 0; i < realWidthMap; i++)
-                    for (int j = 0; j < realHeightMap; j++) {
+                for (int i = 0; i < internalWidthMap; i++)
+                    for (int j = 0; j < internalHeightMap; j++) {
                         if ((p = pathMap[i][j]) != null) p.signpostAmus[amusId] = Direction.no;
                     }
             }
@@ -536,8 +547,8 @@ namespace LunaparkGame
             // ---set calculated directions
             pathRWLock.EnterReadLock();
             try {
-                for (int i = 0; i < realWidthMap; i++) {
-                    for (int j = 0; j < realHeightMap; i++) {
+                for (int i = 0; i < internalWidthMap; i++) {
+                    for (int j = 0; j < internalHeightMap; j++) {
                         if ((item = paths[i][j]) != null && pathMap[i][j] != null) {
                             pathMap[i][j].signpostAmus[a.id] = item.dir;
                         }
@@ -555,9 +566,9 @@ namespace LunaparkGame
        /// </summary>
        /// <param name="a">An Amusements item</param>
         private void UpdateDirectionToOnlyOneAmusement(Amusements a) {
-            Queue<DirectionItem> queue = new Queue<DirectionItem>(realWidthMap*realHeightMap+5);
-            for (int i = 0; i < realWidthMap; i++) {
-                for (int j = 0; j < realHeightMap; j++) {
+            Queue<DirectionItem> queue = new Queue<DirectionItem>(internalWidthMap*internalHeightMap+5);
+            for (int i = 0; i < internalWidthMap; i++) {
+                for (int j = 0; j < internalHeightMap; j++) {
                     // here isnt a Lock, auxPathMap is not always actual -> lock here=nonsence
                     if (pathMap[i][j] == null) auxPathMap[i][j] = null;
                     else auxPathMap[i][j] = new DirectionItem((byte)i, (byte)j);
@@ -570,21 +581,22 @@ namespace LunaparkGame
        /// </summary>
         private void UpdateDirections()
         {
-            Amusements[] amusA = model.amusList.GetCopyArray();
-            for (int i = 0; i < realWidthMap; i++) {
-                for (int j = 0; j < realHeightMap; j++) {
+           
+            for (int i = 0; i < internalWidthMap; i++) {
+                for (int j = 0; j < internalHeightMap; j++) {
                     // here isnt a Lock, auxPathMap is not always actual -> lock here=nonsence
                     if (pathMap[i][j] == null) auxPathMap[i][j] = null;
                     else auxPathMap[i][j] = new DirectionItem((byte)i, (byte)j);
                 }
             }
             Queue<DirectionItem> queue = new Queue<DirectionItem>();
+            Amusements[] amusA = model.amusList.GetCopyArray();
             foreach (var a in amusA)
             {
                 UpdateDirectionToAmusement(a,queue,auxPathMap);
                 queue.Clear();
-                for (int i = 0; i < realWidthMap; i++)
-                    for (int j = 0; j < realHeightMap; j++) {
+                for (int i = 0; i < internalWidthMap; i++)
+                    for (int j = 0; j < internalHeightMap; j++) {
                         if (auxPathMap[i][j] != null) auxPathMap[i][j].dir = Direction.no;
                        //todo:rozhodnout, kterou variantu pouzit
                         /* if (pathMap[i][j] != null) auxPathMap[i][j] = new DirectionItem((byte)i, (byte)j);
@@ -663,7 +675,7 @@ namespace LunaparkGame
                 queue.Enqueue(aux);
             }       
         }   
-#warning Odsud nize je TS
+
     /// <summary>
     /// Updates the navigation, i.e. sets current directions to paths. Only one thread can call this method.
     /// </summary>
