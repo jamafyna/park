@@ -426,10 +426,6 @@ namespace LunaparkGame
             amusRWLock.EnterWriteLock();
             try {
                 foreach (var c in a.GetAllPoints()) amusementMap[c.x][c.y] = null;
-                if (a.entrance != null) amusementMap[a.entrance.coord.x][a.entrance.coord.y] = null;
-                if (a.exit != null) amusementMap[a.entrance.coord.x][a.entrance.coord.y] = null;
-                //todo:vyse uvedene by nemelo byt null, entrance a exit musi vzdy existovat, byt to je stejne policko jako atrakce
-                //don't set null to pathMap - it made entrance.Destruct()
             }
             finally {
                 amusRWLock.ExitReadLock();
@@ -437,22 +433,13 @@ namespace LunaparkGame
         }
         public void AddAmus(Amusements a) {
             amusRWLock.EnterWriteLock();
-            pathRWLock.EnterWriteLock();
+         
             try {
                 foreach (var c in a.GetAllPoints()) amusementMap[c.x][c.y] = a;
-                try {
-                    amusementMap[a.entrance.coord.x][a.entrance.coord.y] = a;
-                    amusementMap[a.exit.coord.x][a.exit.coord.y] = a;
-                    pathMap[a.entrance.coord.x][a.entrance.coord.y] = a.entrance;
-                    pathMap[a.exit.coord.x][a.exit.coord.y] = a.exit;
-                }
-                catch (NullReferenceException e) {//todo: PO OVERENI ODSTRANIT
-                    throw new MyDebugException("Entry or exit is null in AddAmus" + e.ToString());
-                }
             }
             finally {
                 amusRWLock.ExitWriteLock();
-                pathRWLock.ExitWriteLock();
+           
             }
 
             lock (lastAddedAmusLock) {
@@ -486,6 +473,19 @@ namespace LunaparkGame
             }
         }
 
+        public void AddEntranceExit(AmusementPath p) {
+            pathRWLock.EnterWriteLock();
+            amusRWLock.EnterWriteLock();
+            try {
+                pathMap[p.coord.x][p.coord.y] = p;
+                amusementMap[p.coord.x][p.coord.y] = p.amusement;                
+            }
+            finally {
+                pathRWLock.ExitWriteLock();
+                amusRWLock.ExitWriteLock();
+            }
+            pathChanged = true; //important that it is set after changing pathMap
+        }
         public void AddPath(Path p)
         { 
             pathRWLock.EnterWriteLock();
@@ -495,6 +495,19 @@ namespace LunaparkGame
             }
             finally {
                 pathRWLock.ExitWriteLock();
+            }
+            pathChanged = true; //important that it is set after changing pathMap
+        }
+        public void RemoveEntranceExit(Path p) {
+            pathRWLock.EnterWriteLock();
+            amusRWLock.EnterWriteLock();
+            try {
+                pathMap[p.coord.x][p.coord.y] = null;
+                amusementMap[p.coord.x][p.coord.y] = null;
+            }
+            finally { 
+                pathRWLock.ExitWriteLock();
+                amusRWLock.ExitWriteLock();
             }
             pathChanged = true; //important that it is set after changing pathMap
         }
@@ -591,7 +604,7 @@ namespace LunaparkGame
             // dont use pathRWLock (or change it to recursive mode)
             if (paths[start.x][start.y] == null) {
 #if(DEBUG)
-                throw new MyDebugException("Map.InitializeQueue");
+                throw new MyDebugException("Map.InitializeQueue - extrance==null"); //muze se stat pri zboreni vstupu
 #endif
                 return false;
             }

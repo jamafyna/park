@@ -57,9 +57,11 @@ namespace LunaparkGame
         public MapObjects() { }
         protected MapObjects(Model m) {
             this.model = m;
-            
+#warning toto nejspis nefunguje, protoze price bude vzdy 0, nastavuje se az po volani konstruktoru.        
             model.MoneyAdd(-this.price);
             model.dirtyNew.Enqueue(this);
+            Control.Click += new EventHandler(Click);
+
         }
         public MapObjects(Model m,Coordinates coord):this(m)
         {
@@ -155,8 +157,9 @@ namespace LunaparkGame
         public override void Destruct()
         {
             //todo: smi je volat pouze 1x, tj.pokud by nekdy v budoucnu se mela volat i z jineho duvodu, nez user akce, nutno pridat omezeni - napr.nejaky unikatni zamek a pokud je zamcen, return
-            entrance.Destruct();
-            exit.Destruct();
+#warning entrance a exit by mely byt nejspis nejak zabezpeceny
+            if(entrance != null) entrance.Destruct();
+            if(exit !=null) exit.Destruct();
             model.MoneyAdd(refundCoef * price);//refund money
             model.amusList.Remove(this);
             model.maps.RemoveAmus(this);
@@ -348,7 +351,7 @@ namespace LunaparkGame
                 IsInsideInAmusement(x, y - 1) ||
                 IsInsideInAmusement(x, y + 1))
             {
-                this.entrance = new AmusementEnterPath(model, new Coordinates((byte)x,(byte)y));
+                this.entrance = new AmusementEnterPath(model, new Coordinates((byte)x,(byte)y),this);
                 model.mustBeEnter = false;
                 model.mustBeExit = true;
                 return true;
@@ -368,7 +371,7 @@ namespace LunaparkGame
                 IsInsideInAmusement(x, y - 1) ||
                 IsInsideInAmusement(x, y + 1))
             {
-                this.exit = new AmusementExitPath(model,new Coordinates((byte)x,(byte)y));
+                this.exit = new AmusementExitPath(model,new Coordinates((byte)x,(byte)y),this);
                 status = Status.waitingForPeople;
                 model.mustBeExit = false;
                 return true;
@@ -377,12 +380,16 @@ namespace LunaparkGame
         }
         protected abstract bool IsInsideInAmusement(int x, int y);
         
+        /// <summary>
+        /// Returns all points on which the amusement lies except the entrance and the exit.
+        /// </summary>
+        /// <returns></returns>
         public abstract List<Coordinates> GetAllPoints();
         protected override void Click(object sender, EventArgs e)
         {
            // if (!zacatek)
-          //  {
-                if (model.demolishOn)
+          //  { 
+                if (model.demolishOn) // it is called in the same thread as changing demolishOn -> OK
                 {
                     if (status == Status.outOfService)
                     {
@@ -755,9 +762,13 @@ namespace LunaparkGame
     public abstract class Path : MapObjects
     {
         public Direction[] signpostAmus;//rozcestnik
-        protected Path(Model m):base(m){ }
-        public Path(Model m, Coordinates c) : base(m,c) { 
-            signpostAmus=new Direction[m.maxAmusementsCount];
+        protected Path(Model m):base(m){
+            signpostAmus = new Direction[m.maxAmusementsCount];
+            //todo: mozna neni treba, overit
+            for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
+        }
+        public Path(Model m, Coordinates c) : base(m,c) {
+            signpostAmus = new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
             model.maps.AddPath(this);
@@ -765,14 +776,55 @@ namespace LunaparkGame
         public Path() { }
         protected override void Click(object sender, EventArgs e)
         {
-            //nothing
+            if (model.demolishOn) Destruct();
         }
         public override void Destruct()
         {
             model.maps.RemovePath(this);
+            model.dirtyDestruct.Enqueue(this);
         }
        
     }
+    public abstract class AmusementPath : Path {
+        public readonly Amusements amusement;
+        public AmusementPath(Model m, Coordinates c, Amusements a)
+            : base(m) //not call base(m,c) because dont want to add to maps
+        {
+            this.coord = coord;
+            model.maps.AddEntranceExit(this);
+        }
+    
+    }
+    public class AmusementEnterPath : AmusementPath {
 
+        public override int price {
+            get {
+                return 0;
+            }
+            protected set {
+                base.price = 0;
+            }
+        }
+        public AmusementEnterPath(Model m, Coordinates c, Amusements a) : base(m, c, a)  {
+        }
+        public override void Destruct() {
+            model.maps.RemoveEntranceExit(this);
+            model.dirtyDestruct.Enqueue(this);
+            model.LastBuiltAmus = this.amusement;
+            model.mustBeEnter = true;
+        }
+
+    }
+    public class AmusementExitPath : AmusementPath {
+        public AmusementExitPath (Model m, Coordinates c, Amusements a) : base(m, c, a)  {  }
+        public override void Destruct() {           
+            model.maps.RemoveEntranceExit(this);
+            model.dirtyDestruct.Enqueue(this);
+            model.LastBuiltAmus = this.amusement;
+            if(!model.mustBeEnter) model.mustBeExit = true;
+        
+        }
+
+    }
     
 }
