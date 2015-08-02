@@ -437,7 +437,8 @@ namespace LunaparkGame
        public override void Action() { 
            Person p;
            // deleting people from the park
-           while (queue.TryDequeue(out p)) p.Destruct();
+           while (queue.TryDequeue(out p)) 
+               p.Destruct();
            // a new person can be created
            int a = exit.coord.x * MainForm.sizeOfSquare;
            int b = exit.coord.y * MainForm.sizeOfSquare;
@@ -577,7 +578,7 @@ namespace LunaparkGame
     public class Person : MapObjects,IActionable
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
         private static Random rand = new Random();
-        const int minMoney = 200, maxMoney = 2000, minPatience=1, maxPatience=10;
+        const int minMoney = 200, maxMoney = 2000, minPatience=10, maxPatience=100;
         public enum Status {initialWalking, walking, onCrossroad, inAmusQueue, inAmus,choosesAmus, end }
 
         private int money; 
@@ -593,9 +594,9 @@ namespace LunaparkGame
         protected int x, y; //instead of coord //todo: casem s tim neco udelat, napr. 2 abstract tridy od MapObjects apod.
         protected object xyLock = new object(); //use for every manipulation with x and y together
         private Direction currDirection = Direction.no;
-        private int currAmusId;
+        public int CurrAmusId { get; private set; }
         private Amusements currAmus;
-        public Status status { set; protected get; }
+        public Status status { set; get; } //protected get; }
         
         public Person(Model m, int x, int y) : base(m) {
             
@@ -620,7 +621,7 @@ namespace LunaparkGame
                 case Status.walking:{
                     #region
                     if (remainingStepsCount > 0) {
-                        remainingStepsCount++;
+                        remainingStepsCount--;
                         switch (currDirection)
                         {
                             case Direction.N: Interlocked.Decrement(ref y);
@@ -642,7 +643,7 @@ namespace LunaparkGame
                                     AddContentment(-20); //todo: ubrat spokojenost
                                     status = Status.choosesAmus; return;
                                 }
-                                if (currAmus.id != currAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
+                                if (currAmus.id != CurrAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
                                 if (currAmus.GetEntranceFee() > maxAcceptablePrice){
                                     AddContentment(-40);//todo: nastavit poradne
                                     status = Status.choosesAmus;
@@ -669,7 +670,7 @@ namespace LunaparkGame
                     break;
                 case Status.onCrossroad: {
                     #region               
-                    currDirection=model.maps.GetDirectionToAmusement(currAmusId,x,y);
+                    currDirection=model.maps.GetDirectionToAmusement(CurrAmusId,x,y);
                     status = Status.walking;
                     remainingStepsCount = MainForm.sizeOfSquare;
                     #endregion
@@ -680,6 +681,7 @@ namespace LunaparkGame
                         if (waitingTimeInQueue > patience) {
                             AddContentment(-10);//todo: mozna udelat: odejde, pokud prekroci patience a vzdy jindy se drobne snizi spokojenost
                             currAmus.DeletePersonFromQueue(this);
+                            status = Status.choosesAmus;
                         }
                         else waitingTimeInQueue++;
                     #endregion
@@ -690,7 +692,7 @@ namespace LunaparkGame
                     }
                     break;
                 case Status.choosesAmus: {
-                    currAmusId = ChooseAmusement();
+                    CurrAmusId = ChooseAmusement();
                     status = Status.onCrossroad;
                 }
                     break;
@@ -766,7 +768,12 @@ namespace LunaparkGame
                 return new System.Drawing.Point(x, y);
             }
         }
-
+        public int GetContentment() {
+            return contentment;
+        }
+        public int GetHunger() {
+            return hunger / 20;
+        }
         public int GetMoney() {
             return this.money;
         }

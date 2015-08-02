@@ -13,7 +13,8 @@ namespace LunaparkGame
         Data data;
         MainForm form;
         Control map;
-        
+        List<IUpdatable> forms = new List<IUpdatable>();
+
         public View(Model m, MainForm form)
         {
             this.model = m;
@@ -25,6 +26,8 @@ namespace LunaparkGame
             DestructDirty();
             NewDirty();
             PeopleMove();
+            ClickDirty();
+            UpdateDirty();
             //throw new NotImplementedException();
         }
         private void PeopleMove() {
@@ -38,7 +41,7 @@ namespace LunaparkGame
             MapObjects o;
             while(model.dirtyDestruct.TryDequeue(out o))
             {
-                o.Control.Dispose();
+                o.Control.Dispose(); 
             }
         }
         public static PictureBox PictureBoxCopy(PictureBox p) {
@@ -90,9 +93,23 @@ namespace LunaparkGame
             //if(.GetType()==typeof(Gate)) mozna, mozna staci amus
             //else if(is Amusements) atd.
             //nezapomenout zmenit spravne click v danem objektu
+#warning pouze provizorni
+            MapObjects o;
+            while (model.dirtyClick.TryDequeue(out o)) {
+                if (o is Person) { 
+                    //if clicked...
+                    forms.Add( new PersonForm((Person)o,map));
+                }
+            }
         
         }
 
+        private void UpdateDirty() {
+            foreach (var item in forms) {
+                item.MyUpdate();
+            }
+        
+        }
         public Control CreateVisualMap(int realWidth, int realHeight, int sizeOfSquare)
         {          
             map = new PictureBox();

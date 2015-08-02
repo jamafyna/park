@@ -198,4 +198,22 @@
   <data name="warningMessBox" xml:space="preserve">
     <value>Warning</value>
   </data>
+  <data name="contentment" xml:space="preserve">
+    <value>Contentment:</value>
+  </data>
+  <data name="hunger" xml:space="preserve">
+    <value>Hunger:</value>
+  </data>
+  <data name="idPerson" xml:space="preserve">
+    <value>Person ID:</value>
+  </data>
+  <data name="information" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="isGoingToId" xml:space="preserve">
+    <value>Is going to:</value>
+  </data>
+  <data name="moneyPerson" xml:space="preserve">
+    <value>Money:</value>
+  </data>
 </root>

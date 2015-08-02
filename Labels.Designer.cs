@@ -115,6 +115,15 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Contentment:.
+        /// </summary>
+        internal static string contentment {
+            get {
+                return ResourceManager.GetString("contentment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CONTINUE.
         /// </summary>
         internal static string continueMenu {
@@ -160,6 +169,42 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hunger:.
+        /// </summary>
+        internal static string hunger {
+            get {
+                return ResourceManager.GetString("hunger", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Person ID:.
+        /// </summary>
+        internal static string idPerson {
+            get {
+                return ResourceManager.GetString("idPerson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Information.
+        /// </summary>
+        internal static string information {
+            get {
+                return ResourceManager.GetString("information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is going to:.
+        /// </summary>
+        internal static string isGoingToId {
+            get {
+                return ResourceManager.GetString("isGoingToId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to LOAD THE GAME.
         /// </summary>
         internal static string loadMenu {
@@ -183,6 +228,15 @@ namespace LunaparkGame {
         internal static string moneyCount {
             get {
                 return ResourceManager.GetString("moneyCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Money:.
+        /// </summary>
+        internal static string moneyPerson {
+            get {
+                return ResourceManager.GetString("moneyPerson", resourceCulture);
             }
         }
         
