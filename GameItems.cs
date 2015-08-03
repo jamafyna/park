@@ -55,15 +55,15 @@ namespace LunaparkGame
         public bool isClicked = false;
         virtual public int price { get; protected set; } //todo: This must be abstract!!! - az budu znat ceny
         public MapObjects() { }
-        protected MapObjects(Model m) {
+        protected MapObjects(Model m, bool tangible=true) {
             this.model = m;
 #warning toto nejspis nefunguje, protoze price bude vzdy 0, nastavuje se az po volani konstruktoru.        
             model.MoneyAdd(-this.price);
-            model.dirtyNew.Enqueue(this);
+           if(tangible) model.dirtyNew.Enqueue(this);
             //Control.Click += new EventHandler(Click);
 
         }
-        public MapObjects(Model m,Coordinates coord):this(m)
+        public MapObjects(Model m,Coordinates coord, bool tangible=true):this(m, tangible)
         {
             this.coord = coord;
         }
@@ -127,7 +127,8 @@ namespace LunaparkGame
         //----------------------------
         #endregion
         public Amusements(){}
-        public Amusements( Model m, Coordinates c) :base(m,c)       
+        public Amusements(Model m, Coordinates c)
+            : base(m, c)       
         {
             model.LastBuiltAmus = this;                 
             model.mustBeEnter = true;
@@ -418,10 +419,10 @@ namespace LunaparkGame
            this.model = m;
            this.coord = c;
        //    Control.Click += new EventHandler(Click);
-           this.entrance = new AmusementEnterPath(m, new Coordinates(c.x,(byte)(c.y+height/2)), this);
+           this.entrance = new AmusementEnterPath(m, new Coordinates(c.x,(byte)(c.y+height/2)), this, tangible: false);
            this.exit = new MarblePath(m, new Coordinates((byte)(c.x + width), entrance.coord.y));
            MapObjects a;
-           if (!m.dirtyNew.TryDequeue(out a) || a != this.entrance) throw new MyDebugException("Gate konstruktor - takto nelze");
+         //  if (!m.dirtyNew.TryDequeue(out a) || a != this.entrance) throw new MyDebugException("Gate konstruktor - takto nelze");
            m.maps.AddAmus(this);
        }
 
@@ -429,7 +430,7 @@ namespace LunaparkGame
            this.model=m;
            this.coord=c;
            Control.Click += new EventHandler(Click);
-           this.entrance = new AmusementEnterPath(m,entrance,this);
+           this.entrance = new AmusementEnterPath(m,entrance,this, tangible:false);
            this.exit = new MarblePath(m, exit);
            MapObjects a;
            if (!m.dirtyNew.TryDequeue(out a) || a != this.entrance) throw new MyDebugException("Gate konstruktor - takto nelze");
@@ -840,12 +841,13 @@ namespace LunaparkGame
     public abstract class Path : MapObjects
     {
         public Direction[] signpostAmus;//rozcestnik
-        protected Path(Model m):base(m){
+        protected Path(Model m, bool tangible = true) : base(m, tangible){
             signpostAmus = new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
         }
-        public Path(Model m, Coordinates c) : base(m,c) {
+        public Path(Model m, Coordinates c, bool tangible = true)
+            : base(m, c, tangible) {
             signpostAmus = new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
@@ -865,8 +867,8 @@ namespace LunaparkGame
     }
     public abstract class AmusementPath : Path {
         public readonly Amusements amusement;
-        public AmusementPath(Model m, Coordinates c, Amusements a)
-            : base(m) //not call base(m,c) because dont want to add to maps
+        public AmusementPath(Model m, Coordinates c, Amusements a, bool tangible=true)
+            : base(m, tangible) //not call base(m,c) because dont want to add to maps
         {
             this.coord = c;
             model.maps.AddEntranceExit(this);
@@ -883,7 +885,8 @@ namespace LunaparkGame
                 base.price = 0;
             }
         }
-        public AmusementEnterPath(Model m, Coordinates c, Amusements a) : base(m, c, a)  {
+        public AmusementEnterPath(Model m, Coordinates c, Amusements a, bool tangible=true)
+            : base(m, c, a, tangible) {
         }
        
         public override void Destruct() {
@@ -895,7 +898,7 @@ namespace LunaparkGame
 
     }
     public class AmusementExitPath : AmusementPath {
-        public AmusementExitPath (Model m, Coordinates c, Amusements a) : base(m, c, a)  {  }
+        public AmusementExitPath(Model m, Coordinates c, Amusements a, bool tangible=true) : base(m, c, a, tangible) { }
         public override void Destruct() {           
             model.maps.RemoveEntranceExit(this);
             model.dirtyDestruct.Enqueue(this);

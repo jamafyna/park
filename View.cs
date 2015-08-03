@@ -45,7 +45,7 @@ namespace LunaparkGame
             MapObjects o;
             while(model.dirtyDestruct.TryDequeue(out o))
             {
-               if(o!=null) o.Control.Dispose(); 
+               if(o.Control!=null) o.Control.Dispose(); 
             }
         }
         public static PictureBox PictureBoxCopy(PictureBox p) {
@@ -107,7 +107,7 @@ namespace LunaparkGame
                     o.Control = pbox;
 
                 }
-               /* else if(o.GetType()==typeof(AmusementEnterPath)||o.GetType()==typeof(AmusementExitPath)){
+                else if(o.GetType()==typeof(AmusementEnterPath)||o.GetType()==typeof(AmusementExitPath)){
                     pbox = new PictureBox();
                     pbox.BackColor = Color.Blue;
                    
@@ -120,7 +120,7 @@ namespace LunaparkGame
                     pbox.Visible = true;
                     o.Control = pbox;
                 
-                }*/
+                }
 
              /*   else if (data.dict.TryGetValue(o.GetType(), out original))
                 {

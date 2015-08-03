@@ -20,8 +20,8 @@ namespace LunaparkGame
             model.mustBeEnter = false;
             model.mustBeExit = false;
             fixedRunningTime = 0;
-            this.entrance = new AmusementEnterPath(m,c,this);
-            this.exit = new AmusementExitPath(m,c,this);
+            this.entrance = new AmusementEnterPath(m, c, this, tangible:false);
+            this.exit = new AmusementExitPath(m,c,this, tangible:false);
         }
         public override bool CheckFreeLocation(byte x, byte y) {
             return CheckFreeLocation(x, y, width, width, hasSeparatedEntranceAndExit: false);

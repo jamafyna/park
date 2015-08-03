@@ -79,7 +79,7 @@ namespace LunaparkGame {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &quot;The building have not finnished. Finish it first.&quot;.
+        ///   Looks up a localized string similar to &quot;The building has not been finnished. Finish it first.&quot;.
         /// </summary>
         internal static string unfinishedBuilding {
             get {

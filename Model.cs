@@ -224,7 +224,8 @@ namespace LunaparkGame
         /// <summary>
         /// for manipulating s people array (read, write) and currPeopleCount
         /// </summary>
-        private object peopleLock = new object();
+        //private object peopleLock = new object();
+        private ReaderWriterLockSlim peopleRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         /// <summary>
         /// useful only for a very unlikely situation - a person p survived more people then maxUniquePeople and it is called Remove(p) and Add(q) where p.id=q.id in the same time
         /// </summary>
@@ -252,7 +253,8 @@ namespace LunaparkGame
         public void Add(Person p)//ts
         {
 
-            lock (peopleLock) { //todo: povoluje zamek rekurzivni zamykani??? Zde muze za velmi nepst.situace nastat (pri zavolani Remove)
+            peopleRWLock.EnterWriteLock();
+            try { 
                 if (internChangablePeopleId[p.id] != -1) { // very unlikely situation - a person p survived more people then maxUniquePeople; and must be locked - more it is called Remove(p) and Add(q) where p.id=q.id in the same time
 
 #if (DEBUG)
@@ -269,7 +271,10 @@ namespace LunaparkGame
                 int internId = currPeopleCount++; // e.d. for sure: + 1 is done after setting
                 people[internId] = p;
                 internChangablePeopleId[p.id] = internId;
-            }          
+            }
+            finally{
+                peopleRWLock.ExitWriteLock();
+            }
         }
 
         public void Action()
@@ -277,10 +282,12 @@ namespace LunaparkGame
             //todo: casem idealne ve vice vlaknech (experimentalne overit, zda je zapotrebi)
             int i=0;
          //   try {
-                lock (peopleLock) {
+#warning vratit zpet lock
+               // lock (peopleLock) {
                     for ( i = 0; i < currPeopleCount; i++){
-                        people[i].Action();
-                    }
+                        Task.Factory.StartNew(people[i].Action);
+                        //people[i].Action()
+                //    }
                 }
          //   }
            /* catch (NullReferenceException e) {
@@ -290,11 +297,13 @@ namespace LunaparkGame
         }
 #warning zkontrolovat metodu GetEnumerator
         public System.Collections.IEnumerator GetEnumerator() {
-            lock (peopleLock) {
+            peopleRWLock.EnterReadLock();
+            try {
                 for (int i = 0; i < currPeopleCount; i++) {
                     yield return people[i];
                 }
             }
+            finally { peopleRWLock.ExitReadLock(); }
         }
         /// <summary>
         /// a method which should be called only from the class Person
@@ -302,7 +311,8 @@ namespace LunaparkGame
         /// <param name="p">the person which will be removed</param>
         public void Remove(Person p)//todo: thread-safe"!!! pri praci s polem se do nej nesmi nic pridavat
         {
-            lock (peopleLock) {
+            peopleRWLock.EnterWriteLock();
+            try {
                 int internId = internChangablePeopleId[p.id];
                 internChangablePeopleId[p.id] = -1;
 
@@ -310,10 +320,9 @@ namespace LunaparkGame
                 if (internId == -1) throw new MyDebugException("PeopleList.Remove - id=-1, tj. p nebyla nejspis v seznamu");
                 if (people[internId] != p) throw new MyDebugException("PeopleList.Remove - person[id]!=p: p.id: " + p.id.ToString() + ", p: " + p.ToString());
 
-#else            
-            if (internId == -1) return;            
+#else
+                if (internId == -1) return;
 #endif
-
                 if (internId == currPeopleCount - 1) { //p is the last item
                     people[internId] = null;//due to GC
                     currPeopleCount--;
@@ -326,6 +335,9 @@ namespace LunaparkGame
                     people[currPeopleCount - 1] = null;//due to GC
                     currPeopleCount--;
                 }
+            }
+            finally {
+                peopleRWLock.ExitWriteLock();
             }
            
             
@@ -342,17 +354,19 @@ namespace LunaparkGame
     /// </summary>
     public class Map: IActionable 
     {
-#warning bude potreba udelat TS - urcite pro vylouceni remove a ostatnich veci, kde se porovnava !=null, RWLockSlim, mozna zvolit vice na casti pole, zamyslet se, jak casto se bude menit (asi spis ne, uzivatel bori malo)
-       
+      
         class DirectionItem {
             public Direction dir;
          //   public readonly Coordinates c;
             public readonly byte x;
             public readonly byte y;
-            public DirectionItem(byte x, byte y) {
+            public bool isEnterExit;
+            public DirectionItem(byte x, byte y, Type typeOfPath) {
                 this.x = x;
                 this.y = y;
                 dir = Direction.no;
+                if (typeOfPath == typeof(AmusementEnterPath) || typeOfPath == typeof(AmusementExitPath)) isEnterExit = true;
+                else isEnterExit = false;
             }
         /*    public DirectionItem(Coordinates c){
                 this.c = c;
@@ -491,6 +505,7 @@ namespace LunaparkGame
                 pathRWLock.ExitReadLock();
             }
         }
+        
 
         public void AddEntranceExit(AmusementPath p) {
             pathRWLock.EnterWriteLock();
@@ -579,7 +594,7 @@ namespace LunaparkGame
                 for (int j = 0; j < internalHeightMap; j++) {
                     // here isnt a Lock, auxPathMap is not always actual -> lock here=nonsence
                     if (pathMap[i][j] == null) auxPathMap[i][j] = null;
-                    else auxPathMap[i][j] = new DirectionItem((byte)i, (byte)j);
+                    else auxPathMap[i][j] = new DirectionItem((byte)i, (byte)j, (pathMap[i][j]).GetType());
                 }
             }
             UpdateDirectionToAmusement(a,queue,auxPathMap);      
@@ -594,7 +609,7 @@ namespace LunaparkGame
                 for (int j = 0; j < internalHeightMap; j++) {
                     // here isnt a Lock, auxPathMap is not always actual -> lock here=nonsence
                     if (pathMap[i][j] == null) auxPathMap[i][j] = null;
-                    else auxPathMap[i][j] = new DirectionItem((byte)i, (byte)j);
+                    else auxPathMap[i][j] = new DirectionItem((byte)i, (byte)j, (pathMap[i][j]).GetType());
                 }
             }
             Queue<DirectionItem> queue = new Queue<DirectionItem>();
@@ -632,19 +647,19 @@ namespace LunaparkGame
             DirectionItem aux;
             if ((start.x - 1 >= 0) && (aux=paths[start.x - 1][start.y]) != null) {             
                 aux.dir= Direction.E;
-                queue.Enqueue(aux);
+               if(!aux.isEnterExit) queue.Enqueue(aux); //cannot go over these paths (without stop in an amusement)
             }
             if ((aux=paths[start.x][start.y-1]) != null){
                 aux.dir = Direction.S;
-                queue.Enqueue(aux);
+                if (!aux.isEnterExit) queue.Enqueue(aux);
             }
             if ((aux = paths[start.x][start.y + 1]) != null){
                 aux.dir = Direction.N;
-                queue.Enqueue(aux);
+                if (!aux.isEnterExit) queue.Enqueue(aux);
             }
             if ((aux = paths[start.x+1][start.y]) != null){
                 aux.dir = Direction.W;
-                queue.Enqueue(aux);
+                if (!aux.isEnterExit) queue.Enqueue(aux);
             }
             return true;
         
@@ -660,27 +675,27 @@ namespace LunaparkGame
             // dont use pathRWLock (or change it to recursive mode)!!
             // border fields (except the gate) don't matter because there is a fence (i.e. null) around the playing map
             // direction is set the other way around because it is correct from a person perspective.
-           //todo: pokud nechci, aby mi lidi chodili pres vstupy/vystupy atrakci, nastavit zde a v InitializeQueue, ale DirectionItem by v sobe musela jeste uchovavat typ chodniku (nebo bool isIO)
+            
             DirectionItem aux;
             if ((x - 1 >= 0) && (aux = paths[x - 1][y]) != null && aux.dir == Direction.no) // item.x - 1 >= 0 due to the gate
             {
                 aux.dir = Direction.E;
-                queue.Enqueue(aux);
+                if (!aux.isEnterExit) queue.Enqueue(aux); // cannot go over these paths (without stop in an amusement)
             }
             if ((aux = paths[x][y - 1]) != null && aux.dir == Direction.no)
             {
                 aux.dir = Direction.S;
-                queue.Enqueue(aux);
+                if (!aux.isEnterExit) queue.Enqueue(aux);
             }
             if ((aux = paths[x][y + 1]) != null && aux.dir == Direction.no)
             {
                 aux.dir = Direction.N;
-                queue.Enqueue(aux);
+                if (!aux.isEnterExit) queue.Enqueue(aux);
             }
             if ((aux = paths[x + 1][y]) != null && aux.dir == Direction.no)
             {
                 aux.dir = Direction.W;
-                queue.Enqueue(aux);
+                if (!aux.isEnterExit) queue.Enqueue(aux);
             }       
         }   
 
