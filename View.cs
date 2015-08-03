@@ -32,8 +32,12 @@ namespace LunaparkGame
         }
         private void PeopleMove() {
             foreach (Person p in model.persList) {
-                p.Control.Location = p.GetRealCoordinates();
+               // p.Control.Location = p.GetRealCoordinates();
+                p.Control.Location = p.GetRealCoordinatesUnsynchronized();
                 p.Control.Visible = p.visible;
+                
+               // p.Control.Left++;
+                    
             }        
         }
         private void DestructDirty()
@@ -41,7 +45,7 @@ namespace LunaparkGame
             MapObjects o;
             while(model.dirtyDestruct.TryDequeue(out o))
             {
-                o.Control.Dispose(); 
+               if(o!=null) o.Control.Dispose(); 
             }
         }
         public static PictureBox PictureBoxCopy(PictureBox p) {
@@ -55,27 +59,69 @@ namespace LunaparkGame
             while (model.dirtyNew.TryDequeue(out o))
             {
                 if (o is Person) {
-                    PictureBox vzhled = new PictureBox();
+                    pbox = new PictureBox();
                     //obrazek hlavy
-                    vzhled.BackgroundImage = Properties.Images.person_head;
+                    pbox.BackgroundImage = Properties.Images.person_head;
                     //urceni barvy obleceni pomoci RGB
                     Random random = new Random();
-                    vzhled.BackColor = Color.FromArgb(random.Next(255), random.Next(255), random.Next(255));
+                    pbox.BackColor = ((Person)o).color;
                     //obrezek zustane takovy, jaky byl, tj. neroztahuje se, neopakuje apod.
-                    vzhled.BackgroundImageLayout = ImageLayout.None;
-                    vzhled.Width = 7;
-                    vzhled.Height = MainForm.sizeOfSquare / 2;
+                    pbox.BackgroundImageLayout = ImageLayout.None;
+                    pbox.Width = MainForm.sizeOfSquare / 7;
+                    pbox.Height = MainForm.sizeOfSquare / 2;
                     //uchyceni leveho dolniho rohu
-                    vzhled.Anchor = AnchorStyles.Bottom;
-                    vzhled.Anchor = AnchorStyles.Left;
-                    vzhled.Location = ((Person)o).GetRealCoordinates();
-                    vzhled.Parent = map;
-                    map.Controls.SetChildIndex(vzhled, 0);
+                    pbox.Anchor = AnchorStyles.Bottom;
+                    pbox.Anchor = AnchorStyles.Left;
+                    pbox.Location = ((Person)o).GetRealCoordinates();
+                    pbox.Parent = map;
+                    map.Controls.SetChildIndex(pbox, 0);
                   //  vzhled.Click+=new EventHandler(((Person)o).Click);
-                    o.Control = vzhled;
+                    o.Control = pbox;
                     
                 
                 }
+                else if (o.GetType() == typeof(AsphaltPath)) {
+                    pbox = new PictureBox();
+                    pbox.BackgroundImage = Properties.Images.path_asphalt;
+                    pbox.Width = MainForm.sizeOfSquare - 1;
+                    pbox.Height = MainForm.sizeOfSquare - 1;
+                    pbox.Parent = map;
+                    map.Controls.SetChildIndex(pbox,10);
+                    pbox.Left = o.coord.x * MainForm.sizeOfSquare + 1;
+                    pbox.Top = o.coord.y * MainForm.sizeOfSquare + 1;
+                    pbox.Visible = true;
+                    o.Control = pbox;
+                    
+                }
+                else if (o.GetType() == typeof(Restaurant)) {
+                    pbox = new PictureBox();
+                    pbox.BackgroundImage = Properties.Images.amus_iceCream ;
+                    pbox.BackgroundImageLayout = ImageLayout.Zoom;
+                    pbox.Width = ((Restaurant)o).width * MainForm.sizeOfSquare - 1;
+                    pbox.Height = ((Restaurant)o).width * MainForm.sizeOfSquare - 1;
+                    pbox.Parent = map;
+                    map.Controls.SetChildIndex(pbox, 0);
+                    pbox.Left = o.coord.x * MainForm.sizeOfSquare + 1;
+                    pbox.Top = o.coord.y * MainForm.sizeOfSquare + 1;
+                    pbox.Visible = true;
+                    o.Control = pbox;
+
+                }
+               /* else if(o.GetType()==typeof(AmusementEnterPath)||o.GetType()==typeof(AmusementExitPath)){
+                    pbox = new PictureBox();
+                    pbox.BackColor = Color.Blue;
+                   
+                    pbox.Width =  MainForm.sizeOfSquare - 1;
+                    pbox.Height =  MainForm.sizeOfSquare - 1;
+                    pbox.Parent = map;
+                    map.Controls.SetChildIndex(pbox, 0);
+                    pbox.Left = o.coord.x * MainForm.sizeOfSquare + 1;
+                    pbox.Top = o.coord.y * MainForm.sizeOfSquare + 1;
+                    pbox.Visible = true;
+                    o.Control = pbox;
+                
+                }*/
+
              /*   else if (data.dict.TryGetValue(o.GetType(), out original))
                 {
                     pbox = PictureBoxCopy(original);
@@ -151,7 +197,7 @@ namespace LunaparkGame
             pbox.Left = left;
             pbox.BackgroundImage = Properties.Images.plot;           
         }
-        public void ShowGate(Gate g) {
+        public void CreateGate(Gate g) {
             PictureBox pbox = new PictureBox();          
             pbox.Parent = map;
             map.Controls.SetChildIndex(pbox, 0);
@@ -159,8 +205,8 @@ namespace LunaparkGame
             pbox.Left = g.coord.x * MainForm.sizeOfSquare;
             pbox.Height = Gate.height * MainForm.sizeOfSquare;
             pbox.Width = Gate.width * MainForm.sizeOfSquare;
-            pbox.Image = Properties.Images.gate;
-            
+            pbox.BackgroundImage = Properties.Images.gate;
+            pbox.BackgroundImageLayout = ImageLayout.Zoom;
             pbox.Click += new EventHandler(g.Click);
             g.Control = pbox;
            

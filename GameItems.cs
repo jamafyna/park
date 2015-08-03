@@ -102,7 +102,7 @@ namespace LunaparkGame
         /// Contains people who are in the amusement now.
         /// </summary>
         protected List<Person> peopleInList;
-        private Status status=Status.outOfService;
+        protected Status status=Status.outOfService;
         public int CountOfWaitingPeople
         {
             get
@@ -119,7 +119,7 @@ namespace LunaparkGame
         protected bool isRunning = false;
         //-------popisove vlastnosti
         public readonly int capacity;
-        protected readonly int maxWaitingTime, fixedRunningTime;
+        protected int maxWaitingTime, fixedRunningTime;
         
         public int WorkingPrice { get; protected set; }//todo: mozna nebude treba a pevne se vzdy urci procenta z provozu nebo tak nejak
         //protected readonly int initialVisitPrice; nebude potreba, ziska se odnekud
@@ -475,7 +475,8 @@ namespace LunaparkGame
     
     public abstract class SquareAmusements : Amusements
     {
-        public abstract byte width { get; protected set; }
+        public byte width { get; protected set; }
+        public SquareAmusements() { }
         public SquareAmusements(Model m, Coordinates c) : base(m,c) {
             model.CheckCheapestFee(this.currFee);
         }
@@ -586,10 +587,12 @@ namespace LunaparkGame
         public readonly int id;
         public readonly int maxAcceptablePrice;//max price which he is willing to pay per an amusement
         public bool visible { get; set; }
+        public readonly System.Drawing.Color color;
+
         //----provozni hodnoty-----
         private int remainingStepsCount=0;//pocet zbyvajicich kroku
         private int waitingTimeInQueue = 0, startingWalkingTime=2*MainForm.sizeOfSquare;
-        private int contentment = 0;//spokojenost
+        private int contentment = 100;//spokojenost
         private int hunger=0;
         protected int x, y; //instead of coord //todo: casem s tim neco udelat, napr. 2 abstract tridy od MapObjects apod.
         protected object xyLock = new object(); //use for every manipulation with x and y together
@@ -609,6 +612,7 @@ namespace LunaparkGame
             this.x = x;
             this.y = y;
             this.visible = true;
+            this.color = System.Drawing.Color.FromArgb(rand.Next(255), rand.Next(255), rand.Next(255));
 
             m.persList.Add(this);
 
@@ -744,7 +748,7 @@ namespace LunaparkGame
         /// </summary>
         /// <returns>An nonnegative int, which represents the id of an amusement</returns>
         public int ChooseAmusement() {
-            if(money<model.currCheapestFee) return model.amusList.GetGateId();//person cannot afford pay any amusement
+       /*     if(money<model.currCheapestFee) return model.amusList.GetGateId();//person cannot afford pay any amusement
             if (contentment == 0) return model.amusList.GetGateId();
             if (hunger > 1800) //2000=100 %, i.e. 2000*0.9
                 return model.amusList.GetRandomRestaurant(); //kdyz je hlad > 90%, vybira obcerstveni
@@ -755,6 +759,7 @@ namespace LunaparkGame
             //---- more hunger -> bigger probability of visiting a restaurant
             if (number < hunger / 20) return model.amusList.GetRandomRestaurant();
             //---- go to an amusement
+        */
             return model.amusList.GetRandomAmusement();
         }
         public void SetRealCoordinates(int x, int y) {
@@ -767,6 +772,9 @@ namespace LunaparkGame
             lock (xyLock) {
                 return new System.Drawing.Point(x, y);
             }
+        }
+        public System.Drawing.Point GetRealCoordinatesUnsynchronized() {
+            return new System.Drawing.Point(x,y);
         }
         public int GetContentment() {
             return contentment;

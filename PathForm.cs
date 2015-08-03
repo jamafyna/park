@@ -16,6 +16,7 @@ namespace LunaparkGame
         {
             InitializeComponent();
             model = m;
+            CreateNewItem("obc",1000,Properties.Images.amus_iceCream,new Restaurant(model));
             for (int i = 0; i < 30; i++)
             {
                 CreateNewItem("pokud", 125, Properties.Images.path_asphalt, new AsphaltPath());

@@ -6,9 +6,27 @@ using System.Threading.Tasks;
 
 namespace LunaparkGame
 {
-    public abstract class Restaurant : SquareAmusements
-    {//todo: nema byt abstract, ale virtual, akorat ted nechci vyplnovat
-        public Restaurant(Model m, Coordinates c) : base(m, c) { }
+    public class Restaurant : SquareAmusements
+    {
+
+        public Restaurant(Model m):base() { 
+         width = 1;
+         model = m;
+            fixedRunningTime = 0;
+            
+        }
+        public Restaurant(Model m, Coordinates c) : base(m, c) {
+            width = 1;
+            model.mustBeEnter = false;
+            model.mustBeExit = false;
+            fixedRunningTime = 0;
+            this.entrance = new AmusementEnterPath(m,c,this);
+            this.exit = new AmusementExitPath(m,c,this);
+        }
+        public override bool CheckFreeLocation(byte x, byte y) {
+            return CheckFreeLocation(x, y, width, width, hasSeparatedEntranceAndExit: false);
+        }
+        
     }
 
 

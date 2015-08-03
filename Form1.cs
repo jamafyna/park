@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace LunaparkGame
 {
@@ -18,14 +19,14 @@ namespace LunaparkGame
         /// </summary>
         
        
-        public const int sizeOfSquare = 50;
+        public const int sizeOfSquare = 40;
         AmusementsForm amusform;
         PathForm pathform;
        public Control map;
         Model model;
         View view;
-
         int timerTime = 0;
+        
        
 
     
@@ -38,14 +39,15 @@ namespace LunaparkGame
             map=view.CreateVisualMap(playingWidth + 2, playingHeight + 2, sizeOfSquare);
             map.Parent = mainDockPanel;
             this.map.Click += new System.EventHandler(this.map_Click);
-
+ 
             amusform = new AmusementsForm(model, mainDockPanel);
             pathform = new PathForm(model);
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
-            view.ShowGate(model.gate);
+            view.CreateGate(model.gate);
             timer.Enabled = true;
-           
+
+            
         }
 
       
@@ -75,7 +77,7 @@ namespace LunaparkGame
                 {
                     if (((Amusements)model.LastClick).CheckFreeLocation(x, y))
                     {
-                        object[] arg = { x, y, model };
+                        object[] arg = { model, new Coordinates(x, y) };
                         //todo:nize nejspise neni nutne ukladat, udelano v konstruktoru atrakce a nastavovat 
                         model.LastBuiltAmus = (Amusements)Activator.CreateInstance(model.LastClick.GetType(), arg);  //todo: melo by se vytvorit v novem vlakne                                          
                     }
@@ -83,7 +85,7 @@ namespace LunaparkGame
                 }
                 else
                 {
-                    object[] arg = {x, y, model };
+                    object[] arg = { model, new Coordinates(x, y) };
                     Activator.CreateInstance(model.LastClick.GetType(), arg);
                 }
                 #endregion
@@ -147,15 +149,21 @@ namespace LunaparkGame
         {
            //todo: rozvrstvit do vlaken
             //---actions
-            model.persList.Action();
+            Task.Factory.StartNew(model.persList.Action).Wait();
+           
+           // model.persList.Action();
             if (timerTime >= 10)
             {
+                Task.Factory.StartNew(model.amusList.Action).Wait();
+                Task.Factory.StartNew(model.maps.Action);
+                
                 timerTime = 0;
-                model.amusList.Action();
-                model.effects.Action();
-                model.maps.Action();
+             //   model.amusList.Action();
+            //    model.effects.Action();
+             //    model.maps.Action();
                 
             }
+           
             //---visual
             //model.dirtyClick
             view.Action();

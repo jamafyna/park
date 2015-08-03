@@ -12,7 +12,7 @@ namespace LunaparkGame
     /// <summary>
     /// Keeps all items of the current game, is thread-safe.
     /// </summary>
-    public class Model //todo: Mozna prejmenovat na evidenci
+    public class Model //todo: Prejmenovat na evidenci
     {     
         private const int initialMoney = 1;
         public const int maxPeopleInPark=1000;
@@ -27,7 +27,7 @@ namespace LunaparkGame
         /// use for manipulation with currCheapestFee
         /// </summary>
         private object feeLock=new object();
-        public int CurrPeopleCount { get { return persList.GetTotalPeopleCount(); } }
+        public int CurrPeopleCount { get { return persList.GetActualPeopleCount(); } }
        //---containers---
         public ConcurrentQueue<MapObjects> dirtyNew=new ConcurrentQueue<MapObjects>();
         public ConcurrentQueue<MapObjects> dirtyDestruct=new ConcurrentQueue<MapObjects>();//mozna misto mapObjects staci byt Control
@@ -112,7 +112,7 @@ namespace LunaparkGame
             foodIds = new List<int>();
            // freeId = new Queue<int>(maxAmusCount);
             freeId = new ConcurrentQueue<int>();
-            for (int i = maxAmusCount; i > 0; i--) freeId.Enqueue(i);  //0 is not free, gate.id==0;          
+            for (int i = 1; i < maxAmusCount; i++) freeId.Enqueue(i);  //0 is not free, gate.id==0;          
         }
         public void Add(Amusements a)
         {
