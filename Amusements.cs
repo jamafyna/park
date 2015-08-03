@@ -12,7 +12,7 @@ namespace LunaparkGame
         public Restaurant(Model m):base() { 
          width = 1;
          model = m;
-            fixedRunningTime = 0;
+         fixedRunningTime = 0;
             
         }
         public Restaurant(Model m, Coordinates c) : base(m, c) {
@@ -26,7 +26,14 @@ namespace LunaparkGame
         public override bool CheckFreeLocation(byte x, byte y) {
             return CheckFreeLocation(x, y, width, width, hasSeparatedEntranceAndExit: false);
         }
-        
+        protected override void DropPeopleOff() {
+            foreach (Person p in peopleInList) {
+                p.status = Person.Status.choosesAmus;
+                p.visible = true;
+                p.Feed();
+            }
+            peopleInList.Clear();               
+        }
     }
 
 

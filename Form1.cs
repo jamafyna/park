@@ -145,9 +145,10 @@ namespace LunaparkGame
             } 
         }
 
-        private void timer_Tick(object sender, EventArgs e)
-        {
-           //todo: rozvrstvit do vlaken
+        private void timer_Tick(object sender, EventArgs e){
+        
+           #warning work with Person in view only when no another thread is running
+            //todo: rozvrstvit do vlaken
             //---actions
             Task.Factory.StartNew(model.persList.Action).Wait();
            

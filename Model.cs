@@ -224,8 +224,8 @@ namespace LunaparkGame
         /// <summary>
         /// for manipulating s people array (read, write) and currPeopleCount
         /// </summary>
-        //private object peopleLock = new object();
-        private ReaderWriterLockSlim peopleRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+        private object peopleLock = new object();
+      //  private ReaderWriterLockSlim peopleRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         /// <summary>
         /// useful only for a very unlikely situation - a person p survived more people then maxUniquePeople and it is called Remove(p) and Add(q) where p.id=q.id in the same time
         /// </summary>
@@ -253,8 +253,7 @@ namespace LunaparkGame
         public void Add(Person p)//ts
         {
 
-            peopleRWLock.EnterWriteLock();
-            try { 
+            lock(peopleLock) { 
                 if (internChangablePeopleId[p.id] != -1) { // very unlikely situation - a person p survived more people then maxUniquePeople; and must be locked - more it is called Remove(p) and Add(q) where p.id=q.id in the same time
 
 #if (DEBUG)
@@ -272,9 +271,7 @@ namespace LunaparkGame
                 people[internId] = p;
                 internChangablePeopleId[p.id] = internId;
             }
-            finally{
-                peopleRWLock.ExitWriteLock();
-            }
+            
         }
 
         public void Action()
@@ -282,28 +279,29 @@ namespace LunaparkGame
             //todo: casem idealne ve vice vlaknech (experimentalne overit, zda je zapotrebi)
             int i=0;
          //   try {
-#warning vratit zpet lock
-               // lock (peopleLock) {
-                    for ( i = 0; i < currPeopleCount; i++){
-                        Task.Factory.StartNew(people[i].Action);
-                        //people[i].Action()
-                //    }
+            //todo: neni RWLock moc zdrzeni? Jak se tomu vyhnout?
+            lock(peopleLock){
+             
+                for (i = 0; i < currPeopleCount; i++) {
+                    Task.Factory.StartNew(people[i].Action);
+                    //people[i].Action()
                 }
+            }
+           
          //   }
            /* catch (NullReferenceException e) {
                 throw new MyDebugException("PersonList.Action - people["+i+"]==null0"+e.ToString());
             }*/
             
         }
-#warning zkontrolovat metodu GetEnumerator
+        
         public System.Collections.IEnumerator GetEnumerator() {
-            peopleRWLock.EnterReadLock();
-            try {
+            //it is not synchronized, not use in multi-thread!!
+           
                 for (int i = 0; i < currPeopleCount; i++) {
                     yield return people[i];
                 }
-            }
-            finally { peopleRWLock.ExitReadLock(); }
+           
         }
         /// <summary>
         /// a method which should be called only from the class Person
@@ -311,8 +309,7 @@ namespace LunaparkGame
         /// <param name="p">the person which will be removed</param>
         public void Remove(Person p)//todo: thread-safe"!!! pri praci s polem se do nej nesmi nic pridavat
         {
-            peopleRWLock.EnterWriteLock();
-            try {
+            lock(peopleLock) {
                 int internId = internChangablePeopleId[p.id];
                 internChangablePeopleId[p.id] = -1;
 
@@ -336,9 +333,7 @@ namespace LunaparkGame
                     currPeopleCount--;
                 }
             }
-            finally {
-                peopleRWLock.ExitWriteLock();
-            }
+            
            
             
 

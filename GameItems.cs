@@ -93,7 +93,7 @@ namespace LunaparkGame
         public enum Status { waitingForPeople, running, outOfService, runningOut }
        
         public int id { get; private set; }
-        public AmusementPath entrance { get; protected set; } //todo: je opravdu potreba protected, nestaci private nebo dokonce readonly?
+        public AmusementPath entrance { get; protected set; } 
         public AmusementPath exit { get; protected set; }
         protected  ConcurrentQueue<Person> queue=new ConcurrentQueue<Person>();
         protected object queueDeleteLock = new object();
@@ -146,9 +146,8 @@ namespace LunaparkGame
         public int GetEntranceFee() {
             return currFee;
         }
-        public void SetEntranceFee(int value){
+        public void SetEntranceFee(int value) {
             if (value > 0) currFee = value;
-            //todo: bylo if(value>0)Interlocked.Exchange(ref currFee, value) - proc Interlocked? overit
         }
         /// <summary>
         /// Demolish the amusement, remove it from the maps and the amusList, refund money.
@@ -156,7 +155,7 @@ namespace LunaparkGame
         public override void Destruct()
         {
             //todo: smi je volat pouze 1x, tj.pokud by nekdy v budoucnu se mela volat i z jineho duvodu, nez user akce, nutno pridat omezeni - napr.nejaky unikatni zamek a pokud je zamcen, return
-#warning entrance a exit by mely byt nejspis nejak zabezpeceny
+#warning entrance a exit by mely byt nejspis nejak zabezpeceny (v pripade, ze je null a pak se nastavi na nenull)
             if(entrance != null) entrance.Destruct();
             if(exit !=null) exit.Destruct();
             model.MoneyAdd(refundCoef * price);//refund money
@@ -169,7 +168,7 @@ namespace LunaparkGame
         /// Puts n waiting people from queue to the amusment. It is assumed that nobody can dequeu while running this method (queue can only growth)!
         /// </summary>
         /// <param name="n">count of items to be relocated, assumed that n isn't bigger than queue.Count anywhere</param>
-        protected void PickUpPeople(int n) { 
+        protected virtual void PickUpPeople(int n) { 
             Person p;           
             for (int i = 1; i <= n; i++)
             {
@@ -190,7 +189,7 @@ namespace LunaparkGame
             }
             model.MoneyAdd(n * this.currFee);        
         }
-        protected void DropPeopleOff(){
+        protected virtual void DropPeopleOff(){
             int quarter=MainForm.sizeOfSquare/4;
             int i = 0;
             int j = 0;
@@ -421,8 +420,6 @@ namespace LunaparkGame
        //    Control.Click += new EventHandler(Click);
            this.entrance = new AmusementEnterPath(m, new Coordinates(c.x,(byte)(c.y+height/2)), this, tangible: false);
            this.exit = new MarblePath(m, new Coordinates((byte)(c.x + width), entrance.coord.y));
-           MapObjects a;
-         //  if (!m.dirtyNew.TryDequeue(out a) || a != this.entrance) throw new MyDebugException("Gate konstruktor - takto nelze");
            m.maps.AddAmus(this);
        }
 

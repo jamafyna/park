@@ -7,6 +7,7 @@ using System.Drawing;
 
 namespace LunaparkGame
 {
+
     public class View
     {
         Model model;
