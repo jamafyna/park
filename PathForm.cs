@@ -12,10 +12,12 @@ namespace LunaparkGame
     {
         Panel lastPanel;
         Model model;
-        public PathForm(Model m)
+        ToolStripMenuItem pathItem;
+        public PathForm(Model m, ToolStripMenuItem pathItem)
         {
             InitializeComponent();
             model = m;
+            this.pathItem = pathItem;
             CreateNewItem("obc",1000,Properties.Images.amus_iceCream,new Restaurant(model));
             for (int i = 0; i < 30; i++)
             {
@@ -90,6 +92,12 @@ namespace LunaparkGame
         }
         private new void Click(object sender, EventArgs e) {
             model.SetLastClick((MapObjects)((Button)sender).Tag);
+        }
+
+        private void PathForm_FormClosing(object sender, FormClosingEventArgs e) {
+            this.Hide();
+            pathItem.Checked = false;
+            e.Cancel = true;
         }
     }
 

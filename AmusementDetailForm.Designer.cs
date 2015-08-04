@@ -88,6 +88,7 @@
             this.HideOnClose = true;
             this.Name = "AmusementDetailForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.AmusementDetailForm_FormClosing);
             this.Load += new System.EventHandler(this.AmusementDetailForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();
             this.ResumeLayout(false);

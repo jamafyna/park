@@ -113,13 +113,13 @@ namespace LunaparkGame
             private set { }
         }
         protected int waitingTime = 0, actRunningTime=0;
-        protected int currFee;//todo: odnekud zpocatku nacist
-        //public abstract int originalVisitPrice{get;protected set;}//todo:patri jinam
         protected bool isRunningOut=false;
         protected bool isRunning = false;
-        //-------popisove vlastnosti
+        //-------characteristics-------------
         public readonly int capacity;
         protected int maxWaitingTime, fixedRunningTime;
+        protected int currFee;
+
         
         public int WorkingPrice { get; protected set; }//todo: mozna nebude treba a pevne se vzdy urci procenta z provozu nebo tak nejak
         //protected readonly int initialVisitPrice; nebude potreba, ziska se odnekud
@@ -407,173 +407,33 @@ namespace LunaparkGame
         }
 
     }
-    public class Gate : Amusements {
-       
-       public int VstupneDoParku { get; set; }
-       private new Path exit;
-       public const int width = 1;
-       public const int height = 3;
 
-       public Gate(Model m, Coordinates c) {
-           this.model = m;
-           this.coord = c;
-       //    Control.Click += new EventHandler(Click);
-           this.entrance = new AmusementEnterPath(m, new Coordinates(c.x,(byte)(c.y+height/2)), this, tangible: false);
-           this.exit = new MarblePath(m, new Coordinates((byte)(c.x + width), entrance.coord.y));
-           m.maps.AddAmus(this);
-       }
-
-       public Gate(Model m, Coordinates c, Coordinates entrance, Coordinates exit){
-           this.model=m;
-           this.coord=c;
-           Control.Click += new EventHandler(Click);
-           this.entrance = new AmusementEnterPath(m,entrance,this, tangible:false);
-           this.exit = new MarblePath(m, exit);
-           MapObjects a;
-           if (!m.dirtyNew.TryDequeue(out a) || a != this.entrance) throw new MyDebugException("Gate konstruktor - takto nelze");
+    public abstract class Path : MapObjects {
+        public Direction[] signpostAmus;//rozcestnik
+        protected Path(Model m, bool tangible = true)
+            : base(m, tangible) {
+            signpostAmus = new Direction[m.maxAmusementsCount];
+            //todo: mozna neni treba, overit
+            for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
         }
-       public override void Action() { 
-           Person p;
-           // deleting people from the park
-           while (queue.TryDequeue(out p)) 
-               p.Destruct();
-           // a new person can be created
-           int a = exit.coord.x * MainForm.sizeOfSquare;
-           int b = exit.coord.y * MainForm.sizeOfSquare;
-           
-          //todo: if (model.maps.IsPath(a,b) && ShouldCreateNewPerson()) {
-           if (ShouldCreateNewPerson()) {
-               p = new Person(model, a + 1, b + MainForm.sizeOfSquare / 2 );
-           
-           }
-       }
-       public bool ShouldCreateNewPerson() {
-           return true;
-#warning pozdeji dodelat pstni fci vyroby, pouzit exp.rozd. - pouzit castecne rozdelanou tridu v Program.cs
-       
-       }
-       public void Click(object sender, EventArgs e) {
+        public Path(Model m, Coordinates c, bool tangible = true)
+            : base(m, c, tangible) {
+            signpostAmus = new Direction[m.maxAmusementsCount];
+            //todo: mozna neni treba, overit
+            for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
+            model.maps.AddPath(this);
+        }
+        public Path() { }
+        protected override void Click(object sender, EventArgs e) {
+            if (model.demolishOn) Destruct();
+        }
+        public override void Destruct() {
+            model.maps.RemovePath(this);
+            model.dirtyDestruct.Enqueue(this);
+        }
 
-       }
-       public override void Destruct() {
-           // nothing, the gate cannot be demolished
-       }
-       public override List<Coordinates> GetAllPoints() {
-           List<Coordinates> l=new List<Coordinates>();
-           l.Add(entrance.coord);
-           l.Add(exit.coord);
-           return l;
-       }
-        // the two methods below are irrelevant
-      
-       public override bool CheckFreeLocation(byte x, byte y ){return false;}
-       protected override bool IsInsideInAmusement(int x, int y) { return false; }
-       
     }
     
-    public abstract class SquareAmusements : Amusements
-    {
-        public byte width { get; protected set; }
-        public SquareAmusements() { }
-        public SquareAmusements(Model m, Coordinates c) : base(m,c) {
-            model.CheckCheapestFee(this.currFee);
-        }
-        
-        public override bool CheckFreeLocation(byte x, byte y)
-        {          
-            return CheckFreeLocation(x, y, width, width, hasSeparatedEntranceAndExit: true);
-        }
-        protected override bool IsInsideInAmusement(int x, int y)
-        {
-            if (x >= this.coord.x && x < this.coord.x + this.width &&
-                y >= this.coord.y && y < this.coord.y + this.width)
-                return true;
-            else return false;       
-        }
-        public override List<Coordinates> GetAllPoints()
-        {
-            List<Coordinates> list=new List<Coordinates>(width*width);
-            for (byte i = coord.x; i < coord.x + width; i++) { 
-                for (byte j = coord.y; j < coord.y + width; j++) list.Add(new Coordinates(i, j));               
-            }
-            return list;
-        }
-    }
-    /// <summary>
-    /// Class for rectangle, not square, amusements. It can have a different orientation.
-    /// </summary>
-    public abstract class RectangleAmusements : Amusements
-    {
-        public readonly byte sizeA;
-        public readonly byte sizeB;
-        public readonly bool isHorizontalOriented;
-
-
-        public RectangleAmusements(Model m,Coordinates c,bool isHorizontal=true):base(m,c)
-        {
-            isHorizontalOriented = isHorizontal;
-            model.CheckCheapestFee(this.currFee);
-        }
-       
-        public RectangleAmusements(Model m, Coordinates c, byte sizeA, byte sizeB, bool isHorizontal = true) : this(m, c, isHorizontal) {
-            this.sizeA = sizeA;
-            this.sizeB = sizeB;
-        }
-        
-
-        public override bool CheckFreeLocation(byte x, byte y)
-        {
-            if (isHorizontalOriented) return CheckFreeLocation(x, y, sizeA, sizeB, hasSeparatedEntranceAndExit: true);
-            else return CheckFreeLocation(x, y, sizeB, sizeA, hasSeparatedEntranceAndExit: true);
-        }
-        protected override bool IsInsideInAmusement(int x, int y)
-        {
-            if (isHorizontalOriented) {
-                if (x >= this.coord.x && x < this.coord.x + this.sizeA &&
-                    y >= this.coord.y && y < this.coord.y + this.sizeB)
-                    return true;
-                else return false;
-            }
-            else {
-                if (x >= this.coord.x && x < this.coord.x + this.sizeB &&
-                        y >= this.coord.y && y < this.coord.y + this.sizeA)
-                    return true;
-                else return false;          
-            }
-        }
-        public override List<Coordinates> GetAllPoints()
-        {
-            List<Coordinates> list = new List<Coordinates>(sizeA * sizeB);
-            if (isHorizontalOriented) {
-                for (byte i = coord.x; i < coord.x + sizeA; i++) {
-                    for (byte j = coord.y; j < coord.y + sizeB; j++) list.Add(new Coordinates(i, j));
-                }
-            }
-            else {
-                for (byte i = coord.x; i < coord.x + sizeB; i++) {
-                    for (byte j = coord.y; j < coord.y + sizeA; j++) list.Add(new Coordinates(i, j));
-                }
-            }
-            return list;
-        }
-        
-      
-    }
-
-    public abstract class FreeShapedAmusements : Amusements
-    {
-        public FreeShapedAmusements(Model m, Coordinates c) : base(m,c) {
-            model.CheckCheapestFee(this.currFee);
-        }
-       //nejspis v sobe jeste jednu vnorenou tridu reprezentujici kousky atrakce
-    }
-    /// <summary>
-    /// napr. pro lavicky
-    /// </summary>
-    public abstract class LittleComplementaryAmusements : Amusements {
-        public LittleComplementaryAmusements(Model m, Coordinates c) : base(m, c) { }
-    }
-  
     public class Person : MapObjects,IActionable
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
         private static Random rand = new Random();
@@ -835,75 +695,4 @@ namespace LunaparkGame
 
     }
  
-    public abstract class Path : MapObjects
-    {
-        public Direction[] signpostAmus;//rozcestnik
-        protected Path(Model m, bool tangible = true) : base(m, tangible){
-            signpostAmus = new Direction[m.maxAmusementsCount];
-            //todo: mozna neni treba, overit
-            for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
-        }
-        public Path(Model m, Coordinates c, bool tangible = true)
-            : base(m, c, tangible) {
-            signpostAmus = new Direction[m.maxAmusementsCount];
-            //todo: mozna neni treba, overit
-            for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
-            model.maps.AddPath(this);
-        }
-        public Path() { }
-        protected override void Click(object sender, EventArgs e)
-        {
-            if (model.demolishOn) Destruct();
-        }
-        public override void Destruct()
-        {
-            model.maps.RemovePath(this);
-            model.dirtyDestruct.Enqueue(this);
-        }
-       
-    }
-    public abstract class AmusementPath : Path {
-        public readonly Amusements amusement;
-        public AmusementPath(Model m, Coordinates c, Amusements a, bool tangible=true)
-            : base(m, tangible) //not call base(m,c) because dont want to add to maps
-        {
-            this.coord = c;
-            model.maps.AddEntranceExit(this);
-        }
-    
-    }
-    public class AmusementEnterPath : AmusementPath {
-
-        public override int price {
-            get {
-                return 0;
-            }
-            protected set {
-                base.price = 0;
-            }
-        }
-        public AmusementEnterPath(Model m, Coordinates c, Amusements a, bool tangible=true)
-            : base(m, c, a, tangible) {
-        }
-       
-        public override void Destruct() {
-            model.maps.RemoveEntranceExit(this);
-            model.dirtyDestruct.Enqueue(this);
-            model.LastBuiltAmus = this.amusement;
-            model.mustBeEnter = true;
-        }
-
-    }
-    public class AmusementExitPath : AmusementPath {
-        public AmusementExitPath(Model m, Coordinates c, Amusements a, bool tangible=true) : base(m, c, a, tangible) { }
-        public override void Destruct() {           
-            model.maps.RemoveEntranceExit(this);
-            model.dirtyDestruct.Enqueue(this);
-            model.LastBuiltAmus = this.amusement;
-            if(!model.mustBeEnter) model.mustBeExit = true;
-        
-        }
-
-    }
-    
 }

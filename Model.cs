@@ -279,7 +279,6 @@ namespace LunaparkGame
             //todo: casem idealne ve vice vlaknech (experimentalne overit, zda je zapotrebi)
             int i=0;
          //   try {
-            //todo: neni RWLock moc zdrzeni? Jak se tomu vyhnout?
             lock(peopleLock){
              
                 for (i = 0; i < currPeopleCount; i++) {
@@ -307,7 +306,7 @@ namespace LunaparkGame
         /// a method which should be called only from the class Person
         /// </summary>
         /// <param name="p">the person which will be removed</param>
-        public void Remove(Person p)//todo: thread-safe"!!! pri praci s polem se do nej nesmi nic pridavat
+        public void Remove(Person p)
         {
             lock(peopleLock) {
                 int internId = internChangablePeopleId[p.id];
@@ -320,16 +319,16 @@ namespace LunaparkGame
 #else
                 if (internId == -1) return;
 #endif
-                if (internId == currPeopleCount - 1) { //p is the last item
-                    people[internId] = null;//due to GC
+                if (internId == currPeopleCount - 1) { // p is the last item
+                    people[internId] = null; //due to GC
                     currPeopleCount--;
                 }
                 else {
                     Person q;
-                    q = people[currPeopleCount - 1];//last item
+                    q = people[currPeopleCount - 1]; // last item
                     people[internId] = q;
                     internChangablePeopleId[q.id] = internId;
-                    people[currPeopleCount - 1] = null;//due to GC
+                    people[currPeopleCount - 1] = null; // due to GC
                     currPeopleCount--;
                 }
             }
@@ -352,7 +351,7 @@ namespace LunaparkGame
       
         class DirectionItem {
             public Direction dir;
-         //   public readonly Coordinates c;
+        
             public readonly byte x;
             public readonly byte y;
             public bool isEnterExit;
@@ -363,21 +362,19 @@ namespace LunaparkGame
                 if (typeOfPath == typeof(AmusementEnterPath) || typeOfPath == typeof(AmusementExitPath)) isEnterExit = true;
                 else isEnterExit = false;
             }
-        /*    public DirectionItem(Coordinates c){
-                this.c = c;
-                dir = Direction.no; 
-            }  */     
+           
         }
 
         private readonly DirectionItem[][] auxPathMap; // null = there isnt path     
         private readonly Amusements[][] amusementMap;
         private readonly Path[][] pathMap;
         private readonly Model model;
+        private volatile bool pathChanged = false;
         /// <summary>
         /// for setting direction to a new amusement, dequeue can be called only in Action()
         /// </summary>
         private ConcurrentQueue<Amusements> lastAddedAmus=new ConcurrentQueue<Amusements>();
-        private volatile bool pathChanged = false;
+       
         /// <summary>
         /// use for adding to queue (due to .Clear) and for "clear"
         /// </summary>
@@ -702,7 +699,7 @@ namespace LunaparkGame
             if (pathChanged) { // OK, false can be set only here
                 // an another thread can potentially set pathChanged=true at this moment, it doesnt matter - an item pathChanged is set after the actual execution changed in the array              
                 pathChanged = false;
-                lock (lastAddedAmus) {
+                lock (lastAddedAmusLock) {
                     lastAddedAmus = new ConcurrentQueue<Amusements>();
                 }
                 UpdateDirections(); }

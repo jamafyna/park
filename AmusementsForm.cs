@@ -13,12 +13,14 @@ namespace LunaparkGame
     {
         AmusementDetailForm detailForm;
         DockPanel dockP;
-        public AmusementsForm(Model model, DockPanel parent)
+        ToolStripMenuItem amusItem;
+        public AmusementsForm(Model model, DockPanel parent, ToolStripMenuItem amusement)
         {
             InitializeComponent();
            CreateNewButton();
            dockP = parent;
             detailForm = new AmusementDetailForm(model,parent);
+            this.amusItem = amusement;
            // this.IsMdiContainer = true;
         }
 
@@ -46,7 +48,9 @@ namespace LunaparkGame
 
         private void AmusementsForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-
+            this.Hide();
+            amusItem.Checked = false;
+            e.Cancel = true;
         }
 
        

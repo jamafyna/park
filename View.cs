@@ -145,7 +145,7 @@ namespace LunaparkGame
             while (model.dirtyClick.TryDequeue(out o)) {
                 if (o is Person) { 
                     //if clicked...
-                    forms.Add( new PersonForm((Person)o,map));
+                    forms.Add( new PersonUserControl((Person)o,map));
                 }
             }
         

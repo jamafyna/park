@@ -1,7 +1,5 @@
-﻿namespace LunaparkGame
-{
-    partial class PathForm
-    {
+﻿namespace LunaparkGame {
+    partial class MapForm {
         /// <summary>
         /// Required designer variable.
         /// </summary>
@@ -11,10 +9,8 @@
         /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
+        protected override void Dispose(bool disposing) {
+            if (disposing && (components != null)) {
                 components.Dispose();
             }
             base.Dispose(disposing);
@@ -26,20 +22,23 @@
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
         /// </summary>
-        private void InitializeComponent()
-        {
+        private void InitializeComponent() {
             this.SuspendLayout();
             // 
-            // PathForm
+            // MapForm
             // 
-            this.AllowDrop = true;
+            this.AllowEndUserDocking = false;
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(284, 262);
-            this.DockAreas = WeifenLuo.WinFormsUI.Docking.DockAreas.DockRight;
+            this.CloseButton = false;
+            this.CloseButtonVisible = false;
+            this.DockAreas = WeifenLuo.WinFormsUI.Docking.DockAreas.Document;
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.Name = "PathForm";
-            this.Text = "Path";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.PathForm_FormClosing);
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.Name = "MapForm";
+            this.ShowIcon = false;
+            this.Load += new System.EventHandler(this.MapForm_Load);
             this.ResumeLayout(false);
 
         }

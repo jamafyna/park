@@ -53,5 +53,9 @@ namespace LunaparkGame
             this.Hide();
         }
 
+        private void AmusementDetailForm_FormClosing(object sender, FormClosingEventArgs e) {
+
+        }
+
     }
 }

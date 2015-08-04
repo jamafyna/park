@@ -22,79 +22,32 @@ namespace LunaparkGame
         public const int sizeOfSquare = 40;
         AmusementsForm amusform;
         PathForm pathform;
-       public Control map;
+        public Control map;
         Model model;
         View view;
+        MapForm mapform;
         int timerTime = 0;
         
-       
-
-    
+          
         public MainForm(byte playingWidth, byte playingHeight)
         {
             InitializeComponent();
             IsMdiContainer = true;
             model = new Model(playingHeight,playingWidth);
             view = new View(model,this);
-            map=view.CreateVisualMap(playingWidth + 2, playingHeight + 2, sizeOfSquare);
-            map.Parent = mainDockPanel;
-            this.map.Click += new System.EventHandler(this.map_Click);
- 
-            amusform = new AmusementsForm(model, mainDockPanel);
-            pathform = new PathForm(model);
+            mapform = new MapForm(model, view, playingWidth, playingHeight);
+            amusform = new AmusementsForm(model, mainDockPanel, amusementsToolStripMenuItem);
+            pathform = new PathForm(model, pathToolStripMenuItem);
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
-            view.CreateGate(model.gate);
+            mapform.Show(mainDockPanel);
             timer.Enabled = true;
 
             
         }
 
       
-        private void map_Click(object sender, EventArgs e) {
-           
-            if (!model.demolishOn && model.LastClick!=null)
-            {
-                #region
-                MouseEventArgs mys = (MouseEventArgs)e;
-               // byte x = (byte)(mys.X - mys.X % sizeOfSquare);
-               // byte y = (byte)(mys.Y - mys.Y % sizeOfSquare);
-                byte x = (byte)(mys.X / sizeOfSquare);
-                byte y = (byte)(mys.Y / sizeOfSquare);
-               
-                //todo: kontrola na co vse mohl uzivatel kliknout, nejspise poslat udalost do modelu spolu se souradnicemi
-                //todo: kontrola, zda neni neco rozestavene - mysleno pro free-shaped atrakce
-                if(model.mustBeEnter){
-                    model.LastBuiltAmus.CheckEntranceAndBuild(x, y);
-                    return;
-                }
-                if(model.mustBeExit){
-                    model.LastBuiltAmus.CheckExitAndBuild(x, y); //if not succeed, no annoing error-text                  
-                    return;
-                }
-                if (model.LastClick.price > model.GetMoney()) { MessageBox.Show(Notices.cannotBuyNoMoney, Labels.warningMessBox, MessageBoxButtons.OK); return; }
-                if (model.LastClick is Amusements)
-                {
-                    if (((Amusements)model.LastClick).CheckFreeLocation(x, y))
-                    {
-                        object[] arg = { model, new Coordinates(x, y) };
-                        //todo:nize nejspise neni nutne ukladat, udelano v konstruktoru atrakce a nastavovat 
-                        model.LastBuiltAmus = (Amusements)Activator.CreateInstance(model.LastClick.GetType(), arg);  //todo: melo by se vytvorit v novem vlakne                                          
-                    }
-                    return;
-                }
-                else
-                {
-                    object[] arg = { model, new Coordinates(x, y) };
-                    Activator.CreateInstance(model.LastClick.GetType(), arg);
-                }
-                #endregion
-#warning rusim tu schopnost prekladace spravne kontrolovat - nezajisti mi, ze dana trida bude mit spravny konstruktor
-            }
-            
-        }
-        
-        
+      
        
         private void MyInitialize() {        
         }
@@ -150,13 +103,13 @@ namespace LunaparkGame
            #warning work with Person in view only when no another thread is running
             //todo: rozvrstvit do vlaken
             //---actions
-            Task.Factory.StartNew(model.persList.Action).Wait();
+            Task.Factory.StartNew(model.persList.Action);
            
            // model.persList.Action();
             if (timerTime >= 10)
             {
                 Task.Factory.StartNew(model.amusList.Action).Wait();
-                Task.Factory.StartNew(model.maps.Action);
+                Task.Factory.StartNew(model.maps.Action).Wait();
                 
                 timerTime = 0;
              //   model.amusList.Action();
@@ -167,6 +120,7 @@ namespace LunaparkGame
            
             //---visual
             //model.dirtyClick
+            Task.WaitAll();
             view.Action();
             MyUpdate();
             timerTime++;
@@ -217,6 +171,63 @@ namespace LunaparkGame
             
             }
         }
+        
+    }
+    public partial class MapForm : WeifenLuo.WinFormsUI.Docking.DockContent {
+        Model model;
+        Control map;
+
+        public MapForm(Model m, View view, byte playingWidth, byte playingHeight) {
+            InitializeComponent();
+            model = m;
+            map = view.CreateVisualMap(playingWidth + 2, playingHeight + 2, MainForm.sizeOfSquare);
+            map.Parent = this;
+            this.map.Click += new System.EventHandler(this.map_Click);
+            view.CreateGate(model.gate);
+        }
+
+        private void MapForm_Load(object sender, EventArgs e) {
+
+        }
+        private void map_Click(object sender, EventArgs e) {
+
+            if (!model.demolishOn && model.LastClick != null) {
+                #region
+                MouseEventArgs mys = (MouseEventArgs)e;
+                // byte x = (byte)(mys.X - mys.X % sizeOfSquare);
+                // byte y = (byte)(mys.Y - mys.Y % sizeOfSquare);
+                byte x = (byte)(mys.X / MainForm.sizeOfSquare);
+                byte y = (byte)(mys.Y / MainForm.sizeOfSquare);
+
+                //todo: kontrola na co vse mohl uzivatel kliknout, nejspise poslat udalost do modelu spolu se souradnicemi
+                //todo: kontrola, zda neni neco rozestavene - mysleno pro free-shaped atrakce
+                if (model.mustBeEnter) {
+                    model.LastBuiltAmus.CheckEntranceAndBuild(x, y);
+                    return;
+                }
+                if (model.mustBeExit) {
+                    model.LastBuiltAmus.CheckExitAndBuild(x, y); //if not succeed, no annoing error-text                  
+                    return;
+                }
+                if (model.LastClick.price > model.GetMoney()) { MessageBox.Show(Notices.cannotBuyNoMoney, Labels.warningMessBox, MessageBoxButtons.OK); return; }
+                if (model.LastClick is Amusements) {
+                    if (((Amusements)model.LastClick).CheckFreeLocation(x, y)) {
+                        object[] arg = { model, new Coordinates(x, y) };
+                        //todo:nize nejspise neni nutne ukladat, udelano v konstruktoru atrakce a nastavovat 
+                        model.LastBuiltAmus = (Amusements)Activator.CreateInstance(model.LastClick.GetType(), arg);  //todo: melo by se vytvorit v novem vlakne                                          
+                    }
+                    return;
+                }
+                else {
+                    object[] arg = { model, new Coordinates(x, y) };
+                    Activator.CreateInstance(model.LastClick.GetType(), arg);
+                }
+                #endregion
+#warning rusim tu schopnost prekladace spravne kontrolovat - nezajisti mi, ze dana trida bude mit spravny konstruktor
+            }
+
+        }
+        
         
     }
 }
