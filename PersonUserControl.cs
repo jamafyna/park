@@ -30,6 +30,7 @@ namespace LunaparkGame {
             this.moneyChange_label.Text = p.GetMoney().ToString();
             this.Location = p.GetRealCoordinates();
             this.debug.Text = p.status.ToString();
+            
         }
     }
 }

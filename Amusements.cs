@@ -94,6 +94,20 @@ namespace LunaparkGame
             return list;
         }
     }
+    public class SquareAmusementsFactory : RectangleAmusementsFactory {
+        byte width;
+       
+     //   public SquareAmusementsFactory(): base(prize,model) { }
+        
+        
+        public override bool CanBeBuild(byte x, byte y) {
+            if (CheckFreeLocation(x, y, width, width, hasSeparatedEnterExit)) return true;
+            else return false;
+        }
+        public override MapObjects Build() {
+            throw new NotImplementedException();
+        }
+    }
     /// <summary>
     /// Class for rectangle, not square, amusements. It can have a different orientation.
     /// </summary>
@@ -151,14 +165,64 @@ namespace LunaparkGame
 
 
     }
+    public class RectangleAmusementsFactory : AmusementsFactory {
+        byte width, height;
+        protected bool CheckFreeLocation(byte x, byte y, byte width, byte height, bool hasSeparatedEntranceAndExit = true) {
+            if (x + width > model.playingWidth + 1 || y + height > model.playingHeight + 1) return false;
+            for (byte i = x; i < x + width; i++) {
+                for (byte j = y; j < y + height; j++) {
+                    if (!model.maps.isFree(i, j)) return false;
+                }
+            }
+#warning overit, ze to opravdu overuje spravne
+            if (hasSeparatedEntranceAndExit) {
+                bool free = false;
+                if (x - 1 > 0) for (byte i = y; i < y + height; i++)
+                        if (model.maps.isFree((byte)(x - 1), i)) { if (free) return free; else free = true; }
+                if (x < model.playingWidth) for (byte i = y; i < y + height; i++)
+                        if (model.maps.isFree((byte)(x + 1), i)) { if (free) return free; else free = true; }
+                if (y - 1 > 0) for (byte i = x; i < x + width; i++)
+                        if (model.maps.isFree(i, (byte)(y - 1))) { if (free) return free; else free = true; }
+                if (y < model.playingWidth) for (byte i = y; i < y + height; i++)
+                        if (model.maps.isFree(i, (byte)(y + 1))) { if (free) return free; else free = true; }
+                return free;
+            }
+            return true;
 
-    public abstract class FreeShapedAmusements : Amusements {
+        }
+        public override bool CanBeBuild(byte x, byte y) {
+            if (CheckFreeLocation(x, y, width, height, hasSeparatedEnterExit)) return true;
+            else return false;
+        }
+        public override MapObjects Build() {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class FreeShapedAmusements : Amusements {
         public FreeShapedAmusements(Model m, Coordinates c)
             : base(m, c) {
             model.CheckCheapestFee(this.currFee);
         }
         //nejspis v sobe jeste jednu vnorenou tridu reprezentujici kousky atrakce
+        public override List<Coordinates> GetAllPoints() {
+            throw new NotImplementedException();
+        }
+        protected override bool IsInsideInAmusement(int x, int y) {
+            throw new NotImplementedException();
+        }
+        
     }
+    public class FreeShapedAmusementsFactory : AmusementsFactory {
+        public override MapObjects Build() {
+            throw new NotImplementedException();
+        }
+        public override bool CanBeBuild(byte x, byte y) {
+            throw new NotImplementedException();
+        }
+    
+    }
+    
     /// <summary>
     /// napr. pro lavicky
     /// </summary>

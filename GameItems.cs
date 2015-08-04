@@ -25,6 +25,27 @@ namespace LunaparkGame
     
     }
 
+  /*  public interface IFactory {
+        bool CanBeBuild();
+        MapObjects Build();
+    }*/
+    public abstract class MapObjectsFactory {
+        protected int prize;
+        protected Model model;
+        public MapObjectsFactory(int prize, Model m) { 
+            this.prize = prize;
+            this.model = m;
+        }
+       /// <summary>
+       /// 
+       /// </summary>
+       /// <param name="x">The intern x-coordinate of the playing map.</param>
+        /// <param name="y">The intern x-coordinate of the playing map.</param>
+       /// <returns>true if all conditions of building are satisfied, otherwise false.</returns>
+        public abstract bool CanBeBuild(byte x, byte y);
+        public abstract MapObjects Build();
+    }
+
     public class MyDebugException : Exception
     {
         public MyDebugException() : base() { }
@@ -40,7 +61,7 @@ namespace LunaparkGame
     }
 
     public abstract class MapObjects
-    {
+    {      
         public Coordinates coord { protected set; get; }
         protected Model model;
         private Control control;
@@ -83,7 +104,7 @@ namespace LunaparkGame
 
     }
 
-
+   
     /// <summary>
     /// ts,pokud se pouzivaji fce Destruct/Click...z hlavniho vlakna
     /// </summary>
@@ -311,7 +332,8 @@ namespace LunaparkGame
                 q.SetContentment(-20);                
             }
         }
-        public abstract bool CheckFreeLocation(byte x,byte y);  
+#warning check free location zde neni spravna
+        public virtual bool CheckFreeLocation(byte x, byte y) { return true; }  
         protected bool CheckFreeLocation(byte x,byte y, byte width, byte height,bool hasSeparatedEntranceAndExit=true) { 
             if (x + width > model.playingWidth + 1 || y + height > model.playingHeight + 1) return false;
             for (byte i = x; i < x + width; i++)
@@ -406,6 +428,19 @@ namespace LunaparkGame
            // }
         }
 
+    }
+    public abstract class AmusementsFactory : MapObjectsFactory {
+        protected int entranceFee, capacity, runningTime;
+        protected string name;
+        protected bool hasSeparatedEnterExit;
+        public AmusementsFactory(int prize, Model m, int fee, int capacity, int runningTime, string name, bool hasEntranceExit) : base(prize, m) {
+            this.entranceFee = fee;
+            this.capacity = capacity;
+            this.runningTime = runningTime;
+            this.name = name;
+            this.hasSeparatedEnterExit = hasEntranceExit;
+        }
+       
     }
 
     public abstract class Path : MapObjects {
