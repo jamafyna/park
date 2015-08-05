@@ -33,7 +33,7 @@ namespace LunaparkGame
     }
     public class AmusementEnterPathFactory : PathFactory {
         Amusements a;
-        public AmusementEnterPathFactory(Model m, Amusements a) :base(prize:0, m: m) {
+        public AmusementEnterPathFactory(Model m, Amusements a) :base(prize:0, m: m, name: "") {
             this.a = a;
         }
 #warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
@@ -55,7 +55,7 @@ namespace LunaparkGame
     public class AmusementExitPathFactory : PathFactory {
         Amusements a;
         public AmusementExitPathFactory(Model m, Amusements a)
-            : base(prize: 0, m: m) {
+            : base(prize: 0, m: m, name: "") {
             this.a = a;
         }
 #warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
@@ -68,64 +68,62 @@ namespace LunaparkGame
     public class StonePath : Path
     {
         
-        public StonePath(Model m, Coordinates c, int prize) : base(m, c, prize) { }
+        public StonePath(Model m, Coordinates c, int prize, string name) : base(m, c, prize, name) { }
        
         
     }
     public class StonePathFactory : PathFactory {
-        public StonePathFactory(Model m, int prize) 
-        : base(m, prize) {         
+        public StonePathFactory(Model m, int prize, string name) 
+        : base(m, prize, name) {         
         }
         public override MapObjects Build(byte x, byte y) {
-            return new StonePath(model, new Coordinates(x, y), prize);
+            return new StonePath(model, new Coordinates(x, y), prize, name);
         }
     }
     public class AsphaltPath : Path
     {
-        public AsphaltPath(Model m, Coordinates c, int prize) : base(m, c, prize) { }
+        public AsphaltPath(Model m, Coordinates c, int prize, string name) : base(m, c, prize, name) { }
         public AsphaltPath() { }
        
         
 
     }
     public class AsphaltPathFactory : PathFactory {
-        public AsphaltPathFactory(Model m, int prize)
-            : base(m, prize) {
+        public AsphaltPathFactory(Model m, int prize, string name)
+            : base(m, prize, name) {
         }
         public override MapObjects Build(byte x, byte y) {
-            return new AsphaltPath(model, new Coordinates(x, y), prize);
+            return new AsphaltPath(model, new Coordinates(x, y), prize, name);
         }
     }
    
     public class SandPath : Path
     {
-        public SandPath(Model m, Coordinates c, int prize) : base(m, c, prize) { }
+        public SandPath(Model m, Coordinates c, int prize, string name) : base(m, c, prize, name) { }
         
         
     }
     public class SandPathFactory : PathFactory {
-        public SandPathFactory(Model m, int prize)
-            : base(m, prize) {
+        public SandPathFactory(Model m, int prize, string name)
+            : base(m, prize, name) {
         }
         public override MapObjects Build(byte x, byte y) {
-            return new SandPath(model, new Coordinates(x, y), prize);
+            return new SandPath(model, new Coordinates(x, y), prize, name);
         }
     }
    
     public class MarblePath : Path
     {
-        public MarblePath(Model m, Coordinates c, int prize) : base(m, c, prize) { }
+        public MarblePath(Model m, Coordinates c, int prize, string name) : base(m, c, prize, name) { }
        
     }
     public class MarblePathFactory : PathFactory {
-        public MarblePathFactory(Model m, int prize)
-            : base(m, prize) {
+        public MarblePathFactory(Model m, int prize, string name)
+            : base(m, prize, name) {
         }
         public override MapObjects Build(byte x, byte y) {
-            return new MarblePath(model, new Coordinates(x, y), prize);
+            return new MarblePath(model, new Coordinates(x, y), prize, name);
         }
     }
    
-   
-
 }

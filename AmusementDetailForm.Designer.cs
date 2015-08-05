@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.changeColor_button = new System.Windows.Forms.Button();
-            this.buy_button = new System.Windows.Forms.Button();
+            this.build_button = new System.Windows.Forms.Button();
             this.pictureBox = new System.Windows.Forms.PictureBox();
             this.info_label = new System.Windows.Forms.Label();
             this.colorDialog = new System.Windows.Forms.ColorDialog();
@@ -46,15 +46,15 @@
             this.changeColor_button.UseVisualStyleBackColor = true;
             this.changeColor_button.Click += new System.EventHandler(this.changeColor_button_Click);
             // 
-            // buy_button
+            // build_button
             // 
-            this.buy_button.Location = new System.Drawing.Point(12, 278);
-            this.buy_button.Name = "buy_button";
-            this.buy_button.Size = new System.Drawing.Size(134, 32);
-            this.buy_button.TabIndex = 1;
-            this.buy_button.Text = global::LunaparkGame.Labels.buyButton;
-            this.buy_button.UseVisualStyleBackColor = true;
-            this.buy_button.Click += new System.EventHandler(this.buy_button_Click);
+            this.build_button.Location = new System.Drawing.Point(12, 278);
+            this.build_button.Name = "build_button";
+            this.build_button.Size = new System.Drawing.Size(134, 32);
+            this.build_button.TabIndex = 1;
+            this.build_button.Text = global::LunaparkGame.Labels.buildButton;
+            this.build_button.UseVisualStyleBackColor = true;
+            this.build_button.Click += new System.EventHandler(this.build_button_Click);
             // 
             // pictureBox
             // 
@@ -79,7 +79,7 @@
             this.ClientSize = new System.Drawing.Size(284, 322);
             this.Controls.Add(this.info_label);
             this.Controls.Add(this.pictureBox);
-            this.Controls.Add(this.buy_button);
+            this.Controls.Add(this.build_button);
             this.Controls.Add(this.changeColor_button);
             this.DockAreas = ((WeifenLuo.WinFormsUI.Docking.DockAreas)((((WeifenLuo.WinFormsUI.Docking.DockAreas.Float | WeifenLuo.WinFormsUI.Docking.DockAreas.DockRight) 
             | WeifenLuo.WinFormsUI.Docking.DockAreas.DockTop) 
@@ -99,7 +99,7 @@
         #endregion
 
         private System.Windows.Forms.Button changeColor_button;
-        private System.Windows.Forms.Button buy_button;
+        private System.Windows.Forms.Button build_button;
         private System.Windows.Forms.PictureBox pictureBox;
         private System.Windows.Forms.Label info_label;
         private System.Windows.Forms.ColorDialog colorDialog;

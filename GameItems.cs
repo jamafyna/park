@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
 using System.Collections.Concurrent;
+using System.Drawing;
 
 
 namespace LunaparkGame
@@ -30,8 +31,8 @@ namespace LunaparkGame
         MapObjects Build();
     }*/
     public abstract class MapObjectsFactory {
-        protected int prize;
-        protected Model model;
+        public readonly int prize;
+        protected readonly Model model;
         public MapObjectsFactory(int prize, Model m) { 
             this.prize = prize;
             this.model = m;
@@ -140,8 +141,9 @@ namespace LunaparkGame
         public readonly int capacity, originalFee;
         public int currFee;
         protected readonly int maxWaitingTime, fixedRunningTime;        
-        public string name;
-        protected bool hasSeparatedEnterExit;
+        public readonly string name;
+        protected readonly bool hasSeparatedEnterExit;
+        public readonly Color color;
         
         public int WorkingPrice { get; protected set; }//todo: mozna nebude treba a pevne se vzdy urci procenta z provozu nebo tak nejak
         //protected readonly int initialVisitPrice; nebude potreba, ziska se odnekud
@@ -149,7 +151,7 @@ namespace LunaparkGame
         //----------------------------
         #endregion
         public Amusements(){}
-        public Amusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit)
+        public Amusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, Color color)
             : base(m, c, prize)       
         {
             this.originalFee = fee;
@@ -157,6 +159,7 @@ namespace LunaparkGame
             this.fixedRunningTime = runningTime;
             this.name = name;
             this.hasSeparatedEnterExit = hasEntranceExit;
+            this.color = color;
 
             model.LastBuiltAmus = this;                 
             if(hasEntranceExit) model.mustBeEnter = true;
@@ -436,15 +439,18 @@ namespace LunaparkGame
 
     }
     public abstract class AmusementsFactory : MapObjectsFactory {
-        protected int entranceFee, capacity, runningTime;
-        protected string name;
-        protected bool hasSeparatedEnterExit;
+        public readonly int entranceFee, capacity, runningTime;
+        public readonly string name;
+        public readonly bool hasSeparatedEnterExit;
+        public Color color;
+
         public AmusementsFactory(int prize, Model m, int fee, int capacity, int runningTime, string name, bool hasEntranceExit) : base(prize, m) {
             this.entranceFee = fee;
             this.capacity = capacity;
             this.runningTime = runningTime;
             this.name = name;
             this.hasSeparatedEnterExit = hasEntranceExit;
+            this.color = Color.Yellow;
         }
         public AmusementsFactory(int prize, Model m):base(prize, m){}
         protected static bool CheckFreeLocation(byte x, byte y, Model model, byte width, byte height, bool hasSeparatedEntranceAndExit = true) {
@@ -470,19 +476,22 @@ namespace LunaparkGame
             return true;
 
         }
-       
+        public abstract string GetInfo();
     }
 
     public abstract class Path : MapObjects {
         public Direction[] signpostAmus;//rozcestnik
+        public readonly string name;
+        
         protected Path(Model m, int prize, bool tangible = true)
             : base(m, prize, tangible) {
             signpostAmus = new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
         }
-        public Path(Model m, Coordinates c, int prize, bool tangible = true)
+        public Path(Model m, Coordinates c, int prize, string name, bool tangible = true)
             : base(m, c, prize, tangible) {
+                this.name = name;
             signpostAmus = new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
@@ -499,8 +508,10 @@ namespace LunaparkGame
 
     }
     public abstract class PathFactory: MapObjectsFactory{
-        public PathFactory(Model m, int prize)
-        : base(prize, m) {         
+        public readonly string name;
+        public PathFactory(Model m, int prize, string name)
+        : base(prize, m) {
+            this.name = name;
         }
         public override bool CanBeBuild(byte x, byte y) {
             return true;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
 
 namespace LunaparkGame
 {
@@ -18,7 +19,7 @@ namespace LunaparkGame
             this.model = m;
             this.coord = c;
             this.entrance = new AmusementEnterPath(m, new Coordinates(c.x, (byte)(c.y + height / 2)), this, tangible: false);
-            this.exit = new MarblePath(m, new Coordinates((byte)(c.x + width), entrance.coord.y), prize: 0);
+            this.exit = new MarblePath(m, new Coordinates((byte)(c.x + width), entrance.coord.y), prize: 0, name: "");
             m.maps.AddAmus(this);
         }
 
@@ -26,7 +27,7 @@ namespace LunaparkGame
             this.model = m;
             this.coord = c;
             this.entrance = new AmusementEnterPath(m, entrance, this, tangible: false);
-            this.exit = new MarblePath(m, exit, prize: 0);
+            this.exit = new MarblePath(m, exit, prize: 0, name: "");
             m.maps.AddAmus(this);
        }
         public override void Action() {
@@ -90,8 +91,8 @@ namespace LunaparkGame
             this.sizeB = sizeB;
         }*/
 
-        public RectangleAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height, bool isHorizontal)
-        : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit){
+        public RectangleAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height, bool isHorizontal, Color color)
+        : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit, color){
             this.sizeA = width;
             this.sizeA = height;      
         }
@@ -145,20 +146,27 @@ namespace LunaparkGame
         }
       
         public override MapObjects Build(byte x, byte y) {
-            return new RectangleAmusements(new Coordinates(x,y), model, prize, entranceFee, capacity, runningTime, name, hasSeparatedEnterExit, width, height, isHorizontal);
+            return new RectangleAmusements(new Coordinates(x,y), model, prize, entranceFee, capacity, runningTime, name, hasSeparatedEnterExit, width, height, isHorizontal, color);
+        }
+        public override string GetInfo() {
+            return string.Concat(Labels.prize, prize, "\n",    
+                                 Labels.capacity, capacity, "\n",
+                                 Labels.size, width, " x ", height, "\n",
+                                 Labels.hasEntranceExit, hasSeparatedEnterExit);
+                                               
         }
     }
     
     public class SquareAmusements : Amusements {
-        protected readonly byte width;
+        public readonly byte width;
         public SquareAmusements() { }
        /* public SquareAmusements(Model m, Coordinates c)
             : base(m, c) {
             model.CheckCheapestFee(this.currFee);
         }*/
 
-         public SquareAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width)
-             : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit) {
+         public SquareAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, Color color)
+             : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit, color) {
              this.width = width;     
         }
         
@@ -193,14 +201,21 @@ namespace LunaparkGame
             else return false;
         }
         public override MapObjects Build(byte x, byte y) {
-            return new SquareAmusements(new Coordinates(x,y), model, prize, entranceFee, capacity, runningTime, name, hasSeparatedEnterExit, width);
+            return new SquareAmusements(new Coordinates(x,y), model, prize, entranceFee, capacity, runningTime, name, hasSeparatedEnterExit, width, color);
+        }
+        public override string GetInfo() {
+            return string.Concat(Labels.prize, prize, "\n",
+                                 Labels.capacity, capacity, "\n",
+                                 Labels.size, width, " x ", width, "\n",
+                                 Labels.hasEntranceExit, hasSeparatedEnterExit);
+
         }
     }
    
 
     public class FreeShapedAmusements : Amusements {
-        public FreeShapedAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name)
-            : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit:false) {
+        public FreeShapedAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, Color color)
+            : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit:false, color: color) {
            
         }
         //nejspis v sobe jeste jednu vnorenou tridu reprezentujici kousky atrakce
@@ -221,6 +236,9 @@ namespace LunaparkGame
         public override bool CanBeBuild(byte x, byte y) {
             throw new NotImplementedException();
         }
+        public override string GetInfo() {
+            throw new NotImplementedException();
+        }
     
     }
     
@@ -228,8 +246,8 @@ namespace LunaparkGame
     /// napr. pro lavicky
     /// </summary>
     public abstract class LittleComplementaryAmusements : Amusements {
-        public LittleComplementaryAmusements( Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name) 
-            : base(c, m, prize, fee, capacity, runningTime, name, hasEntranceExit: false) { }
+        public LittleComplementaryAmusements( Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, Color color) 
+            : base(c, m, prize, fee, capacity, runningTime, name, hasEntranceExit: false, color: color) { }
     }
     public class LittleComplementaryAmusementsFactory : AmusementsFactory {
 
@@ -241,6 +259,9 @@ namespace LunaparkGame
             throw new NotImplementedException();
         }
         public override bool CanBeBuild(byte x, byte y) {
+            throw new NotImplementedException();
+        }
+        public override string GetInfo() {
             throw new NotImplementedException();
         }
 
@@ -263,8 +284,8 @@ namespace LunaparkGame
             this.exit = new AmusementExitPath(m,c,this, tangible:false);
         }*/
 
-        public Restaurant(Coordinates c, Model m, int prize, int foodPrize, int capacity, string name) 
-            : base (c, m, prize, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1 ) {
+        public Restaurant(Coordinates c, Model m, int prize, int foodPrize, int capacity, string name, Color color) 
+            : base (c, m, prize, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1, color: color ) {
             model.mustBeEnter = false; //todo: mozna tyto 2 nejsou potreba
             model.mustBeExit = false;
             this.entrance = new AmusementEnterPath(m, c, this, tangible: false);
@@ -296,7 +317,14 @@ namespace LunaparkGame
             return model.maps.isFree(x, y);
         }
         public override MapObjects Build(byte x, byte y) {
-            return new Restaurant(new Coordinates(x, y), model, prize, entranceFee, capacity, name);
+            return new Restaurant(new Coordinates(x, y), model, prize, entranceFee, capacity, name, color);
+        }
+        public override string GetInfo() {
+            return string.Concat(Labels.prize, prize, "\n",
+                                 Labels.capacity, capacity, "\n",
+                                 Labels.size, width, " x ", width, "\n",
+                                 Labels.hasEntranceExit, hasSeparatedEnterExit);
+
         }
         
 

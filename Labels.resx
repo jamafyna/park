@@ -216,4 +216,19 @@
   <data name="moneyPerson" xml:space="preserve">
     <value>Money:</value>
   </data>
+  <data name="buildButton" xml:space="preserve">
+    <value>BUILD</value>
+  </data>
+  <data name="capacity" xml:space="preserve">
+    <value>Capacity: </value>
+  </data>
+  <data name="hasEntranceExit" xml:space="preserve">
+    <value>Must be built an entrance and an exit: </value>
+  </data>
+  <data name="prize" xml:space="preserve">
+    <value>Prize: </value>
+  </data>
+  <data name="size" xml:space="preserve">
+    <value>Size: </value>
+  </data>
 </root>

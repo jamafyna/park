@@ -18,25 +18,20 @@ namespace LunaparkGame
             InitializeComponent();
             model = m;
             this.pathItem = pathItem;
-            CreateNewItem("obc",1000,Properties.Images.amus_iceCream,new Restaurant(model));
+           // CreateNewItem(Properties.Images.amus_iceCream,new RestaurantFactory(model,0,50,1,"ice-cream"));
             for (int i = 0; i < 30; i++)
             {
-                CreateNewItem("pokud", 125, Properties.Images.path_asphalt, new AsphaltPath());
+                CreateNewItem(Properties.Images.path_asphalt, new AsphaltPathFactory(model,0,"asphalt"));
             }
             
-            CreateNewItem("b", 125, Properties.Images.path_asphalt, new AsphaltPath());
-            CreateNewItem("c", 125, Properties.Images.path_asphalt, new AsphaltPath());
         }
         /// <summary>
         /// Creates new menu item. User can after build it.
         /// </summary>
-        /// <param name="name">Name of item which is displayed to user.</param>
-        /// <param name="cost">Purchase price.</param>
         /// <param name="image">An image of the new item. </param>
-        /// <param name="click">Specific MapObjects which the item represents. It is return if user clicks on this item.</param>
-        public void CreateNewItem(string name, int cost, Image image, MapObjects click) {
-
-            
+        /// <param name="click">Specific PathFactory which the item represents. It is return if user clicks on this item.</param>
+        public void CreateNewItem(Image image, PathFactory click) {
+           
             Panel p = new Panel();
             p.Parent = this;
             p.Width = 70;
@@ -59,7 +54,7 @@ namespace LunaparkGame
             lastPanel = p;
             Label l = new Label();
             l.Parent = p;
-            l.Text = name;
+            l.Text = click.name;
             l.TextAlign = ContentAlignment.TopCenter;
             l.AutoSize = false ;
             l.Top = 5;
@@ -77,7 +72,7 @@ namespace LunaparkGame
             b.Click +=new System.EventHandler(this.Click);
             l = new Label();
             l.Parent = p;
-            l.Text = cost.ToString();
+            l.Text = Labels.prize + click.prize.ToString();
             l.TextAlign = ContentAlignment.TopCenter;
             l.Height = 15;
             l.Top = 80;
@@ -88,10 +83,10 @@ namespace LunaparkGame
         //todo:overit, co z toho se pouziva
         private new void Click(Button sender, EventArgs e )
         {
-            model.SetLastClick((MapObjects)sender.Tag);
+            model.SetLastClick((PathFactory)sender.Tag);
         }
         private new void Click(object sender, EventArgs e) {
-            model.SetLastClick((MapObjects)((Button)sender).Tag);
+            model.SetLastClick((PathFactory)((Button)sender).Tag);
         }
 
         private void PathForm_FormClosing(object sender, FormClosingEventArgs e) {

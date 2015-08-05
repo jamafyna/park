@@ -18,26 +18,27 @@ namespace LunaparkGame
         {
             InitializeComponent();
             this.dockPanel = parent;
-            model = m;          
+            model = m;
+            color = Color.Yellow;
             this.Hide();
         }
 
         private void changeColor_button_Click(object sender, EventArgs e)
         {
-            if (colorDialog.ShowDialog() == DialogResult.OK) //NEVIM, JAK ZRUSIT ZAVRENI CELEHO FORMULARE PO UKONCENI COLORDIALOGU
+            if (colorDialog.ShowDialog() == DialogResult.OK) 
             {
                 color = colorDialog.Color;
                 this.pictureBox.BackColor = color;
             }
         }
-        public void Set(string infoText, string name, Image image) {
-            this.Text = name;
-            this.info_label.Text = infoText;
+        public void Set(AmusementsFactory click, Image image) {
+            this.Text = click.name;
+            this.info_label.Text = click.GetInfo();
             this.pictureBox.Image = image;
             this.pictureBox.Width = image.Width;
-            this.pictureBox.Height = image.Height;
-             
+            this.pictureBox.Height = image.Height;            
             this.pictureBox.BackColor = color;
+            this.build_button.Tag = click;
         
         }
 
@@ -46,15 +47,15 @@ namespace LunaparkGame
 
         }
 
-        private void buy_button_Click(object sender, EventArgs e)
-        {
-            model.SetLastClick((MapObjects)((Button)sender).Tag);
-            MessageBox.Show("podarilos e");
-            this.Hide();
-        }
-
         private void AmusementDetailForm_FormClosing(object sender, FormClosingEventArgs e) {
 
+        }
+
+        private void build_button_Click(object sender, EventArgs e) {
+            AmusementsFactory af = (AmusementsFactory)((Button)sender).Tag;
+            model.SetLastClick(af);
+            //this.Hide();
+            
         }
 
     }

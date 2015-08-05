@@ -97,11 +97,29 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to BUILD.
+        /// </summary>
+        internal static string buildButton {
+            get {
+                return ResourceManager.GetString("buildButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to BUY.
         /// </summary>
         internal static string buyButton {
             get {
                 return ResourceManager.GetString("buyButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Capacity: .
+        /// </summary>
+        internal static string capacity {
+            get {
+                return ResourceManager.GetString("capacity", resourceCulture);
             }
         }
         
@@ -156,6 +174,15 @@ namespace LunaparkGame {
         internal static string gameItem {
             get {
                 return ResourceManager.GetString("gameItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Must be built an entrance and an exit: .
+        /// </summary>
+        internal static string hasEntranceExit {
+            get {
+                return ResourceManager.GetString("hasEntranceExit", resourceCulture);
             }
         }
         
@@ -268,6 +295,15 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prize: .
+        /// </summary>
+        internal static string prize {
+            get {
+                return ResourceManager.GetString("prize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to QUIT.
         /// </summary>
         internal static string quitMenu {
@@ -300,6 +336,15 @@ namespace LunaparkGame {
         internal static string saveMenu {
             get {
                 return ResourceManager.GetString("saveMenu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Size: .
+        /// </summary>
+        internal static string size {
+            get {
+                return ResourceManager.GetString("size", resourceCulture);
             }
         }
         

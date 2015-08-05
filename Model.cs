@@ -42,7 +42,7 @@ namespace LunaparkGame
        
         //---running fields for Form1
         public Amusements LastBuiltAmus { get; set; }
-        public MapObjects LastClick { private set; get; }
+        public MapObjectsFactory LastClick { private set; get; }
         public bool mustBeEnter = false;
         public bool mustBeExit = false;
         public bool demolishOn = false;
@@ -79,7 +79,7 @@ namespace LunaparkGame
                 if(fee<currCheapestFee) currCheapestFee=fee;          
             }        
         }
-        public void SetLastClick(MapObjects lastClick) {
+        public void SetLastClick(MapObjectsFactory lastClick) {
             if (!mustBeEnter && !mustBeExit) this.LastClick = lastClick;
             else MessageBox.Show(Notices.unfinishedBuilding, Labels.warningMessBox, MessageBoxButtons.OK);
         }

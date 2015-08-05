@@ -216,4 +216,19 @@
   <data name="moneyPerson" xml:space="preserve">
     <value>počet peněz:</value>
   </data>
+  <data name="buildButton" xml:space="preserve">
+    <value>POSTAV</value>
+  </data>
+  <data name="capacity" xml:space="preserve">
+    <value>Kapacita: </value>
+  </data>
+  <data name="hasEntranceExit" xml:space="preserve">
+    <value>Samostatný vchod a východ: </value>
+  </data>
+  <data name="prize" xml:space="preserve">
+    <value>Pořizovací cena: </value>
+  </data>
+  <data name="size" xml:space="preserve">
+    <value>Rozměr: </value>
+  </data>
 </root>

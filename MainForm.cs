@@ -210,7 +210,8 @@ namespace LunaparkGame
                     return;
                 }
                 if (model.LastClick.prize > model.GetMoney()) { MessageBox.Show(Notices.cannotBuyNoMoney, Labels.warningMessBox, MessageBoxButtons.OK); return; }
-                if (model.LastClick is Amusements) {
+                if (model.LastClick.CanBeBuild(x, y)) model.LastClick.Build(x, y);
+                /* if (model.LastClick is Amusements) {
                     if (((Amusements)model.LastClick).CheckFreeLocation(x, y)) {
                         object[] arg = { model, new Coordinates(x, y) };
                         //todo:nize nejspise neni nutne ukladat, udelano v konstruktoru atrakce a nastavovat 
@@ -221,7 +222,7 @@ namespace LunaparkGame
                 else {
                     object[] arg = { model, new Coordinates(x, y) };
                     Activator.CreateInstance(model.LastClick.GetType(), arg);
-                }
+                }*/
                 #endregion
 #warning rusim tu schopnost prekladace spravne kontrolovat - nezajisti mi, ze dana trida bude mit spravny konstruktor
             }
