@@ -18,7 +18,7 @@ namespace LunaparkGame
             this.model = m;
             this.coord = c;
             this.entrance = new AmusementEnterPath(m, new Coordinates(c.x, (byte)(c.y + height / 2)), this, tangible: false);
-            this.exit = new MarblePath(m, new Coordinates((byte)(c.x + width), entrance.coord.y));
+            this.exit = new MarblePath(m, new Coordinates((byte)(c.x + width), entrance.coord.y), prize: 0);
             m.maps.AddAmus(this);
         }
 
@@ -26,7 +26,7 @@ namespace LunaparkGame
             this.model = m;
             this.coord = c;
             this.entrance = new AmusementEnterPath(m, entrance, this, tangible: false);
-            this.exit = new MarblePath(m, exit);
+            this.exit = new MarblePath(m, exit, prize: 0);
             m.maps.AddAmus(this);
        }
         public override void Action() {
@@ -69,55 +69,16 @@ namespace LunaparkGame
     }
 
     //todo: 4 tridy nize nejsou abstract + pridat veskere parametry
-    public abstract class SquareAmusements : Amusements {
-        public byte width { get; protected set; }
-        public SquareAmusements() { }
-        public SquareAmusements(Model m, Coordinates c)
-            : base(m, c) {
-            model.CheckCheapestFee(this.currFee);
-        }
-
-        public override bool CheckFreeLocation(byte x, byte y) {
-            return CheckFreeLocation(x, y, width, width, hasSeparatedEntranceAndExit: true);
-        }
-        protected override bool IsInsideInAmusement(int x, int y) {
-            if (x >= this.coord.x && x < this.coord.x + this.width &&
-                y >= this.coord.y && y < this.coord.y + this.width)
-                return true;
-            else return false;
-        }
-        public override List<Coordinates> GetAllPoints() {
-            List<Coordinates> list = new List<Coordinates>(width * width);
-            for (byte i = coord.x; i < coord.x + width; i++) {
-                for (byte j = coord.y; j < coord.y + width; j++) list.Add(new Coordinates(i, j));
-            }
-            return list;
-        }
-    }
-    public class SquareAmusementsFactory : RectangleAmusementsFactory {
-        byte width;
-       
-     //   public SquareAmusementsFactory(): base(prize,model) { }
-        
-        
-        public override bool CanBeBuild(byte x, byte y) {
-            if (CheckFreeLocation(x, y, width, width, hasSeparatedEnterExit)) return true;
-            else return false;
-        }
-        public override MapObjects Build() {
-            throw new NotImplementedException();
-        }
-    }
     /// <summary>
     /// Class for rectangle, not square, amusements. It can have a different orientation.
     /// </summary>
-    public abstract class RectangleAmusements : Amusements {
+    public class RectangleAmusements : Amusements {
         public readonly byte sizeA;
         public readonly byte sizeB;
         public readonly bool isHorizontalOriented;
 
 
-        public RectangleAmusements(Model m, Coordinates c, bool isHorizontal = true)
+        /*public RectangleAmusements(Model m, Coordinates c, bool isHorizontal = true)
             : base(m, c) {
             isHorizontalOriented = isHorizontal;
             model.CheckCheapestFee(this.currFee);
@@ -127,9 +88,14 @@ namespace LunaparkGame
             : this(m, c, isHorizontal) {
             this.sizeA = sizeA;
             this.sizeB = sizeB;
+        }*/
+
+        public RectangleAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height, bool isHorizontal)
+        : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit){
+            this.sizeA = width;
+            this.sizeA = height;      
         }
-
-
+            
         public override bool CheckFreeLocation(byte x, byte y) {
             if (isHorizontalOriented) return CheckFreeLocation(x, y, sizeA, sizeB, hasSeparatedEntranceAndExit: true);
             else return CheckFreeLocation(x, y, sizeB, sizeA, hasSeparatedEntranceAndExit: true);
@@ -166,43 +132,76 @@ namespace LunaparkGame
 
     }
     public class RectangleAmusementsFactory : AmusementsFactory {
-        byte width, height;
-        protected bool CheckFreeLocation(byte x, byte y, byte width, byte height, bool hasSeparatedEntranceAndExit = true) {
-            if (x + width > model.playingWidth + 1 || y + height > model.playingHeight + 1) return false;
-            for (byte i = x; i < x + width; i++) {
-                for (byte j = y; j < y + height; j++) {
-                    if (!model.maps.isFree(i, j)) return false;
-                }
-            }
-#warning overit, ze to opravdu overuje spravne
-            if (hasSeparatedEntranceAndExit) {
-                bool free = false;
-                if (x - 1 > 0) for (byte i = y; i < y + height; i++)
-                        if (model.maps.isFree((byte)(x - 1), i)) { if (free) return free; else free = true; }
-                if (x < model.playingWidth) for (byte i = y; i < y + height; i++)
-                        if (model.maps.isFree((byte)(x + 1), i)) { if (free) return free; else free = true; }
-                if (y - 1 > 0) for (byte i = x; i < x + width; i++)
-                        if (model.maps.isFree(i, (byte)(y - 1))) { if (free) return free; else free = true; }
-                if (y < model.playingWidth) for (byte i = y; i < y + height; i++)
-                        if (model.maps.isFree(i, (byte)(y + 1))) { if (free) return free; else free = true; }
-                return free;
-            }
-            return true;
-
+        protected readonly byte  width, height;
+        public bool isHorizontal;
+        public RectangleAmusementsFactory(int prize, Model m, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height)
+            : base(prize, m, fee, capacity, runningTime, name, hasEntranceExit) {
+                this.width = width;
+                this.height = height;
         }
         public override bool CanBeBuild(byte x, byte y) {
-            if (CheckFreeLocation(x, y, width, height, hasSeparatedEnterExit)) return true;
-            else return false;
+            if (isHorizontal) return AmusementsFactory.CheckFreeLocation(x, y, model, width, height, hasSeparatedEnterExit);
+            else return AmusementsFactory.CheckFreeLocation(x, y, model, width, height, hasSeparatedEnterExit);
         }
-        public override MapObjects Build() {
-            throw new NotImplementedException();
+      
+        public override MapObjects Build(byte x, byte y) {
+            return new RectangleAmusements(new Coordinates(x,y), model, prize, entranceFee, capacity, runningTime, name, hasSeparatedEnterExit, width, height, isHorizontal);
         }
     }
-
-    public class FreeShapedAmusements : Amusements {
-        public FreeShapedAmusements(Model m, Coordinates c)
+    
+    public class SquareAmusements : Amusements {
+        protected readonly byte width;
+        public SquareAmusements() { }
+       /* public SquareAmusements(Model m, Coordinates c)
             : base(m, c) {
             model.CheckCheapestFee(this.currFee);
+        }*/
+
+         public SquareAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width)
+             : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit) {
+             this.width = width;     
+        }
+        
+
+        public override bool CheckFreeLocation(byte x, byte y) {
+            return CheckFreeLocation(x, y, width, width, hasSeparatedEntranceAndExit: true);
+        }
+        protected override bool IsInsideInAmusement(int x, int y) {
+            if (x >= this.coord.x && x < this.coord.x + this.width &&
+                y >= this.coord.y && y < this.coord.y + this.width)
+                return true;
+            else return false;
+        }
+        public override List<Coordinates> GetAllPoints() {
+            List<Coordinates> list = new List<Coordinates>(width * width);
+            for (byte i = coord.x; i < coord.x + width; i++) {
+                for (byte j = coord.y; j < coord.y + width; j++) list.Add(new Coordinates(i, j));
+            }
+            return list;
+        }
+    }
+    public class SquareAmusementsFactory : AmusementsFactory {
+        public readonly byte width;
+
+        public SquareAmusementsFactory(int prize, Model m, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width)
+             : base(prize, m, fee, capacity, runningTime, name, hasEntranceExit) {
+                 this.width = width;        
+        }
+                
+        public override bool CanBeBuild(byte x, byte y) {
+            if (AmusementsFactory.CheckFreeLocation(x, y, model, width, width, hasSeparatedEnterExit)) return true;
+            else return false;
+        }
+        public override MapObjects Build(byte x, byte y) {
+            return new SquareAmusements(new Coordinates(x,y), model, prize, entranceFee, capacity, runningTime, name, hasSeparatedEnterExit, width);
+        }
+    }
+   
+
+    public class FreeShapedAmusements : Amusements {
+        public FreeShapedAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name)
+            : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit:false) {
+           
         }
         //nejspis v sobe jeste jednu vnorenou tridu reprezentujici kousky atrakce
         public override List<Coordinates> GetAllPoints() {
@@ -214,7 +213,9 @@ namespace LunaparkGame
         
     }
     public class FreeShapedAmusementsFactory : AmusementsFactory {
-        public override MapObjects Build() {
+        //todo: konstruktor nedokonceny
+        public FreeShapedAmusementsFactory(int prize, Model m) : base(prize, m) { }
+        public override MapObjects Build(byte x, byte y) {
             throw new NotImplementedException();
         }
         public override bool CanBeBuild(byte x, byte y) {
@@ -227,14 +228,27 @@ namespace LunaparkGame
     /// napr. pro lavicky
     /// </summary>
     public abstract class LittleComplementaryAmusements : Amusements {
-        public LittleComplementaryAmusements(Model m, Coordinates c) : base(m, c) { }
+        public LittleComplementaryAmusements( Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name) 
+            : base(c, m, prize, fee, capacity, runningTime, name, hasEntranceExit: false) { }
     }
-    
-    
+    public class LittleComplementaryAmusementsFactory : AmusementsFactory {
+
+        public LittleComplementaryAmusementsFactory(Model m, int prize, int fee, int capacity, int runningTime, string name)
+            : base(prize, m, fee, capacity, runningTime, name, hasEntranceExit: false) {
+
+        }
+        public override MapObjects Build(byte x, byte y) {
+            throw new NotImplementedException();
+        }
+        public override bool CanBeBuild(byte x, byte y) {
+            throw new NotImplementedException();
+        }
+
+    }  
     public class Restaurant : SquareAmusements
     {
 
-        public Restaurant(Model m):base() { 
+        /*public Restaurant(Model m):base() { 
          width = 1;
          model = m;
          fixedRunningTime = 0;
@@ -247,7 +261,17 @@ namespace LunaparkGame
             fixedRunningTime = 0;
             this.entrance = new AmusementEnterPath(m, c, this, tangible:false);
             this.exit = new AmusementExitPath(m,c,this, tangible:false);
+        }*/
+
+        public Restaurant(Coordinates c, Model m, int prize, int foodPrize, int capacity, string name) 
+            : base (c, m, prize, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1 ) {
+            model.mustBeEnter = false; //todo: mozna tyto 2 nejsou potreba
+            model.mustBeExit = false;
+            this.entrance = new AmusementEnterPath(m, c, this, tangible: false);
+            this.exit = new AmusementExitPath(m, c, this, tangible: false);
         }
+        
+        
         public override bool CheckFreeLocation(byte x, byte y) {
             return CheckFreeLocation(x, y, width, width, hasSeparatedEntranceAndExit: false);
         }
@@ -261,5 +285,22 @@ namespace LunaparkGame
         }
     }
 
+    public class RestaurantFactory : SquareAmusementsFactory {
+
+        public RestaurantFactory(Model m, int prize, int foodPrize, int capacity, string name)  
+          :base(prize, m, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1){        
+        }
+       
+        public override bool CanBeBuild(byte x, byte y) {
+            if (x > model.playingWidth || y > model.playingHeight) return false;
+            return model.maps.isFree(x, y);
+        }
+        public override MapObjects Build(byte x, byte y) {
+            return new Restaurant(new Coordinates(x, y), model, prize, entranceFee, capacity, name);
+        }
+        
+
+    
+    }
 
 }

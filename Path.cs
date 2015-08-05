@@ -10,23 +10,16 @@ namespace LunaparkGame
    public abstract class AmusementPath : Path {
         public readonly Amusements amusement;
         public AmusementPath(Model m, Coordinates c, Amusements a, bool tangible = true)
-            : base(m, tangible) //not call base(m,c) because dont want to add to maps
+            : base(m, prize: 0, tangible: tangible) //not call base(m,c) because dont want to add to maps
         {
             this.coord = c;
             model.maps.AddEntranceExit(this);
         }
-
     }
+   
+
     public class AmusementEnterPath : AmusementPath {
 
-        public override int price {
-            get {
-                return 0;
-            }
-            protected set {
-                base.price = 0;
-            }
-        }
         public AmusementEnterPath(Model m, Coordinates c, Amusements a, bool tangible = true)
             : base(m, c, a, tangible) {
         }
@@ -37,8 +30,18 @@ namespace LunaparkGame
             model.LastBuiltAmus = this.amusement;
             model.mustBeEnter = true;
         }
-
     }
+    public class AmusementEnterPathFactory : PathFactory {
+        Amusements a;
+        public AmusementEnterPathFactory(Model m, Amusements a) :base(prize:0, m: m) {
+            this.a = a;
+        }
+#warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
+        public override MapObjects Build(byte x, byte y) {
+            return new AmusementEnterPath(model, new Coordinates(x, y), a);
+        }
+    }
+
     public class AmusementExitPath : AmusementPath {
         public AmusementExitPath(Model m, Coordinates c, Amusements a, bool tangible = true) : base(m, c, a, tangible) { }
         public override void Destruct() {
@@ -48,53 +51,81 @@ namespace LunaparkGame
             if (!model.mustBeEnter) model.mustBeExit = true;
 
         }
-
+    }
+    public class AmusementExitPathFactory : PathFactory {
+        Amusements a;
+        public AmusementExitPathFactory(Model m, Amusements a)
+            : base(prize: 0, m: m) {
+            this.a = a;
+        }
+#warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
+        public override MapObjects Build(byte x, byte y) {
+            return new AmusementEnterPath(model, new Coordinates(x, y), a);
+        }
     }
     
     
     public class StonePath : Path
     {
-        public StonePath(Model m, Coordinates c) : base(m,c) { }
-       
-
-        public override void Destruct()
-        {
-            throw new NotImplementedException();
-        }
         
+        public StonePath(Model m, Coordinates c, int prize) : base(m, c, prize) { }
+       
+        
+    }
+    public class StonePathFactory : PathFactory {
+        public StonePathFactory(Model m, int prize) 
+        : base(m, prize) {         
+        }
+        public override MapObjects Build(byte x, byte y) {
+            return new StonePath(model, new Coordinates(x, y), prize);
+        }
     }
     public class AsphaltPath : Path
     {
-        public AsphaltPath(Model m, Coordinates c) : base(m,c) { }
+        public AsphaltPath(Model m, Coordinates c, int prize) : base(m, c, prize) { }
         public AsphaltPath() { }
-        public override void Destruct()
-        {
-            throw new NotImplementedException();
-        }
+       
         
 
     }
+    public class AsphaltPathFactory : PathFactory {
+        public AsphaltPathFactory(Model m, int prize)
+            : base(m, prize) {
+        }
+        public override MapObjects Build(byte x, byte y) {
+            return new AsphaltPath(model, new Coordinates(x, y), prize);
+        }
+    }
+   
     public class SandPath : Path
     {
-        public SandPath(Model m, Coordinates c) : base(m,c) { }
+        public SandPath(Model m, Coordinates c, int prize) : base(m, c, prize) { }
         
-        public override void Destruct()
-        {
-            throw new NotImplementedException();
-        }
         
     }
+    public class SandPathFactory : PathFactory {
+        public SandPathFactory(Model m, int prize)
+            : base(m, prize) {
+        }
+        public override MapObjects Build(byte x, byte y) {
+            return new SandPath(model, new Coordinates(x, y), prize);
+        }
+    }
+   
     public class MarblePath : Path
     {
-        public MarblePath(Model m, Coordinates c) : base(m, c) { }
-        
-        public override void Destruct()
-        {
-            throw new NotImplementedException();
-        }
+        public MarblePath(Model m, Coordinates c, int prize) : base(m, c, prize) { }
        
-
     }
+    public class MarblePathFactory : PathFactory {
+        public MarblePathFactory(Model m, int prize)
+            : base(m, prize) {
+        }
+        public override MapObjects Build(byte x, byte y) {
+            return new MarblePath(model, new Coordinates(x, y), prize);
+        }
+    }
+   
    
 
 }

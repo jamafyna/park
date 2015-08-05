@@ -209,7 +209,7 @@ namespace LunaparkGame
                     model.LastBuiltAmus.CheckExitAndBuild(x, y); //if not succeed, no annoing error-text                  
                     return;
                 }
-                if (model.LastClick.price > model.GetMoney()) { MessageBox.Show(Notices.cannotBuyNoMoney, Labels.warningMessBox, MessageBoxButtons.OK); return; }
+                if (model.LastClick.prize > model.GetMoney()) { MessageBox.Show(Notices.cannotBuyNoMoney, Labels.warningMessBox, MessageBoxButtons.OK); return; }
                 if (model.LastClick is Amusements) {
                     if (((Amusements)model.LastClick).CheckFreeLocation(x, y)) {
                         object[] arg = { model, new Coordinates(x, y) };

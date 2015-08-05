@@ -43,7 +43,7 @@ namespace LunaparkGame
         /// <param name="y">The intern x-coordinate of the playing map.</param>
        /// <returns>true if all conditions of building are satisfied, otherwise false.</returns>
         public abstract bool CanBeBuild(byte x, byte y);
-        public abstract MapObjects Build();
+        public abstract MapObjects Build(byte x, byte y);
     }
 
     public class MyDebugException : Exception
@@ -74,18 +74,18 @@ namespace LunaparkGame
                 control.Click += new EventHandler(Click); //hash: overit, ze se opravdu nastavi
         } } 
         public bool isClicked = false;
-        virtual public int price { get; protected set; } //todo: This must be abstract!!! - az budu znat ceny
+        public readonly int prize;
         public MapObjects() { }
-        protected MapObjects(Model m, bool tangible=true) {
+        protected MapObjects(Model m, int prize, bool tangible=true) {
             this.model = m;
-#warning toto nejspis nefunguje, protoze price bude vzdy 0, nastavuje se az po volani konstruktoru.        
-            model.MoneyAdd(-this.price);
+            this.prize = prize;
+            model.MoneyAdd(-this.prize);
            if(tangible) model.dirtyNew.Enqueue(this);
-            //Control.Click += new EventHandler(Click);
 
         }
-        public MapObjects(Model m,Coordinates coord, bool tangible=true):this(m, tangible)
+        public MapObjects(Model m,Coordinates coord, int prize, bool tangible=true):this(m, prize, tangible)
         {
+            
             this.coord = coord;
         }
        
@@ -137,10 +137,11 @@ namespace LunaparkGame
         protected bool isRunningOut=false;
         protected bool isRunning = false;
         //-------characteristics-------------
-        public readonly int capacity;
-        protected int maxWaitingTime, fixedRunningTime;
-        protected int currFee;
-
+        public readonly int capacity, originalFee;
+        public int currFee;
+        protected readonly int maxWaitingTime, fixedRunningTime;        
+        public string name;
+        protected bool hasSeparatedEnterExit;
         
         public int WorkingPrice { get; protected set; }//todo: mozna nebude treba a pevne se vzdy urci procenta z provozu nebo tak nejak
         //protected readonly int initialVisitPrice; nebude potreba, ziska se odnekud
@@ -148,17 +149,22 @@ namespace LunaparkGame
         //----------------------------
         #endregion
         public Amusements(){}
-        public Amusements(Model m, Coordinates c)
-            : base(m, c)       
+        public Amusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit)
+            : base(m, c, prize)       
         {
+            this.originalFee = fee;
+            this.capacity = capacity;
+            this.fixedRunningTime = runningTime;
+            this.name = name;
+            this.hasSeparatedEnterExit = hasEntranceExit;
+
             model.LastBuiltAmus = this;                 
-            model.mustBeEnter = true;
+            if(hasEntranceExit) model.mustBeEnter = true;
             this.id = model.amusList.GetFreeID();           
             peopleInList = new List<Person>(capacity);           
-            this.coord = coord;
             model.amusList.Add(this);
-            model.maps.AddAmus(this);         
-                       
+            model.maps.AddAmus(this);
+            model.CheckCheapestFee(this.currFee);          
            // mimoProvoz = true;
            // zacatek = true;
          
@@ -179,7 +185,7 @@ namespace LunaparkGame
 #warning entrance a exit by mely byt nejspis nejak zabezpeceny (v pripade, ze je null a pak se nastavi na nenull)
             if(entrance != null) entrance.Destruct();
             if(exit !=null) exit.Destruct();
-            model.MoneyAdd(refundCoef * price);//refund money
+            model.MoneyAdd(refundCoef * prize);//refund money
             model.amusList.Remove(this);
             model.maps.RemoveAmus(this);
             model.dirtyDestruct.Enqueue(this);
@@ -440,19 +446,43 @@ namespace LunaparkGame
             this.name = name;
             this.hasSeparatedEnterExit = hasEntranceExit;
         }
+        public AmusementsFactory(int prize, Model m):base(prize, m){}
+        protected static bool CheckFreeLocation(byte x, byte y, Model model, byte width, byte height, bool hasSeparatedEntranceAndExit = true) {
+            if (x + width > model.playingWidth + 1 || y + height > model.playingHeight + 1) return false;
+            for (byte i = x; i < x + width; i++) {
+                for (byte j = y; j < y + height; j++) {
+                    if (!model.maps.isFree(i, j)) return false;
+                }
+            }
+#warning overit, ze to opravdu overuje spravne
+            if (hasSeparatedEntranceAndExit) {
+                bool free = false;
+                if (x - 1 > 0) for (byte i = y; i < y + height; i++)
+                        if (model.maps.isFree((byte)(x - 1), i)) { if (free) return free; else free = true; }
+                if (x < model.playingWidth) for (byte i = y; i < y + height; i++)
+                        if (model.maps.isFree((byte)(x + 1), i)) { if (free) return free; else free = true; }
+                if (y - 1 > 0) for (byte i = x; i < x + width; i++)
+                        if (model.maps.isFree(i, (byte)(y - 1))) { if (free) return free; else free = true; }
+                if (y < model.playingWidth) for (byte i = y; i < y + height; i++)
+                        if (model.maps.isFree(i, (byte)(y + 1))) { if (free) return free; else free = true; }
+                return free;
+            }
+            return true;
+
+        }
        
     }
 
     public abstract class Path : MapObjects {
         public Direction[] signpostAmus;//rozcestnik
-        protected Path(Model m, bool tangible = true)
-            : base(m, tangible) {
+        protected Path(Model m, int prize, bool tangible = true)
+            : base(m, prize, tangible) {
             signpostAmus = new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
         }
-        public Path(Model m, Coordinates c, bool tangible = true)
-            : base(m, c, tangible) {
+        public Path(Model m, Coordinates c, int prize, bool tangible = true)
+            : base(m, c, prize, tangible) {
             signpostAmus = new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
@@ -468,7 +498,15 @@ namespace LunaparkGame
         }
 
     }
-    
+    public abstract class PathFactory: MapObjectsFactory{
+        public PathFactory(Model m, int prize)
+        : base(prize, m) {         
+        }
+        public override bool CanBeBuild(byte x, byte y) {
+            return true;
+        }
+    }
+
     public class Person : MapObjects,IActionable
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
         private static Random rand = new Random();
@@ -494,14 +532,13 @@ namespace LunaparkGame
         private Amusements currAmus;
         public Status status { set; get; } //protected get; }
         
-        public Person(Model m, int x, int y) : base(m) {
+        public Person(Model m, int x, int y) : base(m, prize: 0) {
             
             this.id = m.persList.GetFreeId();
             this.status = Status.initialWalking;
             this.money = rand.Next(Person.minMoney,Person.maxMoney);
             this.patience = rand.Next(Person.minPatience, Person.maxPatience);
             this.maxAcceptablePrice = 100;//todo: nastavit nejak podle vstupnich cen vstupu na atrakce
-            this.price = 0;
             this.x = x;
             this.y = y;
             this.visible = true;
