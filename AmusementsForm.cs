@@ -19,7 +19,6 @@ namespace LunaparkGame
         public AmusementsForm(Model model, DockPanel parent, ToolStripMenuItem amusement)
         {
             InitializeComponent();
-            CreateNewItem(Properties.Images.amus_iceCream, new RestaurantFactory(0,50,1,"ice-cream"));
             dockP = parent;
             detailForm = new AmusementDetailForm(model,parent);
             this.amusItem = amusement;

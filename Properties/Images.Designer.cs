@@ -71,12 +71,57 @@ namespace LunaparkGame.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Asphalt.
+        /// </summary>
+        internal static string asphaltString {
+            get {
+                return ResourceManager.GetString("asphaltString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Carousel.
+        /// </summary>
+        internal static string carousel {
+            get {
+                return ResourceManager.GetString("carousel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fountain.
+        /// </summary>
+        internal static string fountainString {
+            get {
+                return ResourceManager.GetString("fountainString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap gate {
             get {
                 object obj = ResourceManager.GetObject("gate", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ice-cream.
+        /// </summary>
+        internal static string iceCreamString {
+            get {
+                return ResourceManager.GetString("iceCreamString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Marble.
+        /// </summary>
+        internal static string marbleString {
+            get {
+                return ResourceManager.GetString("marbleString", resourceCulture);
             }
         }
         
@@ -137,6 +182,42 @@ namespace LunaparkGame.Properties {
             get {
                 object obj = ResourceManager.GetObject("plot", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restaurant.
+        /// </summary>
+        internal static string restaurantString {
+            get {
+                return ResourceManager.GetString("restaurantString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sand.
+        /// </summary>
+        internal static string sandString {
+            get {
+                return ResourceManager.GetString("sandString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ship.
+        /// </summary>
+        internal static string shipString {
+            get {
+                return ResourceManager.GetString("shipString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Gravel.
+        /// </summary>
+        internal static string stoneString {
+            get {
+                return ResourceManager.GetString("stoneString", resourceCulture);
             }
         }
     }

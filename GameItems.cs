@@ -26,14 +26,13 @@ namespace LunaparkGame
     
     }
 
-  /*  public interface IFactory {
-        bool CanBeBuild();
-        MapObjects Build();
-    }*/
     public abstract class MapObjectsFactory {
+        public int internTypeId;
+        public readonly string name;
         public readonly int prize;
-        public MapObjectsFactory(int prize) { 
+        public MapObjectsFactory(int prize, string name) { 
             this.prize = prize;
+            this.name = name;
            
         }
        /// <summary>
@@ -62,6 +61,10 @@ namespace LunaparkGame
 
     public abstract class MapObjects
     {      
+        /// <summary>
+        /// Determines view order, value: 0 (closest) - 10 (furthest)
+        /// </summary>
+        public int zIndex { protected set ; get; }
         public Coordinates coord { protected set; get; }
         protected Model model;
         private Control control;
@@ -92,14 +95,14 @@ namespace LunaparkGame
         /// <summary>
         /// user action
         /// </summary>
-        protected abstract void Click(object sender, EventArgs e);
+        public abstract void Click(object sender, EventArgs e);
         /// <summary>
         /// user action
         /// </summary>
         public virtual void Destruct() {
             model.dirtyDestruct.Enqueue(this);
         }
-        
+        public abstract void GetRealSize(out int width, out int height);
 
 
     }
@@ -137,6 +140,7 @@ namespace LunaparkGame
         protected bool isRunningOut=false;
         protected bool isRunning = false;
         //-------characteristics-------------
+        public readonly int typeId;
         public readonly int capacity, originalFee;
         public int currFee;
         protected readonly int maxWaitingTime, fixedRunningTime;        
@@ -150,15 +154,17 @@ namespace LunaparkGame
         //----------------------------
         #endregion
         public Amusements(){}
-        public Amusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, Color color)
+        public Amusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, Color color, int typeId)
             : base(m, c, prize)       
         {
+            this.zIndex = 0;
             this.originalFee = fee;
             this.capacity = capacity;
             this.fixedRunningTime = runningTime;
             this.name = name;
             this.hasSeparatedEnterExit = hasEntranceExit;
             this.color = color;
+            this.typeId = typeId;
 
             model.LastBuiltAmus = this;                 
             if(hasEntranceExit) model.mustBeEnter = true;
@@ -341,32 +347,6 @@ namespace LunaparkGame
             }
         }
 #warning check free location zde neni spravna
-        public virtual bool CheckFreeLocation(byte x, byte y) { return true; }  
-        protected bool CheckFreeLocation(byte x,byte y, byte width, byte height,bool hasSeparatedEntranceAndExit=true) { 
-            if (x + width > model.playingWidth + 1 || y + height > model.playingHeight + 1) return false;
-            for (byte i = x; i < x + width; i++)
-            {
-                for (byte j = y; j < y + height; j++)
-                {
-                    if (!model.maps.isFree(i,j)) return false;
-                }
-            }
-#warning overit, ze to opravdu overuje spravne
-            if (hasSeparatedEntranceAndExit) {
-                bool free = false;
-                if (x - 1 > 0) for (byte i = y; i < y + height; i++)
-                        if (model.maps.isFree((byte)(x-1),i)) { if (free) return free; else free = true; }
-                if (x < model.playingWidth) for (byte i = y; i < y + height; i++)
-                        if (model.maps.isFree((byte)(x + 1), i)) { if (free) return free; else free = true; }
-                if (y - 1 > 0) for (byte i = x; i < x + width; i++)
-                        if (model.maps.isFree(i,(byte)(y-1))) { if (free) return free; else free = true; }
-                if (y < model.playingWidth) for (byte i = y; i < y + height; i++)
-                        if (model.maps.isFree(i,(byte)(y+1))) { if (free) return free; else free = true; }
-                return free;
-            }
-            return true;       
-        
-        }
         /// <summary>
         /// checks if the entrance can be built on the given place and creates it if yes
         /// </summary>
@@ -413,7 +393,7 @@ namespace LunaparkGame
         /// </summary>
         /// <returns></returns>
         public abstract List<Coordinates> GetAllPoints();
-        protected override void Click(object sender, EventArgs e)
+        public override void Click(object sender, EventArgs e)
         {
            // if (!zacatek)
           //  { 
@@ -439,19 +419,17 @@ namespace LunaparkGame
     }
     public abstract class AmusementsFactory : MapObjectsFactory {
         public readonly int entranceFee, capacity, runningTime;
-        public readonly string name;
         public readonly bool hasSeparatedEnterExit;
         public Color color;
 
-        public AmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit) : base(prize) {
+        public AmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit) : base(prize, name) {
             this.entranceFee = fee;
             this.capacity = capacity;
             this.runningTime = runningTime;
-            this.name = name;
             this.hasSeparatedEnterExit = hasEntranceExit;
             this.color = Color.Yellow;
         }
-        public AmusementsFactory(int prize):base(prize){}
+        public AmusementsFactory(int prize, string name):base(prize, name){}
         protected static bool CheckFreeLocation(byte x, byte y, Model model, byte width, byte height, bool hasSeparatedEntranceAndExit = true) {
             if (x + width > model.playingWidth + 1 || y + height > model.playingHeight + 1) return false;
             for (byte i = x; i < x + width; i++) {
@@ -481,36 +459,42 @@ namespace LunaparkGame
     public abstract class Path : MapObjects {
         public Direction[] signpostAmus;//rozcestnik
         public readonly string name;
+        public readonly int typeId;
         
         protected Path(Model m, int prize, bool tangible = true)
             : base(m, prize, tangible) {
+            this.zIndex = 10;
             signpostAmus = new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
         }
-        public Path(Model m, Coordinates c, int prize, string name, bool tangible = true)
-            : base(m, c, prize, tangible) {
-                this.name = name;
+        public Path(Model m, Coordinates c, int prize, string name, int typeId)
+            : base(m, c, prize) {
+            this.name = name;
+            this.typeId = typeId;
             signpostAmus = new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
             model.maps.AddPath(this);
         }
         public Path() { }
-        protected override void Click(object sender, EventArgs e) {
+        public override void Click(object sender, EventArgs e) {
             if (model.demolishOn) Destruct();
         }
         public override void Destruct() {
             model.maps.RemovePath(this);
             model.dirtyDestruct.Enqueue(this);
         }
+        public override void GetRealSize(out int width, out int height) {
+            width = MainForm.sizeOfSquare;
+            height = MainForm.sizeOfSquare;
+        }
 
     }
     public abstract class PathFactory: MapObjectsFactory{
-        public readonly string name;
         public PathFactory(int prize, string name)
-        : base(prize) {
-            this.name = name;
+        : base(prize, name) {
+           
         }
         public override bool CanBeBuild(byte x, byte y, Model model) {
             return true;
@@ -543,7 +527,8 @@ namespace LunaparkGame
         public Status status { set; get; } //protected get; }
         
         public Person(Model m, int x, int y) : base(m, prize: 0) {
-            
+
+            this.zIndex = 1;
             this.id = m.persList.GetFreeId();
             this.status = Status.initialWalking;
             this.money = rand.Next(Person.minMoney,Person.maxMoney);
@@ -753,7 +738,7 @@ namespace LunaparkGame
                 contentment = Math.Min(contentment+percentCount,100);            
         }
         
-        protected override void Click(object sender, EventArgs e)
+        public override void Click(object sender, EventArgs e)
         {
            /* if (!isClicked)
             {*/
@@ -761,9 +746,12 @@ namespace LunaparkGame
             /*    isClicked = true;
             }*/
         }
-       
 
-       
+
+        public override void GetRealSize(out int width, out int height) {
+            width = MainForm.sizeOfSquare / 7;
+            height = MainForm.sizeOfSquare / 2;
+        }
         public override void Destruct()
         {
             model.persList.Remove(this);

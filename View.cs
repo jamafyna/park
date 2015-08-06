@@ -11,17 +11,33 @@ namespace LunaparkGame
     public class View
     {
         Model model;
-        Data data;
         MainForm form;
         Control map;
         List<IUpdatable> forms = new List<IUpdatable>();
-        Dictionary<string,Image> images=new Dictionary<string, Image>();
+        Image[] images;
+        public AmusementsForm amusform;
+        public PathForm pathform;
+        public AccessoriesForm accform;
+        public Queue<AmusementsFactory> notAddedAmus;
+        public Queue<PathFactory> notAddedPaths;
+        public Queue<MapObjectsFactory> notAddedOthers;
 
-        public View(Model m, MainForm form)
+        public View(Model m, MainForm form, AmusementsForm amform, PathForm pform,  AccessoriesForm oform, Data data)
         {
             this.model = m;
-            this.data = new Data();
             this.form = form;
+            this.amusform = amform;
+            this.pathform = pform;
+            this.accform = oform;
+            this.notAddedAmus = data.otherAmus;
+            this.notAddedPaths = data.otherPaths;
+            this.notAddedOthers = data.otherOthers;
+            this.images = data.GetImages();
+            foreach (var item in data.initialAmus) amusform.CreateNewItem(images[item.internTypeId], item);
+            foreach (var item in data.initialPaths) pathform.CreateNewItem(images[item.internTypeId], item);
+            foreach (var item in data.initialOthers) accform.CreateNewItem(images[item.internTypeId], item);  
+            
+
         }
         public void Action()
         {
@@ -82,7 +98,34 @@ namespace LunaparkGame
                     
                 
                 }
-                else if (o.GetType() == typeof(AsphaltPath)) {
+
+                else if (o.GetType() == typeof(AmusementEnterPath) || o.GetType() == typeof(AmusementExitPath)) {
+                    pbox = new PictureBox();
+                    pbox.BackColor = Color.Blue;
+
+                    pbox.Width = MainForm.sizeOfSquare - 1;
+                    pbox.Height = MainForm.sizeOfSquare - 1;
+                    pbox.Parent = map;
+                    map.Controls.SetChildIndex(pbox, 0);
+                    pbox.Left = o.coord.x * MainForm.sizeOfSquare + 1;
+                    pbox.Top = o.coord.y * MainForm.sizeOfSquare + 1;
+                    pbox.Visible = true;
+                    o.Control = pbox;
+
+                }
+                else {
+                    pbox = new PictureBox();
+                    pbox.Width = MainForm.sizeOfSquare - 1;
+                    pbox.Height = MainForm.sizeOfSquare - 1;
+                    pbox.Parent = map;
+                    map.Controls.SetChildIndex(pbox, 0);
+                    pbox.Left = o.coord.x * MainForm.sizeOfSquare + 1;
+                    pbox.Top = o.coord.y * MainForm.sizeOfSquare + 1;
+                    pbox.Visible = true;
+                    o.Control = pbox;
+                
+                }
+               /* else if (o.GetType() == typeof(AsphaltPath)) {
                     pbox = new PictureBox();
                     pbox.BackgroundImage = Properties.Images.path_asphalt;
                     pbox.Width = MainForm.sizeOfSquare - 1;
@@ -109,21 +152,7 @@ namespace LunaparkGame
                     pbox.Visible = true;
                     o.Control = pbox;
 
-                }
-                else if(o.GetType()==typeof(AmusementEnterPath)||o.GetType()==typeof(AmusementExitPath)){
-                    pbox = new PictureBox();
-                    pbox.BackColor = Color.Blue;
-                   
-                    pbox.Width =  MainForm.sizeOfSquare - 1;
-                    pbox.Height =  MainForm.sizeOfSquare - 1;
-                    pbox.Parent = map;
-                    map.Controls.SetChildIndex(pbox, 0);
-                    pbox.Left = o.coord.x * MainForm.sizeOfSquare + 1;
-                    pbox.Top = o.coord.y * MainForm.sizeOfSquare + 1;
-                    pbox.Visible = true;
-                    o.Control = pbox;
-                
-                }
+                }*/
 
              /*   else if (data.dict.TryGetValue(o.GetType(), out original))
                 {
@@ -212,6 +241,7 @@ namespace LunaparkGame
             pbox.BackgroundImageLayout = ImageLayout.Zoom;
             pbox.Click += new EventHandler(g.Click);
             g.Control = pbox;
+            
            
         }
     }

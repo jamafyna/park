@@ -11,113 +11,100 @@ using System.Threading;
 
 namespace LunaparkGame
 {
-    public partial class MainForm : Form, IUpdatable
-    {
-        //public Type lastClick{get; private set;}
-        /// <summary>
-        /// contains an unique instance for each type
-        /// </summary>
+    public partial class MainForm : Form, IUpdatable {
         
-       
         public const int sizeOfSquare = 40;
-        AmusementsForm amusform;
-        PathForm pathform;
+
         public Control map;
         Model model;
         View view;
         MapForm mapform;
         int timerTime = 0;
-        
-          
-        public MainForm(byte playingWidth, byte playingHeight)
-        {
+
+
+        public MainForm(byte playingWidth, byte playingHeight, Data data) {
             InitializeComponent();
             IsMdiContainer = true;
-            model = new Model(playingHeight,playingWidth);
-            view = new View(model,this);
+            model = new Model(playingHeight, playingWidth);
+
+            AmusementsForm amusform = new AmusementsForm(model, mainDockPanel, amusementsToolStripMenuItem);
+            PathForm pathform = new PathForm(model, pathToolStripMenuItem);
+            AccessoriesForm otherform = new AccessoriesForm(model, accessoriesToolStripMenuItem);
+            view = new View(model, this, amusform, pathform, otherform, data);
             mapform = new MapForm(model, view, playingWidth, playingHeight);
-            amusform = new AmusementsForm(model, mainDockPanel, amusementsToolStripMenuItem);
-            pathform = new PathForm(model, pathToolStripMenuItem);
+
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
+            accessoriesToolStripMenuItem.Checked = false;
             mapform.Show(mainDockPanel);
             timer.Enabled = true;
 
-            
-        }
 
-      
-      
-       
-        private void MyInitialize() {        
         }
 
 
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-            
+
+
+        private void MyInitialize() {
         }
 
-        private void amusementsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (amusementsToolStripMenuItem.Checked)
-            {
-                amusform.Hide();
+
+        private void MainForm_Load(object sender, EventArgs e) {
+
+        }
+
+        private void amusementsToolStripMenuItem_Click(object sender, EventArgs e) {
+            if (amusementsToolStripMenuItem.Checked) {
+                view.amusform.Hide();
                 amusementsToolStripMenuItem.Checked = false;
             }
-            else
-            {
-                amusform.Show(mainDockPanel);
+            else {
+                view.amusform.Show(mainDockPanel);
                 amusementsToolStripMenuItem.Checked = true;
-            } 
+            }
         }
 
-        private void pathToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (pathToolStripMenuItem.Checked)
-            {
-                pathform.Hide();
+        private void pathToolStripMenuItem_Click(object sender, EventArgs e) {
+            if (pathToolStripMenuItem.Checked) {
+                view.pathform.Hide();
                 pathToolStripMenuItem.Checked = false;
             }
-            else
-            {
-                pathform.Show(mainDockPanel);
+            else {
+                view.pathform.Show(mainDockPanel);
                 pathToolStripMenuItem.Checked = true;
-            } 
-        }
-        private void showHideForm(ToolStripMenuItem itemA, ref Form formA) {
-            if (itemA.Checked)
-            {
-                formA.Hide();
-                itemA.Checked = false;
             }
-            else
-            {
-                formA.Show(mainDockPanel);
-                itemA.Checked = true;
-            } 
+        }
+        
+        private void accessoriesToolStripMenuItem_Click(object sender, EventArgs e) {
+            if (accessoriesToolStripMenuItem.Checked) {
+                view.accform.Hide();
+                accessoriesToolStripMenuItem.Checked = false;
+            }
+            else {
+                view.accform.Show(mainDockPanel);
+                accessoriesToolStripMenuItem.Checked = true;
+            }
         }
 
-        private void timer_Tick(object sender, EventArgs e){
-        
-           #warning work with Person in view only when no another thread is running
+        private void timer_Tick(object sender, EventArgs e) {
+
+#warning work with Person in view only when no another thread is running
             //todo: rozvrstvit do vlaken
             //---actions
             Task.Factory.StartNew(model.persList.Action);
-           
-           // model.persList.Action();
-            if (timerTime >= 10)
-            {
+
+            // model.persList.Action();
+            if (timerTime >= 10) {
                 Task.Factory.StartNew(model.amusList.Action).Wait();
                 Task.Factory.StartNew(model.maps.Action).Wait();
-                
+
                 timerTime = 0;
-             //   model.amusList.Action();
-            //    model.effects.Action();
-             //    model.maps.Action();
-                
+                //   model.amusList.Action();
+                //    model.effects.Action();
+                //    model.maps.Action();
+
             }
-           
+
             //---visual
             //model.dirtyClick
             Task.WaitAll();
@@ -125,7 +112,7 @@ namespace LunaparkGame
             MyUpdate();
             timerTime++;
         }
-       
+
         public void MyUpdate() {
             this.moneyCount_toolStripMenuItem.Text = model.GetMoney().ToString();
             this.peopleCount_toolStripMenuItem.Text = model.CurrPeopleCount.ToString();
@@ -141,7 +128,7 @@ namespace LunaparkGame
                 model.demolishOn = true;
                 demolish_toolStripMenuItem.Text = Labels.demolishing;
                 demolish_toolStripMenuItem.ForeColor = Color.Red;
-            
+
             }
         }
 
@@ -154,7 +141,7 @@ namespace LunaparkGame
             else {
                 model.propagateOn = true;
                 propagate_toolStripMenuItem.Text = Labels.advertising;
-                propagate_toolStripMenuItem.ForeColor = Color.DarkGreen;           
+                propagate_toolStripMenuItem.ForeColor = Color.DarkGreen;
             }
         }
 
@@ -168,11 +155,12 @@ namespace LunaparkGame
                 model.researchOn = true;
                 research_toolStripMenuItem.Text = Labels.researching;
                 research_toolStripMenuItem.ForeColor = Color.DarkGreen;
-            
+
             }
         }
+
         
-    }
+    }   
     public partial class MapForm : WeifenLuo.WinFormsUI.Docking.DockContent {
         Model model;
         Control map;

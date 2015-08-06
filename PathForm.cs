@@ -17,13 +17,7 @@ namespace LunaparkGame
         {
             InitializeComponent();
             model = m;
-            this.pathItem = pathItem;
-           // CreateNewItem(Properties.Images.amus_iceCream,new RestaurantFactory(model,0,50,1,"ice-cream"));
-            for (int i = 0; i < 30; i++)
-            {
-                CreateNewItem(Properties.Images.path_asphalt, new AsphaltPathFactory(0,"asphalt"));
-            }
-            
+            this.pathItem = pathItem;            
         }
         /// <summary>
         /// Creates new menu item. User can after build it.

@@ -121,8 +121,23 @@
   <data name="amus_iceCream" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\amus_iceCream.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="asphaltString" xml:space="preserve">
+    <value>Asphalt</value>
+  </data>
+  <data name="carousel" xml:space="preserve">
+    <value>Carousel</value>
+  </data>
+  <data name="fountainString" xml:space="preserve">
+    <value>Fountain</value>
+  </data>
   <data name="gate" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\gate.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="iceCreamString" xml:space="preserve">
+    <value>Ice-cream</value>
+  </data>
+  <data name="marbleString" xml:space="preserve">
+    <value>Marble</value>
   </data>
   <data name="path_asphalt" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\path_asphalt.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -141,5 +156,17 @@
   </data>
   <data name="plot" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\plot.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="restaurantString" xml:space="preserve">
+    <value>Restaurant</value>
+  </data>
+  <data name="sandString" xml:space="preserve">
+    <value>Sand</value>
+  </data>
+  <data name="shipString" xml:space="preserve">
+    <value>Ship</value>
+  </data>
+  <data name="stoneString" xml:space="preserve">
+    <value>Gravel</value>
   </data>
 </root>

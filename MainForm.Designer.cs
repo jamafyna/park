@@ -55,7 +55,7 @@ namespace LunaparkGame
             this.vIEWToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.amusementsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.AccessoriesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.accessoriesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.hELPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.demolish_toolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -131,7 +131,7 @@ namespace LunaparkGame
             this.vIEWToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.amusementsToolStripMenuItem,
             this.pathToolStripMenuItem,
-            this.AccessoriesToolStripMenuItem});
+            this.accessoriesToolStripMenuItem});
             this.vIEWToolStripMenuItem.Name = "vIEWToolStripMenuItem";
             this.vIEWToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
             this.vIEWToolStripMenuItem.Text = global::LunaparkGame.Labels.viewItem;
@@ -154,11 +154,12 @@ namespace LunaparkGame
             this.pathToolStripMenuItem.Text = global::LunaparkGame.Labels.pathButton;
             this.pathToolStripMenuItem.Click += new System.EventHandler(this.pathToolStripMenuItem_Click);
             // 
-            // AccessoriesToolStripMenuItem
+            // accessoriesToolStripMenuItem
             // 
-            this.AccessoriesToolStripMenuItem.Name = "AccessoriesToolStripMenuItem";
-            this.AccessoriesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.AccessoriesToolStripMenuItem.Text = global::LunaparkGame.Labels.accessories;
+            this.accessoriesToolStripMenuItem.Name = "accessoriesToolStripMenuItem";
+            this.accessoriesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.accessoriesToolStripMenuItem.Text = global::LunaparkGame.Labels.accessories;
+            this.accessoriesToolStripMenuItem.Click += new System.EventHandler(this.accessoriesToolStripMenuItem_Click);
             // 
             // hELPToolStripMenuItem
             // 
@@ -330,7 +331,7 @@ namespace LunaparkGame
         private System.Windows.Forms.ToolStripMenuItem vIEWToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem amusementsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem pathToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem AccessoriesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem accessoriesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem hELPToolStripMenuItem;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem demolish_toolStripMenuItem;

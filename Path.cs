@@ -71,7 +71,7 @@ namespace LunaparkGame
     public class StonePath : Path
     {
         
-        public StonePath(Model m, Coordinates c, int prize, string name) : base(m, c, prize, name) { }
+        public StonePath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
        
         
     }
@@ -80,12 +80,12 @@ namespace LunaparkGame
         : base(prize, name) {         
         }
         public override MapObjects Build(byte x, byte y, Model model) {
-            return new StonePath(model, new Coordinates(x, y), prize, name);
+            return new StonePath(model, new Coordinates(x, y), prize, name, internTypeId);
         }
     }
     public class AsphaltPath : Path
     {
-        public AsphaltPath(Model m, Coordinates c, int prize, string name) : base(m, c, prize, name) { }
+        public AsphaltPath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
         public AsphaltPath() { }
        
         
@@ -96,13 +96,13 @@ namespace LunaparkGame
             : base( prize, name) {
         }
         public override MapObjects Build(byte x, byte y, Model model) {
-            return new AsphaltPath(model, new Coordinates(x, y), prize, name);
+            return new AsphaltPath(model, new Coordinates(x, y), prize, name, internTypeId);
         }
     }
    
     public class SandPath : Path
     {
-        public SandPath(Model m, Coordinates c, int prize, string name) : base(m, c, prize, name) { }
+        public SandPath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
         
         
     }
@@ -111,13 +111,13 @@ namespace LunaparkGame
             : base(prize, name) {
         }
         public override MapObjects Build(byte x, byte y, Model model) {
-            return new SandPath(model, new Coordinates(x, y), prize, name);
+            return new SandPath(model, new Coordinates(x, y), prize, name, internTypeId);
         }
     }
    
     public class MarblePath : Path
     {
-        public MarblePath(Model m, Coordinates c, int prize, string name) : base(m, c, prize, name) { }
+        public MarblePath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
        
     }
     public class MarblePathFactory : PathFactory {
@@ -125,7 +125,7 @@ namespace LunaparkGame
             : base(prize, name) {
         }
         public override MapObjects Build(byte x, byte y, Model model) {
-            return new MarblePath(model, new Coordinates(x, y), prize, name);
+            return new MarblePath(model, new Coordinates(x, y), prize, name, internTypeId);
         }
     }
    
