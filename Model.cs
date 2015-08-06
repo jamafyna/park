@@ -79,9 +79,16 @@ namespace LunaparkGame
                 if(fee<currCheapestFee) currCheapestFee=fee;          
             }        
         }
+       /// <summary>
+       /// Set MapObjectsFactory value to lastClick.
+       /// </summary>
+       /// <param name="lastClick">MapObjectsFactory item, but not null!</param>
         public void SetLastClick(MapObjectsFactory lastClick) {
             if (!mustBeEnter && !mustBeExit) this.LastClick = lastClick;
             else MessageBox.Show(Notices.unfinishedBuilding, Labels.warningMessBox, MessageBoxButtons.OK);
+        }
+        public void SetNullToLastClick() {
+            this.LastClick = null;
         }
     }
    
@@ -524,12 +531,16 @@ namespace LunaparkGame
             }
             pathChanged = true; //important that it is set after changing pathMap
         }
-        public void RemoveEntranceExit(Path p) {
+        public void RemoveEntranceExit(AmusementPath p) {
             pathRWLock.EnterWriteLock();
             amusRWLock.EnterWriteLock();
             try {
                 pathMap[p.coord.x][p.coord.y] = null;
                 amusementMap[p.coord.x][p.coord.y] = null;
+                if (pathMap[p.coord.x - 1][p.coord.y] != null) pathMap[p.coord.x - 1][p.coord.y].signpostAmus[p.amusement.id] = Direction.no;
+                if (pathMap[p.coord.x + 1][p.coord.y] != null) pathMap[p.coord.x + 1][p.coord.y].signpostAmus[p.amusement.id] = Direction.no;
+                if (pathMap[p.coord.x][p.coord.y - 1] != null) pathMap[p.coord.x][p.coord.y - 1].signpostAmus[p.amusement.id] = Direction.no;
+                if (pathMap[p.coord.x][p.coord.y + 1] != null) pathMap[p.coord.x][p.coord.y + 1].signpostAmus[p.amusement.id] = Direction.no;            
             }
             finally { 
                 pathRWLock.ExitWriteLock();
@@ -537,6 +548,7 @@ namespace LunaparkGame
             }
             pathChanged = true; //important that it is set after changing pathMap
         }
+       
         public void RemovePath(Path p) {
             pathRWLock.EnterWriteLock();
             try {

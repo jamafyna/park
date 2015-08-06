@@ -135,17 +135,17 @@ namespace LunaparkGame
     public class RectangleAmusementsFactory : AmusementsFactory {
         protected readonly byte  width, height;
         public bool isHorizontal;
-        public RectangleAmusementsFactory(int prize, Model m, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height)
-            : base(prize, m, fee, capacity, runningTime, name, hasEntranceExit) {
+        public RectangleAmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height)
+            : base(prize, fee, capacity, runningTime, name, hasEntranceExit) {
                 this.width = width;
                 this.height = height;
         }
-        public override bool CanBeBuild(byte x, byte y) {
+        public override bool CanBeBuild(byte x, byte y, Model model) {
             if (isHorizontal) return AmusementsFactory.CheckFreeLocation(x, y, model, width, height, hasSeparatedEnterExit);
             else return AmusementsFactory.CheckFreeLocation(x, y, model, width, height, hasSeparatedEnterExit);
         }
       
-        public override MapObjects Build(byte x, byte y) {
+        public override MapObjects Build(byte x, byte y, Model model) {
             return new RectangleAmusements(new Coordinates(x,y), model, prize, entranceFee, capacity, runningTime, name, hasSeparatedEnterExit, width, height, isHorizontal, color);
         }
         public override string GetInfo() {
@@ -191,16 +191,16 @@ namespace LunaparkGame
     public class SquareAmusementsFactory : AmusementsFactory {
         public readonly byte width;
 
-        public SquareAmusementsFactory(int prize, Model m, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width)
-             : base(prize, m, fee, capacity, runningTime, name, hasEntranceExit) {
+        public SquareAmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width)
+             : base(prize, fee, capacity, runningTime, name, hasEntranceExit) {
                  this.width = width;        
         }
                 
-        public override bool CanBeBuild(byte x, byte y) {
+        public override bool CanBeBuild(byte x, byte y, Model model) {
             if (AmusementsFactory.CheckFreeLocation(x, y, model, width, width, hasSeparatedEnterExit)) return true;
             else return false;
         }
-        public override MapObjects Build(byte x, byte y) {
+        public override MapObjects Build(byte x, byte y, Model model) {
             return new SquareAmusements(new Coordinates(x,y), model, prize, entranceFee, capacity, runningTime, name, hasSeparatedEnterExit, width, color);
         }
         public override string GetInfo() {
@@ -229,11 +229,11 @@ namespace LunaparkGame
     }
     public class FreeShapedAmusementsFactory : AmusementsFactory {
         //todo: konstruktor nedokonceny
-        public FreeShapedAmusementsFactory(int prize, Model m) : base(prize, m) { }
-        public override MapObjects Build(byte x, byte y) {
+        public FreeShapedAmusementsFactory(int prize) : base(prize) { }
+        public override MapObjects Build(byte x, byte y, Model model) {
             throw new NotImplementedException();
         }
-        public override bool CanBeBuild(byte x, byte y) {
+        public override bool CanBeBuild(byte x, byte y, Model model) {
             throw new NotImplementedException();
         }
         public override string GetInfo() {
@@ -251,14 +251,14 @@ namespace LunaparkGame
     }
     public class LittleComplementaryAmusementsFactory : AmusementsFactory {
 
-        public LittleComplementaryAmusementsFactory(Model m, int prize, int fee, int capacity, int runningTime, string name)
-            : base(prize, m, fee, capacity, runningTime, name, hasEntranceExit: false) {
+        public LittleComplementaryAmusementsFactory(int prize, int fee, int capacity, int runningTime, string name)
+            : base(prize, fee, capacity, runningTime, name, hasEntranceExit: false) {
 
         }
-        public override MapObjects Build(byte x, byte y) {
+        public override MapObjects Build(byte x, byte y, Model model) {
             throw new NotImplementedException();
         }
-        public override bool CanBeBuild(byte x, byte y) {
+        public override bool CanBeBuild(byte x, byte y, Model model) {
             throw new NotImplementedException();
         }
         public override string GetInfo() {
@@ -308,15 +308,15 @@ namespace LunaparkGame
 
     public class RestaurantFactory : SquareAmusementsFactory {
 
-        public RestaurantFactory(Model m, int prize, int foodPrize, int capacity, string name)  
-          :base(prize, m, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1){        
+        public RestaurantFactory(int prize, int foodPrize, int capacity, string name)  
+          :base(prize, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1){        
         }
        
-        public override bool CanBeBuild(byte x, byte y) {
+        public override bool CanBeBuild(byte x, byte y, Model model) {
             if (x > model.playingWidth || y > model.playingHeight) return false;
             return model.maps.isFree(x, y);
         }
-        public override MapObjects Build(byte x, byte y) {
+        public override MapObjects Build(byte x, byte y, Model model) {
             return new Restaurant(new Coordinates(x, y), model, prize, entranceFee, capacity, name, color);
         }
         public override string GetInfo() {

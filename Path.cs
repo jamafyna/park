@@ -13,6 +13,7 @@ namespace LunaparkGame
             : base(m, prize: 0, tangible: tangible) //not call base(m,c) because dont want to add to maps
         {
             this.coord = c;
+            this.amusement = a;
             model.maps.AddEntranceExit(this);
         }
     }
@@ -22,22 +23,23 @@ namespace LunaparkGame
 
         public AmusementEnterPath(Model m, Coordinates c, Amusements a, bool tangible = true)
             : base(m, c, a, tangible) {
+                model.mustBeEnter = false;
         }
 
         public override void Destruct() {
             model.maps.RemoveEntranceExit(this);
             model.dirtyDestruct.Enqueue(this);
-            model.LastBuiltAmus = this.amusement;
-            model.mustBeEnter = true;
+          //  model.LastBuiltAmus = this.amusement;
+         //   model.mustBeEnter = true;
         }
     }
     public class AmusementEnterPathFactory : PathFactory {
         Amusements a;
-        public AmusementEnterPathFactory(Model m, Amusements a) :base(prize:0, m: m, name: "") {
+        public AmusementEnterPathFactory(Amusements a) :base(prize:0, name: "") {
             this.a = a;
         }
 #warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
-        public override MapObjects Build(byte x, byte y) {
+        public override MapObjects Build(byte x, byte y, Model model) {
             return new AmusementEnterPath(model, new Coordinates(x, y), a);
         }
     }
@@ -47,19 +49,20 @@ namespace LunaparkGame
         public override void Destruct() {
             model.maps.RemoveEntranceExit(this);
             model.dirtyDestruct.Enqueue(this);
-            model.LastBuiltAmus = this.amusement;
-            if (!model.mustBeEnter) model.mustBeExit = true;
+            model.mustBeExit = false;
+         //   model.LastBuiltAmus = this.amusement;
+         //   if (!model.mustBeEnter) model.mustBeExit = true;
 
         }
     }
     public class AmusementExitPathFactory : PathFactory {
         Amusements a;
-        public AmusementExitPathFactory(Model m, Amusements a)
-            : base(prize: 0, m: m, name: "") {
+        public AmusementExitPathFactory(Amusements a)
+            : base(prize: 0, name: "") {
             this.a = a;
         }
 #warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
-        public override MapObjects Build(byte x, byte y) {
+        public override MapObjects Build(byte x, byte y, Model model) {
             return new AmusementEnterPath(model, new Coordinates(x, y), a);
         }
     }
@@ -73,10 +76,10 @@ namespace LunaparkGame
         
     }
     public class StonePathFactory : PathFactory {
-        public StonePathFactory(Model m, int prize, string name) 
-        : base(m, prize, name) {         
+        public StonePathFactory(int prize, string name) 
+        : base(prize, name) {         
         }
-        public override MapObjects Build(byte x, byte y) {
+        public override MapObjects Build(byte x, byte y, Model model) {
             return new StonePath(model, new Coordinates(x, y), prize, name);
         }
     }
@@ -89,10 +92,10 @@ namespace LunaparkGame
 
     }
     public class AsphaltPathFactory : PathFactory {
-        public AsphaltPathFactory(Model m, int prize, string name)
-            : base(m, prize, name) {
+        public AsphaltPathFactory(int prize, string name)
+            : base( prize, name) {
         }
-        public override MapObjects Build(byte x, byte y) {
+        public override MapObjects Build(byte x, byte y, Model model) {
             return new AsphaltPath(model, new Coordinates(x, y), prize, name);
         }
     }
@@ -104,10 +107,10 @@ namespace LunaparkGame
         
     }
     public class SandPathFactory : PathFactory {
-        public SandPathFactory(Model m, int prize, string name)
-            : base(m, prize, name) {
+        public SandPathFactory(int prize, string name)
+            : base(prize, name) {
         }
-        public override MapObjects Build(byte x, byte y) {
+        public override MapObjects Build(byte x, byte y, Model model) {
             return new SandPath(model, new Coordinates(x, y), prize, name);
         }
     }
@@ -118,10 +121,10 @@ namespace LunaparkGame
        
     }
     public class MarblePathFactory : PathFactory {
-        public MarblePathFactory(Model m, int prize, string name)
-            : base(m, prize, name) {
+        public MarblePathFactory(int prize, string name)
+            : base(prize, name) {
         }
-        public override MapObjects Build(byte x, byte y) {
+        public override MapObjects Build(byte x, byte y, Model model) {
             return new MarblePath(model, new Coordinates(x, y), prize, name);
         }
     }

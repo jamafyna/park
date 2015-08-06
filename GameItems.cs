@@ -32,10 +32,9 @@ namespace LunaparkGame
     }*/
     public abstract class MapObjectsFactory {
         public readonly int prize;
-        protected readonly Model model;
-        public MapObjectsFactory(int prize, Model m) { 
+        public MapObjectsFactory(int prize) { 
             this.prize = prize;
-            this.model = m;
+           
         }
        /// <summary>
        /// 
@@ -43,8 +42,8 @@ namespace LunaparkGame
        /// <param name="x">The intern x-coordinate of the playing map.</param>
         /// <param name="y">The intern x-coordinate of the playing map.</param>
        /// <returns>true if all conditions of building are satisfied, otherwise false.</returns>
-        public abstract bool CanBeBuild(byte x, byte y);
-        public abstract MapObjects Build(byte x, byte y);
+        public abstract bool CanBeBuild(byte x, byte y, Model model);
+        public abstract MapObjects Build(byte x, byte y, Model model);
     }
 
     public class MyDebugException : Exception
@@ -444,7 +443,7 @@ namespace LunaparkGame
         public readonly bool hasSeparatedEnterExit;
         public Color color;
 
-        public AmusementsFactory(int prize, Model m, int fee, int capacity, int runningTime, string name, bool hasEntranceExit) : base(prize, m) {
+        public AmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit) : base(prize) {
             this.entranceFee = fee;
             this.capacity = capacity;
             this.runningTime = runningTime;
@@ -452,7 +451,7 @@ namespace LunaparkGame
             this.hasSeparatedEnterExit = hasEntranceExit;
             this.color = Color.Yellow;
         }
-        public AmusementsFactory(int prize, Model m):base(prize, m){}
+        public AmusementsFactory(int prize):base(prize){}
         protected static bool CheckFreeLocation(byte x, byte y, Model model, byte width, byte height, bool hasSeparatedEntranceAndExit = true) {
             if (x + width > model.playingWidth + 1 || y + height > model.playingHeight + 1) return false;
             for (byte i = x; i < x + width; i++) {
@@ -509,11 +508,11 @@ namespace LunaparkGame
     }
     public abstract class PathFactory: MapObjectsFactory{
         public readonly string name;
-        public PathFactory(Model m, int prize, string name)
-        : base(prize, m) {
+        public PathFactory(int prize, string name)
+        : base(prize) {
             this.name = name;
         }
-        public override bool CanBeBuild(byte x, byte y) {
+        public override bool CanBeBuild(byte x, byte y, Model model) {
             return true;
         }
     }

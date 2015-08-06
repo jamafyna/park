@@ -15,6 +15,7 @@ namespace LunaparkGame
         MainForm form;
         Control map;
         List<IUpdatable> forms = new List<IUpdatable>();
+        Dictionary<string,Image> images=new Dictionary<string, Image>();
 
         public View(Model m, MainForm form)
         {
@@ -104,6 +105,7 @@ namespace LunaparkGame
                     map.Controls.SetChildIndex(pbox, 0);
                     pbox.Left = o.coord.x * MainForm.sizeOfSquare + 1;
                     pbox.Top = o.coord.y * MainForm.sizeOfSquare + 1;
+                    pbox.BackColor = ((Restaurant)o).color;
                     pbox.Visible = true;
                     o.Control = pbox;
 

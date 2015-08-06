@@ -21,7 +21,7 @@ namespace LunaparkGame
            // CreateNewItem(Properties.Images.amus_iceCream,new RestaurantFactory(model,0,50,1,"ice-cream"));
             for (int i = 0; i < 30; i++)
             {
-                CreateNewItem(Properties.Images.path_asphalt, new AsphaltPathFactory(model,0,"asphalt"));
+                CreateNewItem(Properties.Images.path_asphalt, new AsphaltPathFactory(0,"asphalt"));
             }
             
         }

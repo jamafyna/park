@@ -209,8 +209,14 @@ namespace LunaparkGame
                     model.LastBuiltAmus.CheckExitAndBuild(x, y); //if not succeed, no annoing error-text                  
                     return;
                 }
-                if (model.LastClick.prize > model.GetMoney()) { MessageBox.Show(Notices.cannotBuyNoMoney, Labels.warningMessBox, MessageBoxButtons.OK); return; }
-                if (model.LastClick.CanBeBuild(x, y)) model.LastClick.Build(x, y);
+                if (model.LastClick.prize > model.GetMoney()) { 
+                    MessageBox.Show(Notices.cannotBuyNoMoney, Labels.warningMessBox, MessageBoxButtons.OK); 
+                    return;
+                }
+                if (model.LastClick.CanBeBuild(x, y, model)) {
+                    model.LastClick.Build(x, y, model);
+                    if (model.LastClick is AmusementsFactory) model.SetNullToLastClick();
+                }
                 /* if (model.LastClick is Amusements) {
                     if (((Amusements)model.LastClick).CheckFreeLocation(x, y)) {
                         object[] arg = { model, new Coordinates(x, y) };
@@ -224,7 +230,7 @@ namespace LunaparkGame
                     Activator.CreateInstance(model.LastClick.GetType(), arg);
                 }*/
                 #endregion
-#warning rusim tu schopnost prekladace spravne kontrolovat - nezajisti mi, ze dana trida bude mit spravny konstruktor
+
             }
 
         }

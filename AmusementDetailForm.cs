@@ -29,6 +29,7 @@ namespace LunaparkGame
             {
                 color = colorDialog.Color;
                 this.pictureBox.BackColor = color;
+                ((AmusementsFactory)(this.build_button.Tag)).color = color;
             }
         }
         public void Set(AmusementsFactory click, Image image) {
