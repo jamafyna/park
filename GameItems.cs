@@ -25,7 +25,9 @@ namespace LunaparkGame
     public interface IClickable { 
     
     }
-
+    public interface IButtonCreatable {
+        int InternTypeId { get; set; }
+    }
     public abstract class MapObjectsFactory {
         public int internTypeId;
         public readonly string name;
@@ -87,11 +89,11 @@ namespace LunaparkGame
 
         }
         public MapObjects(Model m,Coordinates coord, int prize, bool tangible=true):this(m, prize, tangible)
-        {
-            
+        {            
             this.coord = coord;
         }
        
+
         /// <summary>
         /// user action
         /// </summary>
@@ -103,7 +105,7 @@ namespace LunaparkGame
             model.dirtyDestruct.Enqueue(this);
         }
         public abstract void GetRealSize(out int width, out int height);
-
+        public abstract void GetRealCoordinates(out int x, out int y);
 
     }
 
@@ -111,11 +113,12 @@ namespace LunaparkGame
     /// <summary>
     /// ts,pokud se pouzivaji fce Destruct/Click...z hlavniho vlakna
     /// </summary>
-    public abstract class Amusements : MapObjects,IActionable
+    public abstract class Amusements : MapObjects, IActionable, IButtonCreatable
     {
         #region
         public enum Status { waitingForPeople, running, outOfService, runningOut }
-       
+
+        public int InternTypeId { get { return typeId; } set { } }
         public int id { get; private set; }
         public AmusementPath entrance { get; protected set; } 
         public AmusementPath exit { get; protected set; }
@@ -387,7 +390,10 @@ namespace LunaparkGame
             else return false;
         }
         protected abstract bool IsInsideInAmusement(int x, int y);
-        
+        public override void GetRealCoordinates(out int x, out int y) {
+            x = this.coord.x * MainForm.sizeOfSquare;
+            y = this.coord.y * MainForm.sizeOfSquare;
+        }
         /// <summary>
         /// Returns all points on which the amusement lies except the entrance and the exit.
         /// </summary>
@@ -456,10 +462,11 @@ namespace LunaparkGame
         public abstract string GetInfo();
     }
 
-    public abstract class Path : MapObjects {
+    public abstract class Path : MapObjects, IButtonCreatable {
         public Direction[] signpostAmus;//rozcestnik
         public readonly string name;
         public readonly int typeId;
+        public int InternTypeId { get { return typeId; } set { } }
         
         protected Path(Model m, int prize, bool tangible = true)
             : base(m, prize, tangible) {
@@ -489,7 +496,10 @@ namespace LunaparkGame
             width = MainForm.sizeOfSquare;
             height = MainForm.sizeOfSquare;
         }
-
+        public override void GetRealCoordinates(out int x, out int y) {
+            x = this.coord.x * MainForm.sizeOfSquare;
+            y = this.coord.y * MainForm.sizeOfSquare;
+        }
     }
     public abstract class PathFactory: MapObjectsFactory{
         public PathFactory(int prize, string name)
@@ -701,6 +711,13 @@ namespace LunaparkGame
         public System.Drawing.Point GetRealCoordinatesUnsynchronized() {
             return new System.Drawing.Point(x,y);
         }
+        public override void GetRealCoordinates(out int x, out int y) {
+            lock (xyLock) {
+                x = this.x;
+                y = this.y;
+            }
+        }
+        
         public int GetContentment() {
             return contentment;
         }

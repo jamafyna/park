@@ -99,7 +99,7 @@ namespace LunaparkGame
                 
                 }
 
-                else if (o.GetType() == typeof(AmusementEnterPath) || o.GetType() == typeof(AmusementExitPath)) {
+               /* else if (o.GetType() == typeof(AmusementEnterPath) || o.GetType() == typeof(AmusementExitPath)) {
                     pbox = new PictureBox();
                     pbox.BackColor = Color.Blue;
 
@@ -112,18 +112,24 @@ namespace LunaparkGame
                     pbox.Visible = true;
                     o.Control = pbox;
 
-                }
+                }*/
                 else {
                     pbox = new PictureBox();
-                    pbox.Width = MainForm.sizeOfSquare - 1;
-                    pbox.Height = MainForm.sizeOfSquare - 1;
+                    int a, b;
+                    o.GetRealSize(out a, out b);
+                    pbox.Width = a - 1;
+                    pbox.Height = b - 1;
                     pbox.Parent = map;
-                    map.Controls.SetChildIndex(pbox, 0);
-                    pbox.Left = o.coord.x * MainForm.sizeOfSquare + 1;
-                    pbox.Top = o.coord.y * MainForm.sizeOfSquare + 1;
+                    map.Controls.SetChildIndex(pbox, o.zIndex);
+                    o.GetRealCoordinates(out a, out b);
+                    pbox.Left = a + 1;
+                    pbox.Top = b + 1;
                     pbox.Visible = true;
+                   
+                    if (o.GetType() == typeof(AmusementEnterPath)) pbox.BackColor = Color.Red;
+                    else if (o.GetType() == typeof(AmusementExitPath)) pbox.BackColor = Color.Blue;
+                    else pbox.BackgroundImage=images[((IButtonCreatable)o).InternTypeId];
                     o.Control = pbox;
-                
                 }
                /* else if (o.GetType() == typeof(AsphaltPath)) {
                     pbox = new PictureBox();
