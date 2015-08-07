@@ -30,7 +30,7 @@ namespace LunaparkGame
             AmusementsForm amusform = new AmusementsForm(model, mainDockPanel, amusementsToolStripMenuItem);
             PathForm pathform = new PathForm(model, pathToolStripMenuItem);
             AccessoriesForm otherform = new AccessoriesForm(model, accessoriesToolStripMenuItem);
-            view = new View(model, this, amusform, pathform, otherform, data);
+            view = new View(model, this, mainDockPanel, amusform, pathform, otherform, data);
             mapform = new MapForm(model, view, playingWidth, playingHeight);
 
             amusform.Show(mainDockPanel);

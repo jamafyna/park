@@ -69,15 +69,7 @@ namespace LunaparkGame
         public int zIndex { protected set ; get; }
         public Coordinates coord { protected set; get; }
         protected Model model;
-        private Control control;
-        public Control Control
-        {
-            get { return control; }
-            set
-            {              
-                control = value;
-                control.Click += new EventHandler(Click); //hash: overit, ze se opravdu nastavi
-        } } 
+        public Control control;
         public bool isClicked = false;
         public readonly int prize;
         public MapObjects() { }
@@ -116,7 +108,7 @@ namespace LunaparkGame
     public abstract class Amusements : MapObjects, IActionable, IButtonCreatable
     {
         #region
-        public enum Status { waitingForPeople, running, outOfService, runningOut }
+        public enum Status { waitingForPeople, running, outOfService, runningOut, disposing }
 
         public int InternTypeId { get { return typeId; } set { } }
         public int id { get; private set; }
@@ -129,6 +121,7 @@ namespace LunaparkGame
         /// Contains people who are in the amusement now.
         /// </summary>
         protected List<Person> peopleInList;
+        public Status State { get { return status; } set { status = value; } }
         protected Status status=Status.outOfService;
         public int CountOfWaitingPeople
         {
@@ -140,12 +133,13 @@ namespace LunaparkGame
             private set { }
         }
         protected int waitingTime = 0, actRunningTime=0;
-        protected bool isRunningOut=false;
+        protected bool isRunningOut = false;
         protected bool isRunning = false;
         //-------characteristics-------------
         public readonly int typeId;
         public readonly int capacity, originalFee;
-        public int currFee;
+        private int currFee;
+        public int CurrFee { get { return currFee; } set { if (value > 0) currFee = value; } }
         protected readonly int maxWaitingTime, fixedRunningTime;        
         public readonly string name;
         protected readonly bool hasSeparatedEnterExit;
@@ -175,18 +169,12 @@ namespace LunaparkGame
             peopleInList = new List<Person>(capacity);           
             model.amusList.Add(this);
             model.maps.AddAmus(this);
-            model.CheckCheapestFee(this.currFee);          
+            model.CheckCheapestFee(this.CurrFee);          
            // mimoProvoz = true;
            // zacatek = true;
          
         }
 
-        public int GetEntranceFee() {
-            return currFee;
-        }
-        public void SetEntranceFee(int value) {
-            if (value > 0) currFee = value;
-        }
         /// <summary>
         /// Demolish the amusement, remove it from the maps and the amusList, refund money.
         /// </summary>
@@ -196,6 +184,7 @@ namespace LunaparkGame
 #warning entrance a exit by mely byt nejspis nejak zabezpeceny (v pripade, ze je null a pak se nastavi na nenull)
             if(entrance != null) entrance.Destruct();
             if(exit !=null) exit.Destruct();
+            this.status = Status.disposing;
             model.MoneyAdd(refundCoef * prize);//refund money
             model.amusList.Remove(this);
             model.maps.RemoveAmus(this);
@@ -216,7 +205,7 @@ namespace LunaparkGame
                     p.visible = false;
                     p.status = Person.Status.inAmus;
                     peopleInList.Add(p);
-                    p.AddMoney (- this.currFee);                    
+                    p.AddMoney (- this.CurrFee);                    
                 }
                 catch (NullReferenceException e) {
                     throw new MyDebugException("Not expected null in pickUpPeople: " + e.ToString());
@@ -225,7 +214,7 @@ namespace LunaparkGame
                     throw new MyDebugException("Not expected null in pickUpPeople: " + e.ToString());
                 }
             }
-            model.MoneyAdd(n * this.currFee);        
+            model.MoneyAdd(n * this.CurrFee);        
         }
         protected virtual void DropPeopleOff(){
             int quarter=MainForm.sizeOfSquare/4;
@@ -401,9 +390,7 @@ namespace LunaparkGame
         public abstract List<Coordinates> GetAllPoints();
         public override void Click(object sender, EventArgs e)
         {
-           // if (!zacatek)
-          //  { 
-                if (model.demolishOn) // it is called in the same thread as changing demolishOn -> OK
+               if (model.demolishOn) // it is called in the same thread as changing demolishOn -> OK
                 {
                     if (status == Status.outOfService)
                     {
@@ -417,11 +404,17 @@ namespace LunaparkGame
                 }
                 else
                 {
-                    model.dirtyClick.Enqueue(this);
+                    if (!isClicked) { model.dirtyClick.Enqueue(this); isClicked = true; }
+                    
                 }
            // }
         }
-
+        public bool isDemolishedEntrance() {
+            return (hasSeparatedEnterExit && entrance == null);
+        }
+        public bool isDemolishedExit() {
+            return (hasSeparatedEnterExit && exit == null);
+        }
     }
     public abstract class AmusementsFactory : MapObjectsFactory {
         public readonly int entranceFee, capacity, runningTime;
@@ -515,7 +508,7 @@ namespace LunaparkGame
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
         private static Random rand = new Random();
         const int minMoney = 200, maxMoney = 2000, minPatience=10, maxPatience=100;
-        public enum Status {initialWalking, walking, onCrossroad, inAmusQueue, inAmus,choosesAmus, end }
+        public enum Status {initialWalking, walking, onCrossroad, inAmusQueue, inAmus,choosesAmus, disposing }
 
         private int money; 
         private readonly int patience;
@@ -583,11 +576,11 @@ namespace LunaparkGame
                                     status = Status.choosesAmus; return;
                                 }
                                 if (currAmus.id != CurrAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
-                                if (currAmus.GetEntranceFee() > maxAcceptablePrice){
+                                if (currAmus.CurrFee > maxAcceptablePrice){
                                     AddContentment(-40);//todo: nastavit poradne
                                     status = Status.choosesAmus;
                                 }
-                                else if (currAmus.GetEntranceFee() > money) {
+                                else if (currAmus.CurrFee > money) {
                                     AddContentment(-10);//todo: nastavit poradne
                                     status = Status.choosesAmus;
                                 
@@ -669,9 +662,8 @@ namespace LunaparkGame
                     else status = Status.choosesAmus;
                     #endregion
                     }
-
                     break;               
-                case Status.end://todo: je vubec k necemu???
+                case Status.disposing:// nothing
                     break;
                 default:
                     break;
@@ -683,7 +675,8 @@ namespace LunaparkGame
         /// </summary>
         /// <returns>An nonnegative int, which represents the id of an amusement</returns>
         public int ChooseAmusement() {
-       /*     if(money<model.currCheapestFee) return model.amusList.GetGateId();//person cannot afford pay any amusement
+            
+       /*     if(money<model.currCheapestFee || model.gate.State==Amusements.Status.runningOut) return model.amusList.GetGateId();//person cannot afford pay any amusement
             if (contentment == 0) return model.amusList.GetGateId();
             if (hunger > 1800) //2000=100 %, i.e. 2000*0.9
                 return model.amusList.GetRandomRestaurant(); //kdyz je hlad > 90%, vybira obcerstveni
@@ -757,11 +750,8 @@ namespace LunaparkGame
         
         public override void Click(object sender, EventArgs e)
         {
-           /* if (!isClicked)
-            {*/
-                model.dirtyClick.Enqueue(this);
-            /*    isClicked = true;
-            }*/
+            if (!isClicked) { model.dirtyClick.Enqueue(this); isClicked = true; }
+          
         }
 
 
@@ -773,10 +763,11 @@ namespace LunaparkGame
         {
             model.persList.Remove(this);
             model.dirtyDestruct.Enqueue(this);
-
+            this.status = Status.disposing;
         }
         public void DestructWithoutListRemove() {
             model.dirtyDestruct.Enqueue(this);
+            this.status = Status.disposing;
         }
 
 

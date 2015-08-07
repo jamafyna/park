@@ -53,6 +53,12 @@
     <Compile Include="AccessoriesForm.Designer.cs">
       <DependentUpon>AccessoriesForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="AmusementBuyForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AmusementBuyForm.Designer.cs">
+      <DependentUpon>AmusementBuyForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="AmusementDetailForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -136,6 +142,9 @@
     <Compile Include="View.cs" />
     <EmbeddedResource Include="AccessoriesForm.resx">
       <DependentUpon>AccessoriesForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AmusementBuyForm.resx">
+      <DependentUpon>AmusementBuyForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="AmusementDetailForm.resx">
       <DependentUpon>AmusementDetailForm.cs</DependentUpon>

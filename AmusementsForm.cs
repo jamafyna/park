@@ -11,7 +11,7 @@ namespace LunaparkGame
 {
     public partial class AmusementsForm : WeifenLuo.WinFormsUI.Docking.DockContent
     {
-        AmusementDetailForm detailForm;
+        AmusementBuyForm detailForm;
         DockPanel dockP;
         ToolStripMenuItem amusItem;
         Panel lastItem;
@@ -20,7 +20,7 @@ namespace LunaparkGame
         {
             InitializeComponent();
             dockP = parent;
-            detailForm = new AmusementDetailForm(model,parent);
+            detailForm = new AmusementBuyForm(model,parent);
             this.amusItem = amusement;
         }
 

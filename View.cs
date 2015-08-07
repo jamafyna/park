@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace LunaparkGame
 {
@@ -15,6 +16,7 @@ namespace LunaparkGame
         Control map;
         List<IUpdatable> forms = new List<IUpdatable>();
         Image[] images;
+        DockPanel dockPanel;
         public AmusementsForm amusform;
         public PathForm pathform;
         public AccessoriesForm accform;
@@ -22,10 +24,11 @@ namespace LunaparkGame
         public Queue<PathFactory> notAddedPaths;
         public Queue<MapObjectsFactory> notAddedOthers;
 
-        public View(Model m, MainForm form, AmusementsForm amform, PathForm pform,  AccessoriesForm oform, Data data)
+        public View(Model m, MainForm form, DockPanel mainDockPanel, AmusementsForm amform, PathForm pform,  AccessoriesForm oform, Data data)
         {
             this.model = m;
             this.form = form;
+            this.dockPanel = mainDockPanel;
             this.amusform = amform;
             this.pathform = pform;
             this.accform = oform;
@@ -35,8 +38,8 @@ namespace LunaparkGame
             this.images = data.GetImages();
             foreach (var item in data.initialAmus) amusform.CreateNewItem(images[item.internTypeId], item);
             foreach (var item in data.initialPaths) pathform.CreateNewItem(images[item.internTypeId], item);
-            foreach (var item in data.initialOthers) accform.CreateNewItem(images[item.internTypeId], item);  
-            
+            foreach (var item in data.initialOthers) accform.CreateNewItem(images[item.internTypeId], item);
+            data = null; // due to GC
 
         }
         public void Action()
@@ -51,8 +54,8 @@ namespace LunaparkGame
         private void PeopleMove() {
             foreach (Person p in model.persList) {
                // p.Control.Location = p.GetRealCoordinates();
-                p.Control.Location = p.GetRealCoordinatesUnsynchronized();
-                p.Control.Visible = p.visible;
+                p.control.Location = p.GetRealCoordinatesUnsynchronized();
+                p.control.Visible = p.visible;
                 
                // p.Control.Left++;
                     
@@ -63,7 +66,7 @@ namespace LunaparkGame
             MapObjects o;
             while(model.dirtyDestruct.TryDequeue(out o))
             {
-               if(o.Control!=null) o.Control.Dispose(); 
+               if(o.control!=null) o.control.Dispose(); 
             }
         }
         public static PictureBox PictureBoxCopy(PictureBox p) {
@@ -72,11 +75,10 @@ namespace LunaparkGame
         private void NewDirty()
         {            
             MapObjects o;
-            PictureBox original;
             PictureBox pbox;
             while (model.dirtyNew.TryDequeue(out o))
             {
-                if (o is Person) {
+                if (o is Person) { //todo: idealne smazat a vykreslovat vzdy
                     pbox = new PictureBox();
                     //obrazek hlavy
                     pbox.BackgroundImage = Properties.Images.person_head;
@@ -93,27 +95,11 @@ namespace LunaparkGame
                     pbox.Location = ((Person)o).GetRealCoordinates();
                     pbox.Parent = map;
                     map.Controls.SetChildIndex(pbox, 0);
-                  //  vzhled.Click+=new EventHandler(((Person)o).Click);
-                    o.Control = pbox;
-                    
-                
+                    pbox.Click+=new EventHandler(o.Click);
+                    o.control = pbox;               
                 }
 
-               /* else if (o.GetType() == typeof(AmusementEnterPath) || o.GetType() == typeof(AmusementExitPath)) {
-                    pbox = new PictureBox();
-                    pbox.BackColor = Color.Blue;
-
-                    pbox.Width = MainForm.sizeOfSquare - 1;
-                    pbox.Height = MainForm.sizeOfSquare - 1;
-                    pbox.Parent = map;
-                    map.Controls.SetChildIndex(pbox, 0);
-                    pbox.Left = o.coord.x * MainForm.sizeOfSquare + 1;
-                    pbox.Top = o.coord.y * MainForm.sizeOfSquare + 1;
-                    pbox.Visible = true;
-                    o.Control = pbox;
-
-                }*/
-                else {
+               else {
                     pbox = new PictureBox();
                     int a, b;
                     o.GetRealSize(out a, out b);
@@ -125,51 +111,12 @@ namespace LunaparkGame
                     pbox.Left = a + 1;
                     pbox.Top = b + 1;
                     pbox.Visible = true;
-                   
+                    pbox.Click += new EventHandler(o.Click);
                     if (o.GetType() == typeof(AmusementEnterPath)) pbox.BackColor = Color.Red;
                     else if (o.GetType() == typeof(AmusementExitPath)) pbox.BackColor = Color.Blue;
                     else pbox.BackgroundImage=images[((IButtonCreatable)o).InternTypeId];
-                    o.Control = pbox;
+                    o.control = pbox;
                 }
-               /* else if (o.GetType() == typeof(AsphaltPath)) {
-                    pbox = new PictureBox();
-                    pbox.BackgroundImage = Properties.Images.path_asphalt;
-                    pbox.Width = MainForm.sizeOfSquare - 1;
-                    pbox.Height = MainForm.sizeOfSquare - 1;
-                    pbox.Parent = map;
-                    map.Controls.SetChildIndex(pbox,10);
-                    pbox.Left = o.coord.x * MainForm.sizeOfSquare + 1;
-                    pbox.Top = o.coord.y * MainForm.sizeOfSquare + 1;
-                    pbox.Visible = true;
-                    o.Control = pbox;
-                    
-                }
-                else if (o.GetType() == typeof(Restaurant)) {
-                    pbox = new PictureBox();
-                    pbox.BackgroundImage = Properties.Images.amus_iceCream ;
-                    pbox.BackgroundImageLayout = ImageLayout.Zoom;
-                    pbox.Width = ((Restaurant)o).width * MainForm.sizeOfSquare - 1;
-                    pbox.Height = ((Restaurant)o).width * MainForm.sizeOfSquare - 1;
-                    pbox.Parent = map;
-                    map.Controls.SetChildIndex(pbox, 0);
-                    pbox.Left = o.coord.x * MainForm.sizeOfSquare + 1;
-                    pbox.Top = o.coord.y * MainForm.sizeOfSquare + 1;
-                    pbox.BackColor = ((Restaurant)o).color;
-                    pbox.Visible = true;
-                    o.Control = pbox;
-
-                }*/
-
-             /*   else if (data.dict.TryGetValue(o.GetType(), out original))
-                {
-                    pbox = PictureBoxCopy(original);
-                    pbox.Left = o.coord.x*MainForm.sizeOfSquare + 1;
-                    pbox.Top = o.coord.y*MainForm.sizeOfSquare + 1;
-                    pbox.Parent = form.map;
-                    map.Controls.SetChildIndex(pbox, (int)pbox.Tag);
-                    o.Control = pbox;
-                }
-                else throw new MyDebugException("View.NewDirty - dict nebyl klic");*/
             }
 
         }
@@ -181,8 +128,13 @@ namespace LunaparkGame
             MapObjects o;
             while (model.dirtyClick.TryDequeue(out o)) {
                 if (o is Person) { 
-                    //if clicked...
-                    forms.Add( new PersonUserControl((Person)o,map));
+                   
+                    forms.Add( new PersonUserControl((Person)o,map));                    
+                }
+                if (o is Amusements) {
+                    AmusementDetailForm f = new AmusementDetailForm(model, (Amusements)o, images[((Amusements)o).InternTypeId]);
+                    f.Show(dockPanel);
+                    forms.Add(f);
                 }
             }
         
@@ -246,7 +198,7 @@ namespace LunaparkGame
             pbox.BackgroundImage = Properties.Images.gate;
             pbox.BackgroundImageLayout = ImageLayout.Zoom;
             pbox.Click += new EventHandler(g.Click);
-            g.Control = pbox;
+            g.control = pbox;
             
            
         }

@@ -1,7 +1,5 @@
-﻿namespace LunaparkGame
-{
-    partial class AmusementDetailForm
-    {
+﻿namespace LunaparkGame {
+    partial class AmusementDetailForm {
         /// <summary>
         /// Required designer variable.
         /// </summary>
@@ -11,10 +9,8 @@
         /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
+        protected override void Dispose(bool disposing) {
+            if (disposing && (components != null)) {
                 components.Dispose();
             }
             base.Dispose(disposing);
@@ -26,70 +22,117 @@
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
         /// </summary>
-        private void InitializeComponent()
-        {
-            this.changeColor_button = new System.Windows.Forms.Button();
-            this.build_button = new System.Windows.Forms.Button();
+        private void InitializeComponent() {
+            this.prize_numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.outOfService_button = new System.Windows.Forms.Button();
+            this.prize_label = new System.Windows.Forms.Label();
             this.pictureBox = new System.Windows.Forms.PictureBox();
             this.info_label = new System.Windows.Forms.Label();
-            this.colorDialog = new System.Windows.Forms.ColorDialog();
+            this.entrance_button = new System.Windows.Forms.Button();
+            this.exit_button = new System.Windows.Forms.Button();
+            ((System.ComponentModel.ISupportInitialize)(this.prize_numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
             this.SuspendLayout();
             // 
-            // changeColor_button
+            // prize_numericUpDown1
             // 
-            this.changeColor_button.Location = new System.Drawing.Point(12, 240);
-            this.changeColor_button.Name = "changeColor_button";
-            this.changeColor_button.Size = new System.Drawing.Size(134, 32);
-            this.changeColor_button.TabIndex = 0;
-            this.changeColor_button.Text = global::LunaparkGame.Labels.changeColor;
-            this.changeColor_button.UseVisualStyleBackColor = true;
-            this.changeColor_button.Click += new System.EventHandler(this.changeColor_button_Click);
+            this.prize_numericUpDown1.Location = new System.Drawing.Point(92, 201);
+            this.prize_numericUpDown1.Maximum = new decimal(new int[] {
+            300,
+            0,
+            0,
+            0});
+            this.prize_numericUpDown1.Name = "prize_numericUpDown1";
+            this.prize_numericUpDown1.Size = new System.Drawing.Size(85, 20);
+            this.prize_numericUpDown1.TabIndex = 5;
+            this.prize_numericUpDown1.Value = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            this.prize_numericUpDown1.ValueChanged += new System.EventHandler(this.prize_numericUpDown1_ValueChanged);
             // 
-            // build_button
+            // outOfService_button
             // 
-            this.build_button.Location = new System.Drawing.Point(12, 278);
-            this.build_button.Name = "build_button";
-            this.build_button.Size = new System.Drawing.Size(134, 32);
-            this.build_button.TabIndex = 1;
-            this.build_button.Text = global::LunaparkGame.Labels.buildButton;
-            this.build_button.UseVisualStyleBackColor = true;
-            this.build_button.Click += new System.EventHandler(this.build_button_Click);
+            this.outOfService_button.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.outOfService_button.BackColor = System.Drawing.Color.Red;
+            this.outOfService_button.Font = new System.Drawing.Font("Comic Sans MS", 8.25F);
+            this.outOfService_button.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.outOfService_button.Location = new System.Drawing.Point(6, 150);
+            this.outOfService_button.Name = "outOfService_button";
+            this.outOfService_button.Size = new System.Drawing.Size(114, 40);
+            this.outOfService_button.TabIndex = 6;
+            this.outOfService_button.Text = global::LunaparkGame.Labels.outOfService;
+            this.outOfService_button.UseVisualStyleBackColor = false;
+            this.outOfService_button.Click += new System.EventHandler(this.outOfService_button_Click);
+            // 
+            // prize_label
+            // 
+            this.prize_label.AutoSize = true;
+            this.prize_label.Location = new System.Drawing.Point(12, 204);
+            this.prize_label.Name = "prize_label";
+            this.prize_label.Size = new System.Drawing.Size(74, 13);
+            this.prize_label.TabIndex = 7;
+            this.prize_label.Text = "Entrance fee: ";
             // 
             // pictureBox
             // 
-            this.pictureBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
-            this.pictureBox.Location = new System.Drawing.Point(15, 21);
+            this.pictureBox.Location = new System.Drawing.Point(6, 12);
             this.pictureBox.Name = "pictureBox";
-            this.pictureBox.Size = new System.Drawing.Size(131, 117);
-            this.pictureBox.TabIndex = 2;
+            this.pictureBox.Size = new System.Drawing.Size(171, 121);
+            this.pictureBox.TabIndex = 8;
             this.pictureBox.TabStop = false;
             // 
             // info_label
             // 
             this.info_label.AutoSize = true;
-            this.info_label.Location = new System.Drawing.Point(12, 151);
+            this.info_label.Location = new System.Drawing.Point(12, 273);
             this.info_label.Name = "info_label";
-            this.info_label.Size = new System.Drawing.Size(35, 13);
-            this.info_label.TabIndex = 3;
-            this.info_label.Text = "label1";
+            this.info_label.Size = new System.Drawing.Size(0, 13);
+            this.info_label.TabIndex = 9;
+            // 
+            // entrance_button
+            // 
+            this.entrance_button.Location = new System.Drawing.Point(6, 238);
+            this.entrance_button.Name = "entrance_button";
+            this.entrance_button.Size = new System.Drawing.Size(75, 23);
+            this.entrance_button.TabIndex = 10;
+            this.entrance_button.Text = global::LunaparkGame.Labels.entrainceBuild;
+            this.entrance_button.UseVisualStyleBackColor = true;
+            this.entrance_button.Visible = false;
+            this.entrance_button.Click += new System.EventHandler(this.entrance_button_Click);
+            // 
+            // exit_button
+            // 
+            this.exit_button.Location = new System.Drawing.Point(92, 238);
+            this.exit_button.Name = "exit_button";
+            this.exit_button.Size = new System.Drawing.Size(75, 23);
+            this.exit_button.TabIndex = 11;
+            this.exit_button.Text = global::LunaparkGame.Labels.exitBuild;
+            this.exit_button.UseVisualStyleBackColor = true;
+            this.exit_button.Visible = false;
+            this.exit_button.Click += new System.EventHandler(this.exit_button_Click);
             // 
             // AmusementDetailForm
             // 
-            this.ClientSize = new System.Drawing.Size(284, 322);
+            this.AutoScroll = true;
+            this.ClientSize = new System.Drawing.Size(189, 357);
+            this.Controls.Add(this.exit_button);
+            this.Controls.Add(this.entrance_button);
             this.Controls.Add(this.info_label);
             this.Controls.Add(this.pictureBox);
-            this.Controls.Add(this.build_button);
-            this.Controls.Add(this.changeColor_button);
-            this.DockAreas = ((WeifenLuo.WinFormsUI.Docking.DockAreas)((((WeifenLuo.WinFormsUI.Docking.DockAreas.Float | WeifenLuo.WinFormsUI.Docking.DockAreas.DockRight) 
+            this.Controls.Add(this.prize_label);
+            this.Controls.Add(this.outOfService_button);
+            this.Controls.Add(this.prize_numericUpDown1);
+            this.DockAreas = ((WeifenLuo.WinFormsUI.Docking.DockAreas)(((((WeifenLuo.WinFormsUI.Docking.DockAreas.Float | WeifenLuo.WinFormsUI.Docking.DockAreas.DockLeft) 
+            | WeifenLuo.WinFormsUI.Docking.DockAreas.DockRight) 
             | WeifenLuo.WinFormsUI.Docking.DockAreas.DockTop) 
             | WeifenLuo.WinFormsUI.Docking.DockAreas.DockBottom)));
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.HideOnClose = true;
+            this.MaximizeBox = false;
             this.Name = "AmusementDetailForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.AmusementDetailForm_FormClosing);
-            this.Load += new System.EventHandler(this.AmusementDetailForm_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.prize_numericUpDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -98,10 +141,12 @@
 
         #endregion
 
-        private System.Windows.Forms.Button changeColor_button;
-        private System.Windows.Forms.Button build_button;
+        public System.Windows.Forms.NumericUpDown prize_numericUpDown1;
+        public System.Windows.Forms.Button outOfService_button;
+        private System.Windows.Forms.Label prize_label;
         private System.Windows.Forms.PictureBox pictureBox;
         private System.Windows.Forms.Label info_label;
-        private System.Windows.Forms.ColorDialog colorDialog;
+        private System.Windows.Forms.Button entrance_button;
+        private System.Windows.Forms.Button exit_button;
     }
 }

@@ -10,11 +10,12 @@ namespace LunaparkGame
 
     public class Gate : Amusements {
 
-        public int VstupneDoParku { get; set; }
-        //private new Path exit;
         public const int width = 1;
         public const int height = 3;
-
+        public new Status State {
+            get { return status; }
+            set { if (value != Status.waitingForPeople) status = value; }
+        }
         public Gate(Model m, Coordinates c) {
             this.model = m;
             this.coord = c;
@@ -32,19 +33,42 @@ namespace LunaparkGame
             m.maps.AddAmus(this);
        }
         public override void Action() {
-            Person p;
-            // deleting people from the park
-            while (queue.TryDequeue(out p))
-                p.Destruct();
-            // a new person can be created
-            int a = exit.coord.x * MainForm.sizeOfSquare;
-            int b = exit.coord.y * MainForm.sizeOfSquare;
+            switch (status) {
 
-            //todo: if (model.maps.IsPath(a,b) && ShouldCreateNewPerson()) {
-            if (ShouldCreateNewPerson()) {
-                p = new Person(model, a + 1, b + MainForm.sizeOfSquare / 2);
+                case Status.running: {
+                        #region
+                        Person p;
+                        // deleting people from the park
+                        while (queue.TryDequeue(out p))
+                            p.Destruct();
+                        // a new person can be created
+                        int a = exit.coord.x * MainForm.sizeOfSquare;
+                        int b = exit.coord.y * MainForm.sizeOfSquare;
 
+                        //todo: if (model.maps.IsPath(a,b) && ShouldCreateNewPerson()) 
+                        if (ShouldCreateNewPerson()) {
+                            p = new Person(model, a + 1, b + MainForm.sizeOfSquare / 2);
+                            model.MoneyAdd(this.CurrFee);
+                        }
+                        #endregion
+                    }
+                    break;
+                case Status.outOfService: //nothing
+                    break;
+                case Status.runningOut: {
+                        // deleting people from the park
+                    Person p;
+                    while (queue.TryDequeue(out p)) p.Destruct();                         
+                    if (model.CurrPeopleCount == 0) 
+                        status = Status.outOfService;
+                }
+                    break;
+                case Status.disposing: //nothing
+                    break;
+                default: status = Status.running;
+                    break;
             }
+           
         }
         public bool ShouldCreateNewPerson() {
             return true;
@@ -64,8 +88,16 @@ namespace LunaparkGame
             width = Gate.width * MainForm.sizeOfSquare;
             height = Gate.height * MainForm.sizeOfSquare; ;
         }
+        public string GetInfo() {
+            return string.Concat(
+                Labels.currVisitorsCount, model.CurrPeopleCount, "\n",
+                Labels.totalVisitorsCount, model.TotalPeopleCount
+                );       
+        }
+        
         // the method below is irrelevant
         protected override bool IsInsideInAmusement(int x, int y) { return false; }
+  
     }
 
    /// <summary>

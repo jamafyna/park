@@ -222,13 +222,37 @@
   <data name="capacity" xml:space="preserve">
     <value>Kapacita: </value>
   </data>
+  <data name="currVisitorsCount" xml:space="preserve">
+    <value>Aktuální počet návštěvníků: </value>
+  </data>
+  <data name="entrainceBuild" xml:space="preserve">
+    <value>vchod</value>
+  </data>
+  <data name="entranceFee" xml:space="preserve">
+    <value>Vstupné: </value>
+  </data>
+  <data name="exitBuild" xml:space="preserve">
+    <value>exit</value>
+  </data>
   <data name="hasEntranceExit" xml:space="preserve">
     <value>Samostatný vchod a východ: </value>
+  </data>
+  <data name="isRunning" xml:space="preserve">
+    <value>V provozu</value>
+  </data>
+  <data name="noEntry" xml:space="preserve">
+    <value>Zákaz vstupu</value>
+  </data>
+  <data name="outOfService" xml:space="preserve">
+    <value>Mimo provoz</value>
   </data>
   <data name="prize" xml:space="preserve">
     <value>Pořizovací cena: </value>
   </data>
   <data name="size" xml:space="preserve">
     <value>Rozměr: </value>
+  </data>
+  <data name="totalVisitorsCount" xml:space="preserve">
+    <value>Celkový počet návštěvníků:</value>
   </data>
 </root>

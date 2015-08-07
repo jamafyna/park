@@ -10,6 +10,7 @@ using System.Windows.Forms;
 
 namespace LunaparkGame {
     public partial class PersonUserControl : UserControl, IUpdatable {
+        //todo: udelat onclosing a v ni p.isClicked=false;
         Person p;
         public PersonUserControl(Person p, Control parent)  {
             InitializeComponent();
@@ -24,6 +25,7 @@ namespace LunaparkGame {
             MyUpdate();
         }
         public void MyUpdate() {
+            if (p.status == Person.Status.disposing) this.Dispose();
             this.contentmentChange_label.Text = p.GetContentment() + " %";
             this.hungerChange_label.Text = p.GetHunger() + " %";
             this.idAmusChange_label.Text = p.CurrAmusId.ToString();
