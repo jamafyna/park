@@ -55,13 +55,15 @@ namespace LunaparkGame
         private void ProcessLine<T>(string line, List<T> list, Queue<T> queue, int lineCount) {
             string[] parts = line.Split('#');
             if (parts.Length != 5) throw new InputFileFormatException("Wrong count of columns, line: " + lineCount);
+            // parts[0] is not important, parts[1]...type of Factory, parts[2]...args, parts[3]...image, parts[4]...visible at start
+
             object[] args = GetArgs(parts[2], lineCount);
 
+            Image im = (Image)Properties.Images.ResourceManager.GetObject(parts[3].Trim());
+           
             bool visible;
             if (!Boolean.TryParse(parts[4], out visible)) throw new InputFileFormatException("Wrong format of the column Visible, line: " + lineCount);
-
-            Image im = (Image)Properties.Images.ResourceManager.GetObject(parts[3].Trim());
-            string name = parts[0].Trim();
+         
             try {
                 System.Runtime.Remoting.ObjectHandle item = Activator.CreateInstance("LunaparkGame", "LunaparkGame." + parts[1].Trim(), false, BindingFlags.Default, null, args, null, null);
                 object o = item.Unwrap();
