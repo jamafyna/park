@@ -122,7 +122,7 @@ namespace LunaparkGame
         /// </summary>
         protected List<Person> peopleInList;
         public Status State { get { return status; } set { status = value; } }
-        protected Status status=Status.outOfService;
+        protected volatile Status status=Status.outOfService;
         public int CountOfWaitingPeople
         {
             get
@@ -133,6 +133,7 @@ namespace LunaparkGame
             private set { }
         }
         protected int waitingTime = 0, actRunningTime=0;
+        public bool IsRunningOut { get { return isRunningOut; } }
         protected bool isRunningOut = false;
         protected bool isRunning = false;
         //-------characteristics-------------
@@ -258,24 +259,22 @@ namespace LunaparkGame
             }
             model.MoneyAdd( - this.WorkingPrice);
         }
-        protected virtual void RunningOutAction()
-        {//todo: neni lepsi, aby se lide cekajici ve fronte museli vratit? tj. nikdo dalsi se nesveze, snizi se spokojenost, ale asi neni proveditelne, protoze to pak lide stale mohou vybirat tuto atrakci
+        protected virtual void RunningOutAction(){
+        
             model.MoneyAdd(-WorkingPrice);
-            queueAddRWLock.EnterWriteLock();
-            try {
-                if (queue.IsEmpty && (!isRunning)) // !isRunning - aby se nezmenilo, kdyz uzivatel klikne uprostred behu
+            
+                if (!isRunning) // it is used if user clicked while people are in amus ( amus is running )
                  {
                     status = Status.outOfService;
+                    this.entrance.signpostAmus[this.id] = Direction.no;
+#warning zde nesmi delat prekladac optimalizace, musi byt v tomto poradi
+                    DeleteAllPeopleFromQueue(); 
                     isRunningOut = false;
                 }
                 else {
                     isRunningOut = true;
-                    if (isRunning) status = Status.running;
-                    else status = Status.waitingForPeople;
-                }
-            }
-            finally{queueAddRWLock.ExitWriteLock();}
-                  
+                    status = Status.running;
+                }                  
         }
         /// <summary>
         /// Simmulate an activity of the amusement. 
@@ -296,10 +295,12 @@ namespace LunaparkGame
                     break;
             }                     
         }
-        public void QueuesPerson(Person p){
+        public bool TryQueuesPerson(Person p){
             queueAddRWLock.EnterReadLock();
             try {
+                if (this.status == Status.outOfService || isRunningOut) return false;
                 queue.Enqueue(p);
+                return true;
             }
             finally { queueAddRWLock.ExitReadLock(); }
         }
@@ -335,10 +336,27 @@ namespace LunaparkGame
             }
             finally { queueAddRWLock.ExitWriteLock(); }
             foreach (var q in l) {
-                q.SetContentment(-20);                
+                q.SetContentment(-20);
+                q.status = Person.Status.choosesAmus;
             }
         }
-#warning check free location zde neni spravna
+        public void DeleteAllPeopleFromQueue() {
+            queueAddRWLock.EnterUpgradeableReadLock();
+            try {
+                foreach (Person p in queue) {
+                    p.SetContentment(-20);
+                    p.status = Person.Status.choosesAmus;
+                }
+                queueAddRWLock.EnterWriteLock();
+                lock (queueDeleteLock) {
+                    queue = new ConcurrentQueue<Person>();
+                }
+                queueAddRWLock.ExitWriteLock();
+            }
+            finally { queueAddRWLock.ExitUpgradeableReadLock(); }
+            
+        }
+
         /// <summary>
         /// checks if the entrance can be built on the given place and creates it if yes
         /// </summary>
@@ -588,7 +606,10 @@ namespace LunaparkGame
                                 else {
                                     status = Status.inAmusQueue;
                                     waitingTimeInQueue = 0;
-                                    currAmus.QueuesPerson(this);
+                                    if (!currAmus.TryQueuesPerson(this)) {
+                                        AddContentment(-10);
+                                        status = Status.choosesAmus;
+                                    }
                                 }
                             }
                                 break;

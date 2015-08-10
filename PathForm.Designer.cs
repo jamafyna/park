@@ -34,8 +34,11 @@
             // 
             this.AllowDrop = true;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(284, 262);
-            this.DockAreas = WeifenLuo.WinFormsUI.Docking.DockAreas.DockRight;
+            this.ClientSize = new System.Drawing.Size(183, 262);
+            this.DockAreas = ((WeifenLuo.WinFormsUI.Docking.DockAreas)(((((WeifenLuo.WinFormsUI.Docking.DockAreas.Float | WeifenLuo.WinFormsUI.Docking.DockAreas.DockLeft) 
+            | WeifenLuo.WinFormsUI.Docking.DockAreas.DockRight) 
+            | WeifenLuo.WinFormsUI.Docking.DockAreas.DockTop) 
+            | WeifenLuo.WinFormsUI.Docking.DockAreas.DockBottom)));
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.Name = "PathForm";
             this.Text = "Path";

@@ -73,9 +73,9 @@ namespace LunaparkGame
                 if (visible) list.Add((T)o);
                 else queue.Enqueue((T)o);
             }
-            catch (TypeLoadException) {
+           /* catch (TypeLoadException) {
                 throw new InputFileFormatException("The given type is not valid, line: " + lineCount);
-            }
+            }*/
             catch (MissingMethodException) {
                 throw new InputFileFormatException("Wrong args, line: " + lineCount);
             }
@@ -105,6 +105,8 @@ namespace LunaparkGame
                     if (i == arg.Length && !char.IsWhiteSpace(c) && c != '(') sb.Append(c);
                     if (type == "int" || type == "Int32" || type == "System.Int32") list.Add(Int32.Parse(sb.ToString()));
                     else if (type == "string" || type == "String" || type == "System.String") list.Add(sb.ToString());
+                    else if (type == "byte" || type == "Byte") list.Add(Byte.Parse(sb.ToString()));
+                    else if (type == "bool" || type == "Boolean") list.Add(Boolean.Parse(sb.ToString()));
                     else if (type == "resx") {
                         string s, r;
                         s = sb.ToString().Replace('_', ' ');
@@ -130,9 +132,6 @@ namespace LunaparkGame
       
     static class Program
     {
-       // public enum Direction { N, S, W, E, no };//smer
-
-
         public class ExponentialRandom
         {
             public double lambda { get; set; }

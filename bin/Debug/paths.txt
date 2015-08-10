@@ -1,0 +1,4 @@
+sand     # SandPathFactory      #   [int] 50,  [resx] sandString      # path_sand       # true
+gravel   # StonePathFactory     #   [int] 150, [resx] stoneString     # path_stone      # false
+asphalt  # AsphaltPathFactory   #   [int] 400, [resx] asphaltString   # path_asphalt    # false
+marble   # MarblePathFactory    #   [int] 800, [resx] marbleString    # path_marble     # false

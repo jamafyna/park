@@ -120,6 +120,9 @@
   <data name="asphaltString" xml:space="preserve">
     <value>Asfalt</value>
   </data>
+  <data name="carouselString" xml:space="preserve">
+    <value>Dětský kolotoč</value>
+  </data>
   <data name="fountainString" xml:space="preserve">
     <value>Fontána</value>
   </data>

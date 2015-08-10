@@ -63,6 +63,16 @@ namespace LunaparkGame.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap amus_carousel {
+            get {
+                object obj = ResourceManager.GetObject("amus_carousel", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap amus_iceCream {
             get {
                 object obj = ResourceManager.GetObject("amus_iceCream", resourceCulture);
@@ -82,9 +92,9 @@ namespace LunaparkGame.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Carousel.
         /// </summary>
-        internal static string carousel {
+        internal static string carouselString {
             get {
-                return ResourceManager.GetString("carousel", resourceCulture);
+                return ResourceManager.GetString("carouselString", resourceCulture);
             }
         }
         

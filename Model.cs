@@ -14,7 +14,7 @@ namespace LunaparkGame
     /// </summary>
     public class Model //todo: Prejmenovat na evidenci
     {     
-        private const int initialMoney = 1;
+        private const int initialMoney = 1000000;
         public const int maxPeopleInPark=1000;
         public readonly byte playingWidth, playingHeight; 
         public readonly byte realWidth, realHeight;
@@ -566,7 +566,9 @@ namespace LunaparkGame
         /// <param name="paths">a new auxilary array of builded paths</param>
         private void UpdateDirectionToAmusement(Amusements a,Queue<DirectionItem> queue, DirectionItem[][] paths) {
             DirectionItem item;
-            if (!InitializeQueue(queue, a.entrance.coord, paths)) return;
+            AmusementPath entrance = a.entrance;
+            if (entrance == null) return;
+            if (!InitializeQueue(queue, entrance.coord, paths)) return;
             while (queue.Count != 0)
             {
                 item = queue.Dequeue();
@@ -643,10 +645,7 @@ namespace LunaparkGame
         private bool InitializeQueue(Queue<DirectionItem> queue, Coordinates start, DirectionItem[][] paths) {
             // dont use pathRWLock (or change it to recursive mode)
             if (paths[start.x][start.y] == null) {
-#if(DEBUG)
-                throw new MyDebugException("Map.InitializeQueue - extrance==null"); //muze se stat pri zboreni vstupu
-#endif
-                return false;
+                return false; // it can happen if the entrance is demolished
             }
             paths[start.x][start.y].dir = Direction.here; 
             DirectionItem aux;
@@ -732,15 +731,15 @@ namespace LunaparkGame
         /// <param name="y">the real! y-coordinate</param>
         /// <returns>A Direction item</returns>
         public Direction GetDirectionToAmusement(int amusId, int x, int y) {
+            pathRWLock.EnterReadLock();
             try {
-                return pathMap[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare].signpostAmus[amusId];
+                Path p;
+                if ((p=pathMap[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare])!=null)
+                return p.signpostAmus[amusId];
+                else return Direction.no;  // could happen if user demolished path when people
             }
-            catch { 
-#if(DEBUG) 
-                throw new MyDebugException("Map.GetDirectionToAmusement - there is no path");                
-#else
-                return Direction.no;
-#endif
+            finally{
+                pathRWLock.ExitReadLock();
             }
         }
         /// <summary>

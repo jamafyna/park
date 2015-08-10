@@ -1,0 +1,2 @@
+carousel     # SquareAmusementsFactory   #   [int] 20000 (prize),  [int] 40 (fee), [int] 10 (capacity), [int] 3 (run.time), [resx] carouselString (name), [bool]  true  (IO), [byte] 2 (size)    # amus_carousel      # true
+ice-cream    # RestaurantFactory         #   [int] 10000 (prize),  [int] 30 (fee), [int] 1  (capacity), [resx] iceCreamString (name)                                                             # amus_iceCream      # true

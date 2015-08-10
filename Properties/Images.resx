@@ -118,13 +118,16 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="amus_carousel" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\amus_carousel.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="amus_iceCream" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\amus_iceCream.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="asphaltString" xml:space="preserve">
     <value>Asphalt</value>
   </data>
-  <data name="carousel" xml:space="preserve">
+  <data name="carouselString" xml:space="preserve">
     <value>Carousel</value>
   </data>
   <data name="fountainString" xml:space="preserve">

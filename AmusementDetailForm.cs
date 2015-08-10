@@ -31,21 +31,20 @@ namespace LunaparkGame {
             else entrance_button.Visible = false;
             if (a.isDemolishedExit()) exit_button.Visible = true;
             else exit_button.Visible = false;
-            if (a.GetType() == typeof(Gate)) ((Gate)a).GetInfo();
-            switch (a.State) {
-                case Amusements.Status.waitingForPeople: { outOfService_button.Text = Labels.isRunning; outOfService_button.BackColor = Color.Lime; }
-                    break;
-                case Amusements.Status.running: { outOfService_button.Text = Labels.isRunning; outOfService_button.BackColor = Color.Lime; }                
-                    break;
-                case Amusements.Status.runningOut: { outOfService_button.Text = Labels.noEntry; outOfService_button.BackColor = Color.Orange; }
-                    break;             
-                case Amusements.Status.outOfService: { outOfService_button.Text = Labels.outOfService; outOfService_button.BackColor = Color.Red; }                 
-                    break;
-                case Amusements.Status.disposing: { outOfService_button.Text = Labels.outOfService; outOfService_button.BackColor = Color.Red; }                 
-                    break;
-                default:
-                    break;
+            if (a.GetType() == typeof(Gate)) this.info_label.Text = ((Gate)a).GetInfo();
+            
+            if(a.State == Amusements.Status.outOfService || a.State == Amusements.Status.disposing){
+                outOfService_button.Text = Labels.outOfService;
+                outOfService_button.BackColor = Color.Red;
             }
+            else if (a.IsRunningOut) {
+                outOfService_button.Text = Labels.noEntry; 
+                outOfService_button.BackColor = Color.Orange;
+            }
+            else { 
+                outOfService_button.Text = Labels.isRunning;
+                outOfService_button.BackColor = Color.Lime;
+            }             
         }
 
         private void outOfService_button_Click(object sender, EventArgs e) {

@@ -38,10 +38,10 @@
             // 
             // changeColor_button
             // 
-            this.changeColor_button.Location = new System.Drawing.Point(12, 240);
+            this.changeColor_button.Location = new System.Drawing.Point(15, 247);
             this.changeColor_button.Name = "changeColor_button";
-            this.changeColor_button.Size = new System.Drawing.Size(134, 32);
-            this.changeColor_button.TabIndex = 0;
+            this.changeColor_button.Size = new System.Drawing.Size(105, 25);
+            this.changeColor_button.TabIndex = 1;
             this.changeColor_button.Text = global::LunaparkGame.Labels.changeColor;
             this.changeColor_button.UseVisualStyleBackColor = true;
             this.changeColor_button.Click += new System.EventHandler(this.changeColor_button_Click);
@@ -51,7 +51,7 @@
             this.build_button.Location = new System.Drawing.Point(12, 278);
             this.build_button.Name = "build_button";
             this.build_button.Size = new System.Drawing.Size(134, 32);
-            this.build_button.TabIndex = 1;
+            this.build_button.TabIndex = 0;
             this.build_button.Text = global::LunaparkGame.Labels.buildButton;
             this.build_button.UseVisualStyleBackColor = true;
             this.build_button.Click += new System.EventHandler(this.build_button_Click);
@@ -74,9 +74,10 @@
             this.info_label.TabIndex = 3;
             this.info_label.Text = "label1";
             // 
-            // AmusementDetailForm
+            // AmusementBuyForm
             // 
-            this.ClientSize = new System.Drawing.Size(284, 322);
+            this.AutoScroll = true;
+            this.ClientSize = new System.Drawing.Size(212, 322);
             this.Controls.Add(this.info_label);
             this.Controls.Add(this.pictureBox);
             this.Controls.Add(this.build_button);
@@ -85,11 +86,9 @@
             | WeifenLuo.WinFormsUI.Docking.DockAreas.DockTop) 
             | WeifenLuo.WinFormsUI.Docking.DockAreas.DockBottom)));
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.HideOnClose = true;
-            this.Name = "AmusementDetailForm";
+            this.Name = "AmusementBuyForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.AmusementDetailForm_FormClosing);
-            this.Load += new System.EventHandler(this.AmusementDetailForm_Load);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.AmusementBuyForm_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

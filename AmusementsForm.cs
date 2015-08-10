@@ -11,16 +11,17 @@ namespace LunaparkGame
 {
     public partial class AmusementsForm : WeifenLuo.WinFormsUI.Docking.DockContent
     {
-        AmusementBuyForm detailForm;
+        AmusementBuyForm buyForm;
         DockPanel dockP;
         ToolStripMenuItem amusItem;
         Panel lastItem;
+       
 
         public AmusementsForm(Model model, DockPanel parent, ToolStripMenuItem amusement)
         {
             InitializeComponent();
             dockP = parent;
-            detailForm = new AmusementBuyForm(model,parent);
+            buyForm = new AmusementBuyForm(model,parent);
             this.amusItem = amusement;
         }
 
@@ -78,12 +79,14 @@ namespace LunaparkGame
             l.Left = 0;
             l.Width = 90;
         }
-        
+
         private new void Click(object sender, EventArgs e) {
-            detailForm.Set((AmusementsFactory)((Button)sender).Tag, Properties.Images.amus_iceCream);
-            if (detailForm.IsHidden) detailForm.Show(dockP);
+            AmusementsFactory af = (AmusementsFactory)((Button)sender).Tag;
+            buyForm.Set(af, ((Button)sender).BackgroundImage);
+            if (buyForm.IsHidden) buyForm.Show(dockP);
             
         }
+        
 
         private void AmusementsForm_FormClosing(object sender, FormClosingEventArgs e)
         {

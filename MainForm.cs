@@ -19,7 +19,7 @@ namespace LunaparkGame
         Model model;
         View view;
         MapForm mapform;
-        int timerTime = 0;
+        int timerTicks = 0;
 
 
         public MainForm(byte playingWidth, byte playingHeight, Data data) {
@@ -42,12 +42,8 @@ namespace LunaparkGame
 
         }
 
-
-
-
         private void MyInitialize() {
         }
-
 
         private void MainForm_Load(object sender, EventArgs e) {
 
@@ -94,11 +90,11 @@ namespace LunaparkGame
             Task.Factory.StartNew(model.persList.Action);
 
             // model.persList.Action();
-            if (timerTime >= 10) {
+            if (timerTicks >= 10) {
                 Task.Factory.StartNew(model.amusList.Action).Wait();
                 Task.Factory.StartNew(model.maps.Action).Wait();
 
-                timerTime = 0;
+                timerTicks = 0;
                 //   model.amusList.Action();
                 //    model.effects.Action();
                 //    model.maps.Action();
@@ -110,7 +106,7 @@ namespace LunaparkGame
             Task.WaitAll();
             view.Action();
             MyUpdate();
-            timerTime++;
+            timerTicks++;
         }
 
         public void MyUpdate() {
@@ -179,7 +175,7 @@ namespace LunaparkGame
         }
         private void map_Click(object sender, EventArgs e) {
 
-            if (!model.demolishOn && model.LastClick != null) {
+            if (!model.demolishOn && (model.LastClick != null || model.mustBeEnter || model.mustBeExit)) {
                 #region
                 MouseEventArgs mys = (MouseEventArgs)e;
                 // byte x = (byte)(mys.X - mys.X % sizeOfSquare);

@@ -43,20 +43,18 @@ namespace LunaparkGame
         
         }
 
-        private void AmusementDetailForm_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void AmusementDetailForm_FormClosing(object sender, FormClosingEventArgs e) {
-
-        }
+        
 
         private void build_button_Click(object sender, EventArgs e) {
             AmusementsFactory af = (AmusementsFactory)((Button)sender).Tag;
             model.SetLastClick(af);
             //this.Hide();
             
+        }
+
+        private void AmusementBuyForm_FormClosing(object sender, FormClosingEventArgs e) {
+            this.Hide();
+            e.Cancel = true;
         }
 
     }

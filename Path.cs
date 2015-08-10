@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace LunaparkGame
 {
@@ -27,10 +28,13 @@ namespace LunaparkGame
         }
 
         public override void Destruct() {
+            if (amusement.State != Amusements.Status.outOfService) {
+                MessageBox.Show(Labels.warningMessBox, Notices.cannotDemolishAmusement, MessageBoxButtons.OK);
+                return;
+            }       
             model.maps.RemoveEntranceExit(this);
             model.dirtyDestruct.Enqueue(this);
-          //  model.LastBuiltAmus = this.amusement;
-         //   model.mustBeEnter = true;
+          
         }
     }
     public class AmusementEnterPathFactory : PathFactory {
@@ -47,12 +51,13 @@ namespace LunaparkGame
     public class AmusementExitPath : AmusementPath {
         public AmusementExitPath(Model m, Coordinates c, Amusements a, bool tangible = true) : base(m, c, a, tangible) { }
         public override void Destruct() {
+            if (amusement.State != Amusements.Status.outOfService) { 
+                MessageBox.Show(Labels.warningMessBox, Notices.cannotDemolishAmusement, MessageBoxButtons.OK);
+                return; 
+            }
             model.maps.RemoveEntranceExit(this);
             model.dirtyDestruct.Enqueue(this);
             model.mustBeExit = false;
-         //   model.LastBuiltAmus = this.amusement;
-         //   if (!model.mustBeEnter) model.mustBeExit = true;
-
         }
     }
     public class AmusementExitPathFactory : PathFactory {

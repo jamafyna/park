@@ -17,6 +17,7 @@ namespace LunaparkGame
         List<IUpdatable> forms = new List<IUpdatable>();
         Image[] images;
         DockPanel dockPanel;
+        Graphics graphics;
         public AmusementsForm amusform;
         public PathForm pathform;
         public AccessoriesForm accform;
@@ -114,7 +115,11 @@ namespace LunaparkGame
                     pbox.Click += new EventHandler(o.Click);
                     if (o.GetType() == typeof(AmusementEnterPath)) pbox.BackColor = Color.Red;
                     else if (o.GetType() == typeof(AmusementExitPath)) pbox.BackColor = Color.Blue;
-                    else pbox.BackgroundImage=images[((IButtonCreatable)o).InternTypeId];
+                    else {
+                        pbox.BackgroundImage = images[((IButtonCreatable)o).InternTypeId];
+                        pbox.BackgroundImageLayout = ImageLayout.Zoom;
+                        if(o is Amusements) pbox.BackColor = ((Amusements)o).color;
+                    }
                     o.control = pbox;
                 }
             }
@@ -146,7 +151,15 @@ namespace LunaparkGame
             }
         
         }
-        public Control CreateVisualMap(int realWidth, int realHeight, int sizeOfSquare)
+
+
+        public void UpdatePeople() {
+            Color c = Color.Blue;
+            SolidBrush brush = new SolidBrush(c);
+            
+            graphics.FillRectangle(brush,100,200,7,25 );
+        }
+        public Control CreateVisualMap(int playingWidth, int playingHeight, int sizeOfSquare)
         {          
             map = new PictureBox();
             map.BackColor = Color.LightGreen;
@@ -154,23 +167,23 @@ namespace LunaparkGame
             map.Left = 0;// mainDockPanel.Left;
             
             //-----vytvoreni PictureBoxu
-            Bitmap bmp = new Bitmap(realWidth * sizeOfSquare + 1, realHeight * sizeOfSquare + 1);
+            Bitmap bmp = new Bitmap(playingWidth * sizeOfSquare + 1, playingHeight * sizeOfSquare + 1);
             ((PictureBox)map).Image = bmp;
             map.Size = bmp.Size;
-            Graphics gr = Graphics.FromImage(bmp);
+            graphics = Graphics.FromImage(bmp);
             map.Size = bmp.Size;
             //-----nakresleni mrizky-------------
             Pen pen = new Pen(Color.DarkSeaGreen, 1);
-            for (int i = 0; i <= realHeight; i++)
-                gr.DrawLine(pen, 0, i * sizeOfSquare, realWidth * sizeOfSquare, i * sizeOfSquare);
-            for (int i = 0; i <= realWidth; i++)
-                gr.DrawLine(pen, i * sizeOfSquare, 0, i * sizeOfSquare, realHeight * sizeOfSquare);
+            for (int i = 0; i <= playingHeight; i++)
+                graphics.DrawLine(pen, 0, i * sizeOfSquare, playingWidth * sizeOfSquare, i * sizeOfSquare);
+            for (int i = 0; i <= playingWidth; i++)
+                graphics.DrawLine(pen, i * sizeOfSquare, 0, i * sizeOfSquare, playingHeight * sizeOfSquare);
 
             map.Refresh();//musime provest, pokud se zmenila bitmapa a zmenu chceme videt na obrazovce
-            CreateBorder(sizeOfSquare, realHeight * sizeOfSquare, top: 0, left: 0); // West
-            CreateBorder((realWidth - 2) * sizeOfSquare + 1, sizeOfSquare, top: 0, left: sizeOfSquare); // North
-            CreateBorder(sizeOfSquare, realHeight * sizeOfSquare, top: 0, left: (realWidth - 1) * sizeOfSquare + 1); // East
-            CreateBorder((realWidth - 2) * sizeOfSquare + 1, sizeOfSquare, top: (realHeight - 1) * sizeOfSquare + 1, left: sizeOfSquare); // South
+            CreateBorder(sizeOfSquare, playingHeight * sizeOfSquare, top: 0, left: 0); // West
+            CreateBorder((playingWidth - 2) * sizeOfSquare + 1, sizeOfSquare, top: 0, left: sizeOfSquare); // North
+            CreateBorder(sizeOfSquare, playingHeight * sizeOfSquare, top: 0, left: (playingWidth - 1) * sizeOfSquare + 1); // East
+            CreateBorder((playingWidth - 2) * sizeOfSquare + 1, sizeOfSquare, top: (playingHeight - 1) * sizeOfSquare + 1, left: sizeOfSquare); // South
          
             //stavba plotu a brany
             //   plot = new Plot(this);
