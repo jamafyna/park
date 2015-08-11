@@ -20,8 +20,14 @@ namespace LunaparkGame
         public readonly byte realWidth, realHeight;
         public readonly int maxAmusementsCount;//todo: nejspis nepocita lavicky
         private int money;
-        public int Propagation { get; set; }
-        public int Research { get; set; }
+        /// <summary>
+        /// Represents park advertising, is not thread safe -> for manipulating use atomic operations
+        /// </summary>
+        public int propagation;
+       /// <summary>
+       /// Represents researching, is not thread safe -> for manipulating use atomic operations
+       /// </summary>
+        public int timeToShowNewItem;
         public int currCheapestFee { private set; get; }//todo: postarat se o vytvoreni
         /// <summary>
         /// use for manipulation with currCheapestFee
@@ -57,8 +63,8 @@ namespace LunaparkGame
             this.realHeight = (byte)(playingHeight + 2);
             this.realWidth = (byte)(playingWidth + 2);
             money = initialMoney;
-            Propagation = 0;
-            Research = 0;
+            propagation = 0;
+            timeToShowNewItem = effects.newItemWaitingTime.Dequeue();
             
             maps = new Map(realWidth, realHeight, this);            
             maxAmusementsCount = playingHeight * playingWidth + 1; // max. count of amusements that can user build, + 1 due to the gate which does not lie on the playing place

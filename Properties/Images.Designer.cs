@@ -73,9 +73,29 @@ namespace LunaparkGame.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap amus_fastfood {
+            get {
+                object obj = ResourceManager.GetObject("amus_fastfood", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap amus_iceCream {
             get {
                 object obj = ResourceManager.GetObject("amus_iceCream", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap amus_ship {
+            get {
+                object obj = ResourceManager.GetObject("amus_ship", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -95,6 +115,15 @@ namespace LunaparkGame.Properties {
         internal static string carouselString {
             get {
                 return ResourceManager.GetString("carouselString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fastfood.
+        /// </summary>
+        internal static string fastfoodString {
+            get {
+                return ResourceManager.GetString("fastfoodString", resourceCulture);
             }
         }
         

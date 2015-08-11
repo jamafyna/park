@@ -123,6 +123,9 @@
   <data name="carouselString" xml:space="preserve">
     <value>Dětský kolotoč</value>
   </data>
+  <data name="fastfoodString" xml:space="preserve">
+    <value>Párek v rohlíku</value>
+  </data>
   <data name="fountainString" xml:space="preserve">
     <value>Fontána</value>
   </data>

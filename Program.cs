@@ -53,7 +53,9 @@ namespace LunaparkGame
         }
 
         private void ProcessLine<T>(string line, List<T> list, Queue<T> queue, int lineCount) {
-            string[] parts = line.Split('#');
+            line=line.Trim();
+            if (line == "" || line[0] == '#') return;
+            string[] parts = line.Split('|');
             if (parts.Length != 5) throw new InputFileFormatException("Wrong count of columns, line: " + lineCount);
             // parts[0] is not important, parts[1]...type of Factory, parts[2]...args, parts[3]...image, parts[4]...visible at start
 

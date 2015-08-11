@@ -163,8 +163,8 @@ namespace LunaparkGame
         {          
             map = new PictureBox();
             map.BackColor = Color.LightGreen;
-            map.Top = 0;//mainDockPanel.Top;
-            map.Left = 0;// mainDockPanel.Left;
+            map.Top = 0; // mainDockPanel.Top;
+            map.Left = 0; // mainDockPanel.Left;
             
             //-----vytvoreni PictureBoxu
             Bitmap bmp = new Bitmap(playingWidth * sizeOfSquare + 1, playingHeight * sizeOfSquare + 1);

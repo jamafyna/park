@@ -14,6 +14,8 @@ namespace LunaparkGame
     public partial class MainForm : Form, IUpdatable {
         
         public const int sizeOfSquare = 40;
+        private const int propagatePrize = 10;
+        private const int researchPrize = 10;
 
         public Control map;
         Model model;
@@ -98,6 +100,14 @@ namespace LunaparkGame
                 //   model.amusList.Action();
                 //    model.effects.Action();
                 //    model.maps.Action();
+                if (model.propagateOn) {
+                    Interlocked.Increment(ref model.propagation);
+                    model.MoneyAdd(propagatePrize);
+                }
+                if (model.researchOn) {
+                    model.MoneyAdd(researchPrize);
+                    Interlocked.Decrement(ref model.timeToShowNewItem);
+                }
 
             }
 
