@@ -232,6 +232,15 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to HORIZONTAL.
+        /// </summary>
+        internal static string horizontalButtonText {
+            get {
+                return ResourceManager.GetString("horizontalButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hunger:.
         /// </summary>
         internal static string hunger {
@@ -435,6 +444,15 @@ namespace LunaparkGame {
         internal static string totalVisitorsCount {
             get {
                 return ResourceManager.GetString("totalVisitorsCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to VERTICAL.
+        /// </summary>
+        internal static string verticalButtonText {
+            get {
+                return ResourceManager.GetString("verticalButtonText", resourceCulture);
             }
         }
         

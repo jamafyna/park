@@ -14,6 +14,7 @@ namespace LunaparkGame
         DockPanel dockPanel;
         public Color color { get; private set; }
         Model model;
+        bool isHorizontal = true;
         public AmusementBuyForm(Model m, DockPanel parent)
         {
             InitializeComponent();
@@ -40,6 +41,11 @@ namespace LunaparkGame
             this.pictureBox.Height = image.Height;            
             this.pictureBox.BackColor = color;
             this.build_button.Tag = click;
+            if (click is RectangleAmusementsFactory) {
+                rectangleA_button.Visible = true;
+                isHorizontal = true;
+            }
+            else rectangleA_button.Visible = false;
         
         }
 
@@ -47,6 +53,7 @@ namespace LunaparkGame
 
         private void build_button_Click(object sender, EventArgs e) {
             AmusementsFactory af = (AmusementsFactory)((Button)sender).Tag;
+            if(af is RectangleAmusementsFactory) ((RectangleAmusementsFactory)af).isHorizontal=isHorizontal; 
             model.SetLastClick(af);
             //this.Hide();
             
@@ -55,6 +62,12 @@ namespace LunaparkGame
         private void AmusementBuyForm_FormClosing(object sender, FormClosingEventArgs e) {
             this.Hide();
             e.Cancel = true;
+        }
+
+        private void rectangleA_button_Click(object sender, EventArgs e) {
+            if (isHorizontal) rectangleA_button.Text = Labels.verticalButtonText;
+            else rectangleA_button.Text = Labels.horizontalButtonText;
+            isHorizontal = !isHorizontal;
         }
 
     }

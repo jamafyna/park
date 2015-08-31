@@ -255,4 +255,10 @@
   <data name="totalVisitorsCount" xml:space="preserve">
     <value>Total count of visitors: </value>
   </data>
+  <data name="horizontalButtonText" xml:space="preserve">
+    <value>HORIZONTAL</value>
+  </data>
+  <data name="verticalButtonText" xml:space="preserve">
+    <value>VERTICAL</value>
+  </data>
 </root>

@@ -33,12 +33,13 @@
             this.pictureBox = new System.Windows.Forms.PictureBox();
             this.info_label = new System.Windows.Forms.Label();
             this.colorDialog = new System.Windows.Forms.ColorDialog();
+            this.rectangleA_button = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // changeColor_button
             // 
-            this.changeColor_button.Location = new System.Drawing.Point(15, 247);
+            this.changeColor_button.Location = new System.Drawing.Point(14, 296);
             this.changeColor_button.Name = "changeColor_button";
             this.changeColor_button.Size = new System.Drawing.Size(105, 25);
             this.changeColor_button.TabIndex = 1;
@@ -48,7 +49,7 @@
             // 
             // build_button
             // 
-            this.build_button.Location = new System.Drawing.Point(12, 278);
+            this.build_button.Location = new System.Drawing.Point(12, 327);
             this.build_button.Name = "build_button";
             this.build_button.Size = new System.Drawing.Size(134, 32);
             this.build_button.TabIndex = 0;
@@ -74,10 +75,22 @@
             this.info_label.TabIndex = 3;
             this.info_label.Text = "label1";
             // 
+            // rectangleA_button
+            // 
+            this.rectangleA_button.Location = new System.Drawing.Point(15, 265);
+            this.rectangleA_button.Name = "rectangleA_button";
+            this.rectangleA_button.Size = new System.Drawing.Size(105, 25);
+            this.rectangleA_button.TabIndex = 4;
+            this.rectangleA_button.Text = "HORIZONTAL";
+            this.rectangleA_button.UseVisualStyleBackColor = true;
+            this.rectangleA_button.Visible = false;
+            this.rectangleA_button.Click += new System.EventHandler(this.rectangleA_button_Click);
+            // 
             // AmusementBuyForm
             // 
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(212, 322);
+            this.ClientSize = new System.Drawing.Size(212, 384);
+            this.Controls.Add(this.rectangleA_button);
             this.Controls.Add(this.info_label);
             this.Controls.Add(this.pictureBox);
             this.Controls.Add(this.build_button);
@@ -102,5 +115,6 @@
         private System.Windows.Forms.PictureBox pictureBox;
         private System.Windows.Forms.Label info_label;
         private System.Windows.Forms.ColorDialog colorDialog;
+        private System.Windows.Forms.Button rectangleA_button;
     }
 }

@@ -53,12 +53,15 @@ namespace LunaparkGame
             //throw new NotImplementedException();
         }
         private void PeopleMove() {
+#warning nebude se takto vubec pouzivat
             foreach (Person p in model.persList) {
-               // p.Control.Location = p.GetRealCoordinates();
-                p.control.Location = p.GetRealCoordinatesUnsynchronized();
-                p.control.Visible = p.visible;
+             
+                if (p.control != null) {
+                    p.control.Location = p.GetRealCoordinatesUnsynchronized();
+                    p.control.Visible = p.visible;
+                }
                 
-               // p.Control.Left++;
+               
                     
             }        
         }

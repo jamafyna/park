@@ -190,18 +190,20 @@ namespace LunaparkGame
         [STAThread]
         static void Main()
         {
-             System.Threading.Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("cs-CZ");
+           //  System.Threading.Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("cs-CZ");
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             StartForm s=new StartForm();
             Application.Run(s);
             Data data = new Data();
-            System.IO.StreamReader sr = new System.IO.StreamReader("amusements.txt");           
+            System.IO.StreamReader sr = new System.IO.StreamReader("amusements.txt"); 
+           // System.IO.StreamReader sr = new System.IO.StreamReader("amusementsInitial.txt");   
             data.LoadAmus(sr);
             sr.Close();
             sr = new System.IO.StreamReader("paths.txt");
             data.LoadPaths(sr);
             sr.Close();
+            
 
             Application.Run(new MainForm(s.width,s.height, data));
             

@@ -93,8 +93,8 @@ namespace LunaparkGame
 
             // model.persList.Action();
             if (timerTicks >= 10) {
-                Task.Factory.StartNew(model.amusList.Action).Wait();
-                Task.Factory.StartNew(model.maps.Action).Wait();
+                Task.Factory.StartNew(model.amusList.Action);
+                Task.Factory.StartNew(model.maps.Action);
 
                 timerTicks = 0;
                 //   model.amusList.Action();

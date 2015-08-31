@@ -255,4 +255,10 @@
   <data name="totalVisitorsCount" xml:space="preserve">
     <value>Celkový počet návštěvníků:</value>
   </data>
+  <data name="horizontalButtonText" xml:space="preserve">
+    <value>VODOROVNĚ</value>
+  </data>
+  <data name="verticalButtonText" xml:space="preserve">
+    <value>SVISLE</value>
+  </data>
 </root>

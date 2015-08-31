@@ -197,9 +197,11 @@ namespace LunaparkGame
         }
         public void Action()
         {
+            
             rwLock.EnterReadLock();
             try {
-                list.ForEach(a => a.Action());
+              //  list.ForEach(a => a.Action());
+                Parallel.ForEach(list, a=> a.Action());
             }
             finally {
                 rwLock.ExitReadLock();
@@ -293,12 +295,16 @@ namespace LunaparkGame
             //todo: casem idealne ve vice vlaknech (experimentalne overit, zda je zapotrebi)
             int i=0;
          //   try {
+            
             lock(peopleLock){
              
                 for (i = 0; i < currPeopleCount; i++) {
-                    Task.Factory.StartNew(people[i].Action);
-                    //people[i].Action()
+                    people[i].Action();
                 }
+               
+                //Parallel.ForEach(source: this, p => p.Action());
+                //Parallel.ForEach(source: (IEnumerable<Person>)this, body: p => p.Action());
+                Parallel.ForEach(people, p => { if (p != null) p.Action(); });
             }
            
          //   }
@@ -720,15 +726,25 @@ namespace LunaparkGame
                 lock (lastAddedAmusLock) {
                     lastAddedAmus = new ConcurrentQueue<Amusements>();
                 }
-                UpdateDirections(); }
-            else
-            {
-                Amusements a;
-                while(!lastAddedAmus.IsEmpty){ //is T-S, dequeu can be done only in this method
-                    if (lastAddedAmus.TryDequeue(out a)) UpdateDirectionToOnlyOneAmusement(a);
-                }
-             }
+#warning pouzit jedine tehdy, pokud se puvodni task ukonci bez cekani na tohoto
+                Task.Factory.StartNew(UpdateDirections,TaskCreationOptions.LongRunning);
+                //UpdateDirections(); 
+            }
+            
+            else {
+                Task.Factory.StartNew(UpdateDirectionToNonupdatedAmusements, TaskCreationOptions.LongRunning);
+            }
         }
+        /// <summary>
+        /// It can be called only from the method Action()
+        /// </summary>
+        private void UpdateDirectionToNonupdatedAmusements() {
+            Amusements a;
+            while (!lastAddedAmus.IsEmpty) { //is T-S, dequeu can be done only in this method and Action
+                if (lastAddedAmus.TryDequeue(out a)) UpdateDirectionToOnlyOneAmusement(a);
+            }       
+        }
+
         /// <summary>
         /// Returns a current direction (only over Paths) to the amusement with id==amusId.
         /// </summary>

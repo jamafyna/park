@@ -124,7 +124,8 @@ namespace LunaparkGame
         public RectangleAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height, bool isHorizontal, Color color, int typeId)
         : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit, color, typeId){
             this.sizeA = width;
-            this.sizeA = height;      
+            this.sizeB = height;
+            this.isHorizontalOriented = isHorizontal;
         }
             
         
@@ -178,7 +179,7 @@ namespace LunaparkGame
         }
         public override bool CanBeBuild(byte x, byte y, Model model) {
             if (isHorizontal) return AmusementsFactory.CheckFreeLocation(x, y, model, width, height, hasSeparatedEnterExit);
-            else return AmusementsFactory.CheckFreeLocation(x, y, model, width, height, hasSeparatedEnterExit);
+            else return AmusementsFactory.CheckFreeLocation(x, y, model, height, width, hasSeparatedEnterExit);
         }
       
         public override MapObjects Build(byte x, byte y, Model model) {
