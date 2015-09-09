@@ -84,6 +84,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Labels.cs-CZ.resx</DependentUpon>
     </Compile>
+    <Compile Include="mapCustomControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="mapCustomControl.Designer.cs">
+      <DependentUpon>mapCustomControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="MapForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -140,6 +146,7 @@
       <DependentUpon>StartForm.cs</DependentUpon>
     </Compile>
     <Compile Include="View.cs" />
+    <Compile Include="View2.cs" />
     <EmbeddedResource Include="AccessoriesForm.resx">
       <DependentUpon>AccessoriesForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -159,6 +166,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Labels.cs-CZ.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="mapCustomControl.resx">
+      <DependentUpon>mapCustomControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MapForm.resx">
       <DependentUpon>MapForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -168,7 +178,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Notices.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Notices.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="PathForm.resx">
       <DependentUpon>PathForm.cs</DependentUpon>
@@ -239,6 +248,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="amusementsInitial.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\enter.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\exit.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

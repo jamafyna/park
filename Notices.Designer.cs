@@ -70,11 +70,29 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &quot;&quot;.
+        /// </summary>
+        internal static string cannotChangeFirstRepair {
+            get {
+                return ResourceManager.GetString("cannotChangeFirstRepair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &quot;It cannot be demolished. The amusement is running.&quot;.
         /// </summary>
         internal static string cannotDemolishAmusement {
             get {
                 return ResourceManager.GetString("cannotDemolishAmusement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;No money to repair.&quot;.
+        /// </summary>
+        internal static string cannotRepairNoMoney {
+            get {
+                return ResourceManager.GetString("cannotRepairNoMoney", resourceCulture);
             }
         }
         

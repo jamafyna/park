@@ -261,4 +261,10 @@
   <data name="verticalButtonText" xml:space="preserve">
     <value>SVISLE</value>
   </data>
+  <data name="crashness" xml:space="preserve">
+    <value>Poškození: </value>
+  </data>
+  <data name="repairButton" xml:space="preserve">
+    <value>Opravit</value>
+  </data>
 </root>

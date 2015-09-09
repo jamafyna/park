@@ -41,7 +41,6 @@ namespace LunaparkGame
             foreach (var item in data.initialPaths) pathform.CreateNewItem(images[item.internTypeId], item);
             foreach (var item in data.initialOthers) accform.CreateNewItem(images[item.internTypeId], item);
             data = null; // due to GC
-
         }
         public void Action()
         {
@@ -52,6 +51,59 @@ namespace LunaparkGame
             UpdateDirty();
             //throw new NotImplementedException();
         }
+
+        public void Click(object sender, EventArgs e) {
+            MouseEventArgs mouse = (MouseEventArgs)e;
+            int realX = mouse.X;
+            int realY = mouse.Y;
+            byte mapX = (byte)(mouse.X / MainForm.sizeOfSquare);
+            byte mapY = (byte)(mouse.Y / MainForm.sizeOfSquare);
+            MapObjects obj = FindObject(realX, realY, mapX, mapY);
+            if (obj != null) obj.Click(sender, e);
+            else if (mapX != 0 && mapX != model.realWidth - 1 && mapY != 0 && mapY != model.realHeight - 1) { // border
+                MapClick(mapX, mapY);
+            }           
+        }
+        private void MapClick(byte mapX, byte mapY) {
+            if (!model.demolishOn && (model.LastClick != null || model.mustBeEnter || model.mustBeExit)) {
+                #region
+                //todo: kontrola na co vse mohl uzivatel kliknout, nejspise poslat udalost do modelu spolu se souradnicemi
+                //todo: kontrola, zda neni neco rozestavene - mysleno pro free-shaped atrakce
+                if (model.mustBeEnter) {
+                    model.LastBuiltAmus.CheckEntranceAndBuild(mapX, mapY);
+                    return;
+                }
+                if (model.mustBeExit) {
+                    model.LastBuiltAmus.CheckExitAndBuild(mapX, mapY); //if not succeed, no annoing error-text                  
+                    return;
+                }
+                if (model.LastClick.prize > model.GetMoney()) {
+                    MessageBox.Show(Notices.cannotBuyNoMoney, Labels.warningMessBox, MessageBoxButtons.OK);
+                    return;
+                }
+                if (model.LastClick.CanBeBuild(mapX, mapY, model)) {
+                    model.LastClick.Build(mapX, mapY, model);
+                    if (model.LastClick is AmusementsFactory ||
+                        model.LastClick.GetType() == typeof(AmusementExitPathFactory) ||
+                        model.LastClick.GetType() == typeof(AmusementEnterPathFactory)
+                        ) model.SetNullToLastClick();
+                }
+            }             
+                #endregion
+        
+        
+        }
+        private MapObjects FindObject(int realX, int realY, byte mapX, byte mapY){
+            MapObjects obj = null;
+            if ((obj = model.maps.GetAmusement(mapX, mapY)) != null) return obj;
+            foreach (Person p in model.persList) {
+                if (p.IsInside(realX, realY)) return p;
+            }
+            if ((obj = model.maps.GetPath(mapX, mapY)) != null) return obj;
+            return null;
+        }
+        
+              
         private void PeopleMove() {
 #warning nebude se takto vubec pouzivat
             foreach (Person p in model.persList) {
@@ -105,15 +157,17 @@ namespace LunaparkGame
 
                else {
                     pbox = new PictureBox();
-                    int a, b;
-                    o.GetRealSize(out a, out b);
+                    
+                    Size size = o.GetRealSize();
+                    int a = size.Width;
+                    int b = size.Height;
                     pbox.Width = a - 1;
                     pbox.Height = b - 1;
                     pbox.Parent = map;
                     map.Controls.SetChildIndex(pbox, o.zIndex);
-                    o.GetRealCoordinates(out a, out b);
-                    pbox.Left = a + 1;
-                    pbox.Top = b + 1;
+                    Point point = o.GetRealCoordinates();
+                    pbox.Left = point.X + 1;
+                    pbox.Top = point.Y + 1;
                     pbox.Visible = true;
                     pbox.Click += new EventHandler(o.Click);
                     if (o.GetType() == typeof(AmusementEnterPath)) pbox.BackColor = Color.Red;

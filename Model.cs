@@ -783,6 +783,18 @@ namespace LunaparkGame
             if (pathMap[x / MainForm.sizeOfSquare][y / MainForm.sizeOfSquare] == null) return false;
             else return true;
         }
+        /// <summary>
+        /// Returns a path which lies on the given coordinates or null.
+        /// </summary>
+        /// <param name="x">The map x-coordinate.</param>
+        /// <param name="y">The map y-coordinate.</param>
+        /// <returns></returns>
+        public Path GetPath(byte x, byte y) {
+            return pathMap[x][y];       
+        }
+        public Amusements GetAmusement(byte x, byte y) {
+            return amusementMap[x][y];       
+        }
     
     }
     

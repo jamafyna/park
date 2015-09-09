@@ -32,9 +32,11 @@ namespace LunaparkGame
         public int internTypeId;
         public readonly string name;
         public readonly int prize;
-        public MapObjectsFactory(int prize, string name) { 
+        public Image image;
+        public MapObjectsFactory(int prize, string name, Image image) { 
             this.prize = prize;
             this.name = name;
+            this.image = image;
            
         }
        /// <summary>
@@ -61,6 +63,8 @@ namespace LunaparkGame
         public Coordinates(byte x, byte y) { this.x = x; this.y = y; }
     }
 
+
+
     public abstract class MapObjects
     {      
         /// <summary>
@@ -70,6 +74,7 @@ namespace LunaparkGame
         public Coordinates coord { protected set; get; }
         protected Model model;
         public Control control;
+        public Image image;
         public bool isClicked = false;
         public readonly int prize;
         public MapObjects() { }
@@ -96,9 +101,15 @@ namespace LunaparkGame
         public virtual void Destruct() {
             model.dirtyDestruct.Enqueue(this);
         }
-        public abstract void GetRealSize(out int width, out int height);
-        public abstract void GetRealCoordinates(out int x, out int y);
-
+        public abstract Size GetRealSize();
+        public abstract Point GetRealCoordinates();
+       /// <summary>
+       /// Determines whether the given coordinates are inside this object or not.
+       /// </summary>
+       /// <param name="x">An nonnegative integer, represents the real or game x-coordinate.</param>
+       /// <param name="y">An nonnegative integer, represents the real or game y-coordinate.</param>
+       /// <returns></returns>
+        public abstract bool IsInside(int x, int y);
     }
 
    
@@ -112,8 +123,8 @@ namespace LunaparkGame
 
         public int InternTypeId { get { return typeId; } set { } }
         public int id { get; private set; }
-        public AmusementPath entrance { get; protected set; } 
-        public AmusementPath exit { get; protected set; }
+        public AmusementPath entrance { get;  set; } 
+        public AmusementPath exit { get; set; }
         protected  ConcurrentQueue<Person> queue=new ConcurrentQueue<Person>();
         protected object queueDeleteLock = new object();
         protected ReaderWriterLockSlim queueAddRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
@@ -136,6 +147,21 @@ namespace LunaparkGame
         public bool IsRunningOut { get { return isRunningOut; } }
         protected bool isRunningOut = false;
         protected bool isRunning = false;
+        /// <summary>
+        /// 600 = 100 %
+        /// </summary>
+        protected int crashnessPercent = 0;
+        public int CrashnessPercent {
+            private set { } 
+            get {
+                if(crashnessPercent > 600) return 100;
+                else return crashnessPercent/6;
+                }
+        }
+        public bool Crashed { 
+            private set{} 
+            get { if (crashnessPercent >= 600) return true; else return false; } 
+        }
         //-------characteristics-------------
         public readonly int typeId;
         public readonly int capacity, originalFee;
@@ -158,19 +184,21 @@ namespace LunaparkGame
             this.zIndex = 0;
             this.originalFee = fee;
             this.capacity = capacity;
+            this.WorkingPrice = capacity * fee / 2;
             this.fixedRunningTime = runningTime;
             this.name = name;
             this.hasSeparatedEnterExit = hasEntranceExit;
             this.color = color;
             this.typeId = typeId;
-
+            
             model.LastBuiltAmus = this;                 
             if(hasEntranceExit) model.mustBeEnter = true;
             this.id = model.amusList.GetFreeID();           
             peopleInList = new List<Person>(capacity);           
             model.amusList.Add(this);
             model.maps.AddAmus(this);
-            model.CheckCheapestFee(this.CurrFee);          
+            model.CheckCheapestFee(this.CurrFee);   
+       
            // mimoProvoz = true;
            // zacatek = true;
          
@@ -191,9 +219,33 @@ namespace LunaparkGame
             model.maps.RemoveAmus(this);
             model.dirtyDestruct.Enqueue(this);
             
-        } 
+        }
         /// <summary>
-        /// Puts n waiting people from queue to the amusment. It is assumed that nobody can dequeu while running this method (queue can only growth)!
+        /// Repairs the amusement and decreases count of money of the repairing value, if there is no money, shows a warning MessageBox
+        /// </summary>
+        public void RepairWhole() { 
+            // it isnt 100% correct because of not atomic money asking, but never mind, there can be a small debt
+            double repairPrize = crashnessPercent / 600.0 * prize * 0.9;
+            if (model.GetMoney() >= repairPrize) crashnessPercent = 0;
+            else MessageBox.Show(Labels.warningMessBox, Notices.cannotRepairNoMoney, MessageBoxButtons.OK);
+        }
+        /// <summary>
+        /// Tries to repair the given percent part of the amusement and if it is succesfull, decreases count of money
+        /// </summary>
+        /// <param name="percent">Byte number, count of percent of which the amusement should be repaired.</param>
+        public bool TryRepairPart(int percent) {
+            // it isnt 100% correct because of not atomic money asking, but never mind, there can be a small debt
+            percent = Math.Min(percent * 6, crashnessPercent);
+            double repairPrize = percent / 600.0 * prize * 0.9;
+            if (model.GetMoney() >= repairPrize) {
+                Interlocked.Add(ref crashnessPercent, -1 * percent);
+                return true;
+            }
+            else return false;        
+        }
+        
+        /// <summary>
+        /// Puts n waiting people from queue to the amusement. It is assumed that nobody can dequeu while running this method (queue can only growth)!
         /// </summary>
         /// <param name="n">count of items to be relocated, assumed that n isn't bigger than queue.Count anywhere</param>
         protected virtual void PickUpPeople(int n) { 
@@ -248,9 +300,11 @@ namespace LunaparkGame
             model.MoneyAdd(-this.WorkingPrice);         
         }
         protected virtual void RunningAction() {
-            if (actRunningTime < fixedRunningTime) actRunningTime++;
-            else
-            {
+            if (actRunningTime < fixedRunningTime) {
+                actRunningTime++;
+                crashnessPercent++;
+            }
+            else {
                 DropPeopleOff();
                 if (isRunningOut) status = Status.runningOut;
                 else status = Status.waitingForPeople;
@@ -281,6 +335,9 @@ namespace LunaparkGame
         /// </summary>
         public virtual void Action() {
             // Cannot use anything from AmusementsList (it could create an cycle)!
+            if (crashnessPercent >= 590) {
+                status = Status.runningOut;
+            }
             switch (status)
             {
                 case Status.waitingForPeople: WaitingForPeopleAction();
@@ -397,9 +454,8 @@ namespace LunaparkGame
             else return false;
         }
         protected abstract bool IsInsideInAmusement(int x, int y);
-        public override void GetRealCoordinates(out int x, out int y) {
-            x = this.coord.x * MainForm.sizeOfSquare;
-            y = this.coord.y * MainForm.sizeOfSquare;
+        public override Point GetRealCoordinates() {
+            return new Point (this.coord.x * MainForm.sizeOfSquare + 1, this.coord.y * MainForm.sizeOfSquare + 1);
         }
         /// <summary>
         /// Returns all points on which the amusement lies except the entrance and the exit.
@@ -439,14 +495,14 @@ namespace LunaparkGame
         public readonly bool hasSeparatedEnterExit;
         public Color color;
 
-        public AmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit) : base(prize, name) {
+        public AmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, Image image) : base(prize, name, image) {
             this.entranceFee = fee;
             this.capacity = capacity;
             this.runningTime = runningTime;
             this.hasSeparatedEnterExit = hasEntranceExit;
             this.color = Color.Yellow;
         }
-        public AmusementsFactory(int prize, string name):base(prize, name){}
+        public AmusementsFactory(int prize, string name, Image image):base(prize, name, image){}
         protected static bool CheckFreeLocation(byte x, byte y, Model model, byte width, byte height, bool hasSeparatedEntranceAndExit = true) {
             if (x + width > model.playingWidth + 1 || y + height > model.playingHeight + 1) return false;
             for (byte i = x; i < x + width; i++) {
@@ -503,18 +559,27 @@ namespace LunaparkGame
             model.maps.RemovePath(this);
             model.dirtyDestruct.Enqueue(this);
         }
-        public override void GetRealSize(out int width, out int height) {
-            width = MainForm.sizeOfSquare;
-            height = MainForm.sizeOfSquare;
+        public override Size GetRealSize() {
+            return new Size(MainForm.sizeOfSquare - 1, MainForm.sizeOfSquare - 1);              
         }
-        public override void GetRealCoordinates(out int x, out int y) {
-            x = this.coord.x * MainForm.sizeOfSquare;
-            y = this.coord.y * MainForm.sizeOfSquare;
+        public override Point GetRealCoordinates() {
+            return new Point (this.coord.x * MainForm.sizeOfSquare + 1, this.coord.y * MainForm.sizeOfSquare + 1);
+        }
+        /// <summary>
+        /// Determines whether the given coordinates are inside this object or not.
+        /// </summary>
+        /// <param name="x">An nonnegative integer, represents the game x-coordinate.</param>
+        /// <param name="y">An nonnegative integer, represents the game y-coordinate.</param>
+        /// <returns></returns>
+        public override bool IsInside(int gx, int gy) {
+#warning overit, jestli opravdu funguje
+            if (gx == this.coord.x && gy == this.coord.y) return true;
+            else return false;
         }
     }
     public abstract class PathFactory: MapObjectsFactory{
-        public PathFactory(int prize, string name)
-        : base(prize, name) {
+        public PathFactory(int prize, string name, Image image)
+        : base(prize, name, image) {
            
         }
         public override bool CanBeBuild(byte x, byte y, Model model) {
@@ -526,6 +591,7 @@ namespace LunaparkGame
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
         private static Random rand = new Random();
         const int minMoney = 200, maxMoney = 2000, minPatience=10, maxPatience=100;
+        public const int width = MainForm.sizeOfSquare / 7, height = MainForm.sizeOfSquare / 2;
         public enum Status {initialWalking, walking, onCrossroad, inAmusQueue, inAmus,choosesAmus, disposing }
 
         private int money; 
@@ -540,7 +606,8 @@ namespace LunaparkGame
         private int waitingTimeInQueue = 0, startingWalkingTime=2*MainForm.sizeOfSquare;
         private int contentment = 100;//spokojenost
         private int hunger=0;
-        protected int x, y; //instead of coord //todo: casem s tim neco udelat, napr. 2 abstract tridy od MapObjects apod.
+
+        protected int realX, realY; //instead of coord 
         protected object xyLock = new object(); //use for every manipulation with x and y together
         private Direction currDirection = Direction.no;
         public int CurrAmusId { get; private set; }
@@ -555,8 +622,8 @@ namespace LunaparkGame
             this.money = rand.Next(Person.minMoney,Person.maxMoney);
             this.patience = rand.Next(Person.minPatience, Person.maxPatience);
             this.maxAcceptablePrice = 100;//todo: nastavit nejak podle vstupnich cen vstupu na atrakce
-            this.x = x;
-            this.y = y;
+            this.realX = x;
+            this.realY = y;
             this.visible = true;
             this.color = System.Drawing.Color.FromArgb(rand.Next(255), rand.Next(255), rand.Next(255));
 
@@ -574,20 +641,20 @@ namespace LunaparkGame
                         remainingStepsCount--;
                         switch (currDirection)
                         {
-                            case Direction.N: Interlocked.Decrement(ref y);
+                            case Direction.N: Interlocked.Decrement(ref realY);
                                 break;
-                            case Direction.S: Interlocked.Increment(ref y);
+                            case Direction.S: Interlocked.Increment(ref realY);
                                 break;
-                            case Direction.W: Interlocked.Decrement(ref x);
+                            case Direction.W: Interlocked.Decrement(ref realX);
                                 break;
-                            case Direction.E: Interlocked.Increment(ref x);
+                            case Direction.E: Interlocked.Increment(ref realX);
                                 break;
                             case Direction.no: { status = Status.choosesAmus;}
                                 break;
                             case Direction.here: {
                                 
                                 lock (xyLock) {  // lock is not necessary here, only an amusement changes x and y together and the person is not in an amusement, yet.
-                                    currAmus = model.maps.GetAmusement(x, y);
+                                    currAmus = model.maps.GetAmusement(realX, realY);
                                 }
                                 if (currAmus == null) {
                                     AddContentment(-20); //todo: ubrat spokojenost
@@ -623,7 +690,7 @@ namespace LunaparkGame
                     break;
                 case Status.onCrossroad: {
                     #region               
-                    currDirection=model.maps.GetDirectionToAmusement(CurrAmusId,x,y);
+                    currDirection=model.maps.GetDirectionToAmusement(CurrAmusId,realX,realY);
                     status = Status.walking;
                     remainingStepsCount = MainForm.sizeOfSquare;
                     #endregion
@@ -659,20 +726,20 @@ namespace LunaparkGame
                         switch (currDirection)//doesnt matter that it is not "thread-safe", nobody else couldnt change x,y while initialWalkingTime
                         {
                             case Direction.E:  
-                                if (model.maps.IsPath(x + 1, y)) { x++;
+                                if (model.maps.IsPath(realX + 1, realY)) { realX++;
                                 }
                                 else currDirection=(Direction)rand.Next(1,5);
                                 break;
                             case Direction.N:
-                                if (model.maps.IsPath(x , y-1)) { y--; }
+                                if (model.maps.IsPath(realX , realY-1)) { realY--; }
                                 else currDirection = (Direction)rand.Next(1, 5);
                                 break;
                             case Direction.S: 
-                                if (model.maps.IsPath(x , y+1)) { y++; }
+                                if (model.maps.IsPath(realX , realY+1)) { realY++; }
                                 else currDirection = (Direction)rand.Next(1, 5);
                                 break;
                             case Direction.W: 
-                               if (model.maps.IsPath(x -1, y)) { x--; }
+                               if (model.maps.IsPath(realX -1, realY)) { realX--; }
                                else currDirection = (Direction)rand.Next(1, 5);
                                 break;
                             default: currDirection = (Direction)rand.Next(1,5);
@@ -713,25 +780,29 @@ namespace LunaparkGame
         }
         public void SetRealCoordinates(int x, int y) {
             lock (xyLock) {
-                this.x = x;
-                this.y = y;
+                this.realX = x;
+                this.realY = y;
             }
         }
-        public System.Drawing.Point GetRealCoordinates() {
-            lock (xyLock) {
-                return new System.Drawing.Point(x, y);
-            }
-        }
+       
         public System.Drawing.Point GetRealCoordinatesUnsynchronized() {
-            return new System.Drawing.Point(x,y);
+            return new System.Drawing.Point(realX,realY);
         }
-        public override void GetRealCoordinates(out int x, out int y) {
+        public override Point GetRealCoordinates() {
             lock (xyLock) {
-                x = this.x;
-                y = this.y;
+                return new System.Drawing.Point(realX, realY);
             }
         }
-        
+        /// <summary>
+        /// Determines whether the given coordinates are inside this object or not.
+        /// </summary>
+        /// <param name="x">An nonnegative integer, represents the real x-coordinate.</param>
+        /// <param name="y">An nonnegative integer, represents the real y-coordinate.</param>
+        /// <returns></returns>
+        public override bool IsInside(int x, int y) {
+            if (x >= this.realX && x <= this.realX + width && y >= this.realY - height && y <= this.realY) return true;
+            else return false;
+        }
         public int GetContentment() {
             return contentment;
         }
@@ -776,9 +847,8 @@ namespace LunaparkGame
         }
 
 
-        public override void GetRealSize(out int width, out int height) {
-            width = MainForm.sizeOfSquare / 7;
-            height = MainForm.sizeOfSquare / 2;
+        public override Size GetRealSize() {
+            return new Size(MainForm.sizeOfSquare / 7, MainForm.sizeOfSquare / 2);              
         }
         public override void Destruct()
         {

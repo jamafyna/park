@@ -120,8 +120,14 @@
   <data name="cannotBuyNoMoney" xml:space="preserve">
     <value>"Nelze koupit. Nedostatek peněz."</value>
   </data>
+  <data name="cannotChangeFirstRepair" xml:space="preserve">
+    <value>"Nejprve je třeba atrakci opravit."</value>
+  </data>
   <data name="cannotDemolishAmusement" xml:space="preserve">
     <value>"Nelze zbořit, dokud atrakce běží."</value>
+  </data>
+  <data name="cannotRepairNoMoney" xml:space="preserve">
+    <value>"Nelze opravit. Nedostatek peněz."</value>
   </data>
   <data name="unfinishedBuilding" xml:space="preserve">
     <value>"Stavba nebyla dokončena. Nejprve dokončete stavbu."</value>

@@ -120,8 +120,14 @@
   <data name="cannotBuyNoMoney" xml:space="preserve">
     <value>"No money to buy this."</value>
   </data>
+  <data name="cannotChangeFirstRepair" xml:space="preserve">
+    <value>"Firstly, repair the amusement."</value>
+  </data>
   <data name="cannotDemolishAmusement" xml:space="preserve">
     <value>"It cannot be demolished. The amusement is running."</value>
+  </data>
+  <data name="cannotRepairNoMoney" xml:space="preserve">
+    <value>"No money to repair."</value>
   </data>
   <data name="unfinishedBuilding" xml:space="preserve">
     <value>"The building has not been finnished. Finish it first."</value>

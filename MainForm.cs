@@ -209,26 +209,15 @@ namespace LunaparkGame
                 }
                 if (model.LastClick.CanBeBuild(x, y, model)) {
                     model.LastClick.Build(x, y, model);
-                    if (model.LastClick is AmusementsFactory) model.SetNullToLastClick();
-                }
-                /* if (model.LastClick is Amusements) {
-                    if (((Amusements)model.LastClick).CheckFreeLocation(x, y)) {
-                        object[] arg = { model, new Coordinates(x, y) };
-                        //todo:nize nejspise neni nutne ukladat, udelano v konstruktoru atrakce a nastavovat 
-                        model.LastBuiltAmus = (Amusements)Activator.CreateInstance(model.LastClick.GetType(), arg);  //todo: melo by se vytvorit v novem vlakne                                          
-                    }
-                    return;
-                }
-                else {
-                    object[] arg = { model, new Coordinates(x, y) };
-                    Activator.CreateInstance(model.LastClick.GetType(), arg);
-                }*/
+                    if (model.LastClick is AmusementsFactory || 
+                        model.LastClick.GetType() == typeof(AmusementExitPathFactory) ||
+                        model.LastClick.GetType() == typeof(AmusementEnterPathFactory)
+                        ) model.SetNullToLastClick();
+                }               
                 #endregion
 
             }
 
-        }
-        
-        
+        }       
     }
 }

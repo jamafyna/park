@@ -59,10 +59,10 @@ namespace LunaparkGame
             if (parts.Length != 5) throw new InputFileFormatException("Wrong count of columns, line: " + lineCount);
             // parts[0] is not important, parts[1]...type of Factory, parts[2]...args, parts[3]...image, parts[4]...visible at start
 
-            object[] args = GetArgs(parts[2], lineCount);
-
             Image im = (Image)Properties.Images.ResourceManager.GetObject(parts[3].Trim());
-           
+            
+            object[] args = GetArgs(parts[2], im, lineCount);
+                     
             bool visible;
             if (!Boolean.TryParse(parts[4], out visible)) throw new InputFileFormatException("Wrong format of the column Visible, line: " + lineCount);
          
@@ -86,7 +86,7 @@ namespace LunaparkGame
             }
 
         }
-        private object[] GetArgs(string argsLine, int lineCount) {
+        private object[] GetArgs(string argsLine, Image image, int lineCount) {
             string[] args = argsLine.Split(',');
             List<object> list = new List<object>();
             try {
@@ -119,6 +119,7 @@ namespace LunaparkGame
                     }
                     else throw new InputFileFormatException("Uncompatible type of an argument in Arguments, line:" + lineCount);
                 }
+                list.Add(image);
                 return list.ToArray();
             }
             catch (IndexOutOfRangeException) {

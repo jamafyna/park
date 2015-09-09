@@ -78,16 +78,27 @@ namespace LunaparkGame
         public override void Destruct() {
             // nothing, the gate cannot be demolished
         }
+       
         public override List<Coordinates> GetAllPoints() {
             List<Coordinates> l = new List<Coordinates>();
             l.Add(entrance.coord);
             l.Add(exit.coord);
             return l;
         }
-        public override void GetRealSize(out int width, out int height) {
-            width = Gate.width * MainForm.sizeOfSquare;
-            height = Gate.height * MainForm.sizeOfSquare; ;
+        public override Size GetRealSize() {
+            return new Size(Gate.width * MainForm.sizeOfSquare - 1, Gate.height * MainForm.sizeOfSquare - 1);            
         }
+        /// <summary>
+        /// Determines whether the given coordinates are inside this object or not.
+        /// </summary>
+        /// <param name="x">An nonnegative integer, represents the game x-coordinate.</param>
+        /// <param name="y">An nonnegative integer, represents the game y-coordinate.</param>
+        /// <returns></returns>
+        public override bool IsInside(int gx, int gy) {
+            if (gx >= this.coord.x && gx <= this.coord.x + width && gy >= this.coord.y && gy <= this.coord.y + height) return true;
+            else return false;
+        }
+        
         public string GetInfo() {
             return string.Concat(
                 Labels.currVisitorsCount, model.CurrPeopleCount, "\n",
@@ -157,23 +168,23 @@ namespace LunaparkGame
             }
             return list;
         }
-        public override void GetRealSize(out int width, out int height) {
-            if (isHorizontalOriented) { 
-                width = this.sizeA * MainForm.sizeOfSquare;
-                height = this.sizeB * MainForm.sizeOfSquare; 
+        public override Size GetRealSize() {
+            if (isHorizontalOriented) {
+                return new Size(this.sizeA * MainForm.sizeOfSquare - 1,  this.sizeB * MainForm.sizeOfSquare - 1);              
             }
             else {
-                width = this.sizeB * MainForm.sizeOfSquare;
-                height = this.sizeA * MainForm.sizeOfSquare; 
+                return new Size(this.sizeB * MainForm.sizeOfSquare - 1, this.sizeA * MainForm.sizeOfSquare - 1);                        
             }
         }
-
+        public override bool IsInside(int x, int y) {
+            throw new NotImplementedException();
+        }
     }
     public class RectangleAmusementsFactory : AmusementsFactory {
         protected readonly byte  width, height;
         public bool isHorizontal;
-        public RectangleAmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height)
-            : base(prize, fee, capacity, runningTime, name, hasEntranceExit) {
+        public RectangleAmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height, Image image)
+            : base(prize, fee, capacity, runningTime, name, hasEntranceExit, image) {
                 this.width = width;
                 this.height = height;
         }
@@ -208,9 +219,8 @@ namespace LunaparkGame
         }
 
 
-         public override void GetRealSize(out int width, out int height) {
-             width = this.width * MainForm.sizeOfSquare;
-             height = this.width * MainForm.sizeOfSquare;
+         public override Size GetRealSize() {
+             return new Size(this.width * MainForm.sizeOfSquare - 1, this.width * MainForm.sizeOfSquare - 1);              
          }
        
         protected override bool IsInsideInAmusement(int x, int y) {
@@ -226,12 +236,27 @@ namespace LunaparkGame
             }
             return list;
         }
+       
+        /// <summary>
+        /// Determines whether the given coordinates are inside this object or not.
+        /// </summary>
+        /// <param name="x">An nonnegative integer, represents the game x-coordinate.</param>
+        /// <param name="y">An nonnegative integer, represents the game y-coordinate.</param>
+        /// <returns></returns>
+        public override bool IsInside(int gx, int gy) {
+         /*   byte gx = (byte)(x / MainForm.sizeOfSquare);
+            byte gy = (byte)(y / MainForm.sizeOfSquare);
+            if (gx >= this.coord.x && gx <= this.coord.x + width && gy >= this.coord.y && gy <= this.coord.y + width) return true;
+            else return false;*/
+            if (gx >= this.coord.x && gx <= this.coord.x + width && gy >= this.coord.y && gy <= this.coord.y + width) return true;
+            else return false;
+        }
     }
     public class SquareAmusementsFactory : AmusementsFactory {
         public readonly byte width;
 
-        public SquareAmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width)
-             : base(prize, fee, capacity, runningTime, name, hasEntranceExit) {
+        public SquareAmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, Image image)
+             : base(prize, fee, capacity, runningTime, name, hasEntranceExit, image) {
                  this.width = width;        
         }
                 
@@ -264,14 +289,17 @@ namespace LunaparkGame
         protected override bool IsInsideInAmusement(int x, int y) {
             throw new NotImplementedException();
         }
-        public override void GetRealSize(out int width, out int height) {
+        public override Size GetRealSize() {
+            throw new NotImplementedException();
+        }
+        public override bool IsInside(int x, int y) {
             throw new NotImplementedException();
         }
         
     }
     public class FreeShapedAmusementsFactory : AmusementsFactory {
         //todo: konstruktor nedokonceny
-        public FreeShapedAmusementsFactory(int prize, string name) : base(prize, name) { }
+        public FreeShapedAmusementsFactory(int prize, string name, Image image) : base(prize, name, image) { }
         public override MapObjects Build(byte x, byte y, Model model) {
             throw new NotImplementedException();
         }
@@ -293,8 +321,8 @@ namespace LunaparkGame
     }
     public class LittleComplementaryAmusementsFactory : AmusementsFactory {
 
-        public LittleComplementaryAmusementsFactory(int prize, int fee, int capacity, int runningTime, string name)
-            : base(prize, fee, capacity, runningTime, name, hasEntranceExit: false) {
+        public LittleComplementaryAmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, Image image)
+            : base(prize, fee, capacity, runningTime, name, hasEntranceExit: false, image: image) {
 
         }
         public override MapObjects Build(byte x, byte y, Model model) {
@@ -347,8 +375,8 @@ namespace LunaparkGame
 
     public class RestaurantFactory : SquareAmusementsFactory {
 
-        public RestaurantFactory(int prize, int foodPrize, int capacity, string name)  
-          :base(prize, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1){        
+        public RestaurantFactory(int prize, int foodPrize, int capacity, string name, Image image)  
+          :base(prize, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1, image: image){        
         }
        
         public override bool CanBeBuild(byte x, byte y, Model model) {

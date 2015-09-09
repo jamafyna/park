@@ -12,8 +12,8 @@ namespace LunaparkGame {
         Model model;
         public AmusementDetailForm(Model model, Amusements a, Image im) {
             InitializeComponent();
-            exit_button.Tag = new AmusementExitPathFactory(a);
-            entrance_button.Tag = new AmusementEnterPathFactory(a);
+            exit_button.Tag = new AmusementExitPathFactory(a, Properties.Images.exit);
+            entrance_button.Tag = new AmusementEnterPathFactory(a, Properties.Images.enter);
             this.model = model;
             this.pictureBox.Image = im;
             this.a = a;
@@ -27,6 +27,7 @@ namespace LunaparkGame {
         public void MyUpdate() {
             if (a.State == Amusements.Status.disposing) this.Close();
             this.prize_numericUpDown1.Value = a.CurrFee;
+            this.crashValue_label.Text = a.CrashnessPercent + "%";
             if (a.isDemolishedEntrance()) entrance_button.Visible = true;
             else entrance_button.Visible = false;
             if (a.isDemolishedExit()) exit_button.Visible = true;
@@ -51,7 +52,8 @@ namespace LunaparkGame {
             
             if (a.State == Amusements.Status.outOfService || a.State == Amusements.Status.runningOut)
             {
-                a.State=Amusements.Status.waitingForPeople;
+                if(a.Crashed) MessageBox.Show(Labels.warningMessBox, Notices.cannotChangeFirstRepair, MessageBoxButtons.OK);
+                else a.State=Amusements.Status.waitingForPeople;
             }
             else a.State = Amusements.Status.runningOut;
            
@@ -69,6 +71,14 @@ namespace LunaparkGame {
 
         private void entrance_button_Click(object sender, EventArgs e) {
             model.SetLastClick((AmusementEnterPathFactory)((Button)sender).Tag);
+        }
+
+        private void button1_Click(object sender, EventArgs e) {
+            a.RepairWhole();
+        }
+
+        private void AmusementDetailForm_Load(object sender, EventArgs e) {
+
         }
     }
 }

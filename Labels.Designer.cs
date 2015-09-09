@@ -151,6 +151,15 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Crashness: .
+        /// </summary>
+        internal static string crashness {
+            get {
+                return ResourceManager.GetString("crashness", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Current count of visitors: .
         /// </summary>
         internal static string currVisitorsCount {
@@ -381,6 +390,15 @@ namespace LunaparkGame {
         internal static string quitMenu {
             get {
                 return ResourceManager.GetString("quitMenu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Repair.
+        /// </summary>
+        internal static string repairButton {
+            get {
+                return ResourceManager.GetString("repairButton", resourceCulture);
             }
         }
         

@@ -261,4 +261,10 @@
   <data name="verticalButtonText" xml:space="preserve">
     <value>VERTICAL</value>
   </data>
+  <data name="crashness" xml:space="preserve">
+    <value>Crashness: </value>
+  </data>
+  <data name="repairButton" xml:space="preserve">
+    <value>Repair</value>
+  </data>
 </root>

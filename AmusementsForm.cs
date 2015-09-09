@@ -84,6 +84,7 @@ namespace LunaparkGame
             AmusementsFactory af = (AmusementsFactory)((Button)sender).Tag;
             buyForm.Set(af, ((Button)sender).BackgroundImage);
             if (buyForm.IsHidden) buyForm.Show(dockP);
+            else buyForm.Activate();
             
         }
         

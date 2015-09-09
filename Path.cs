@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace LunaparkGame
 {
 
    public abstract class AmusementPath : Path {
-        public readonly Amusements amusement;
+       public readonly Amusements amusement;
         public AmusementPath(Model m, Coordinates c, Amusements a, bool tangible = true)
             : base(m, prize: 0, tangible: tangible) //not call base(m,c) because dont want to add to maps
         {
@@ -29,17 +30,18 @@ namespace LunaparkGame
 
         public override void Destruct() {
             if (amusement.State != Amusements.Status.outOfService) {
-                MessageBox.Show(Labels.warningMessBox, Notices.cannotDemolishAmusement, MessageBoxButtons.OK);
+                MessageBox.Show(Notices.cannotDemolishAmusement, Labels.warningMessBox, MessageBoxButtons.OK);
                 return;
             }       
             model.maps.RemoveEntranceExit(this);
             model.dirtyDestruct.Enqueue(this);
+            amusement.entrance = null; 
           
         }
     }
     public class AmusementEnterPathFactory : PathFactory {
         Amusements a;
-        public AmusementEnterPathFactory(Amusements a) :base(prize:0, name: "") {
+        public AmusementEnterPathFactory(Amusements a, Image image) :base(prize:0, name: "", image: image) {
             this.a = a;
         }
 #warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
@@ -58,12 +60,13 @@ namespace LunaparkGame
             model.maps.RemoveEntranceExit(this);
             model.dirtyDestruct.Enqueue(this);
             model.mustBeExit = false;
+            amusement.exit = null;
         }
     }
     public class AmusementExitPathFactory : PathFactory {
         Amusements a;
-        public AmusementExitPathFactory(Amusements a)
-            : base(prize: 0, name: "") {
+        public AmusementExitPathFactory(Amusements a, Image im)
+            : base(prize: 0, name: "", image: im) {
             this.a = a;
         }
 #warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
@@ -81,8 +84,8 @@ namespace LunaparkGame
         
     }
     public class StonePathFactory : PathFactory {
-        public StonePathFactory(int prize, string name) 
-        : base(prize, name) {         
+        public StonePathFactory(int prize, string name, Image image) 
+        : base(prize, name, image) {         
         }
         public override MapObjects Build(byte x, byte y, Model model) {
             return new StonePath(model, new Coordinates(x, y), prize, name, internTypeId);
@@ -97,8 +100,8 @@ namespace LunaparkGame
 
     }
     public class AsphaltPathFactory : PathFactory {
-        public AsphaltPathFactory(int prize, string name)
-            : base( prize, name) {
+        public AsphaltPathFactory(int prize, string name, Image image)
+            : base( prize, name, image) {
         }
         public override MapObjects Build(byte x, byte y, Model model) {
             return new AsphaltPath(model, new Coordinates(x, y), prize, name, internTypeId);
@@ -112,8 +115,8 @@ namespace LunaparkGame
         
     }
     public class SandPathFactory : PathFactory {
-        public SandPathFactory(int prize, string name)
-            : base(prize, name) {
+        public SandPathFactory(int prize, string name, Image image)
+            : base(prize, name, image) {
         }
         public override MapObjects Build(byte x, byte y, Model model) {
             return new SandPath(model, new Coordinates(x, y), prize, name, internTypeId);
@@ -126,8 +129,8 @@ namespace LunaparkGame
        
     }
     public class MarblePathFactory : PathFactory {
-        public MarblePathFactory(int prize, string name)
-            : base(prize, name) {
+        public MarblePathFactory(int prize, string name, Image image)
+            : base(prize, name, image) {
         }
         public override MapObjects Build(byte x, byte y, Model model) {
             return new MarblePath(model, new Coordinates(x, y), prize, name, internTypeId);
