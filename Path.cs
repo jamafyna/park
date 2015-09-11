@@ -56,8 +56,8 @@ namespace LunaparkGame
             a.exit = this;
         }
         public override void Destruct() {
-            if (amusement.State != Amusements.Status.outOfService) { 
-                MessageBox.Show(Labels.warningMessBox, Notices.cannotDemolishAmusement, MessageBoxButtons.OK);
+            if (amusement.State != Amusements.Status.outOfService) {
+                MessageBox.Show(Notices.cannotDemolishAmusement, Labels.warningMessBox, MessageBoxButtons.OK);
                 return; 
             }
             model.maps.RemoveEntranceExit(this);
@@ -70,7 +70,7 @@ namespace LunaparkGame
         Amusements a;
         public AmusementExitPathFactory(Amusements a, Image im)
             : base(prize: 0, name: "", image: im) {
-            this.a = a;
+                this.a = a;
         }
 #warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
         public override MapObjects Build(byte x, byte y, Model model) {

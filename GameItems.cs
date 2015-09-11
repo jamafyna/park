@@ -78,14 +78,16 @@ namespace LunaparkGame
         public bool isClicked = false;
         public readonly int prize;
         public readonly int internTypeID;
+        public readonly bool tangible;
         public MapObjects() { }
         protected MapObjects(Model m, int prize, Image image, int typeID, bool tangible=true) {
             this.model = m;
             this.prize = prize;
+            this.tangible = tangible;
             model.MoneyAdd(-this.prize);
             this.image = image;
             this.internTypeID = typeID;
-            if(tangible) model.dirtyNew.Enqueue(this);
+            //if(tangible) model.dirtyNew.Enqueue(this);
            
         }
         public MapObjects(Model m,Coordinates coord, int prize, Image image, int typeID, bool tangible=true):this(m, prize, image, typeID, tangible)
@@ -196,7 +198,8 @@ namespace LunaparkGame
             this.originalFee = fee;
             this.currFee = fee;
             this.capacity = capacity;
-            this.WorkingPrice = capacity * fee / 2;
+            this.WorkingPrice = (int)(capacity * fee / (2.2 * runningTime));
+            
             this.fixedRunningTime = runningTime;
             this.name = name;
             this.hasSeparatedEnterExit = hasEntranceExit;
@@ -311,7 +314,7 @@ namespace LunaparkGame
                 }
                 else waitingTime++;
             }
-            model.MoneyAdd(-this.WorkingPrice);         
+            model.MoneyAdd(-this.WorkingPrice / 64);         
         }
         protected virtual void RunningAction() {
             if (actRunningTime < fixedRunningTime) {
@@ -324,8 +327,10 @@ namespace LunaparkGame
                 else status = Status.waitingForPeople;
                 isRunning = false;
                 actRunningTime = 0;
+                model.MoneyAdd(-this.WorkingPrice);
             }
-            model.MoneyAdd( - this.WorkingPrice);
+          //hash:
+          //  model.MoneyAdd( - this.WorkingPrice);
         }
         protected virtual void RunningOutAction(){
         

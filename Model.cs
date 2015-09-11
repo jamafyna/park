@@ -15,7 +15,7 @@ namespace LunaparkGame
     public class Model //todo: Prejmenovat na evidenci
     {     
         private const int initialMoney = 1000000;
-        public const int maxPeopleInPark=1000;
+        public const int maxPeopleInPark = 10000;
         public readonly byte playingWidth, playingHeight; 
         public readonly byte realWidth, realHeight;
         public readonly int maxAmusementsCount;//todo: nejspis nepocita lavicky
@@ -271,7 +271,13 @@ namespace LunaparkGame
         public void Add(Person p)//ts
         {
 
-            lock(peopleLock) { 
+            lock(peopleLock) {
+                if (currPeopleCount == people.Length) 
+#if (DEBUG) 
+                    throw new MyDebugException("More people than a determined value");
+#else
+                    return;
+#endif
                 if (internChangablePeopleId[p.id] != -1) { // very unlikely situation - a person p survived more people then maxUniquePeople; and must be locked - more it is called Remove(p) and Add(q) where p.id=q.id in the same time
 
 #if (DEBUG)
@@ -830,7 +836,8 @@ namespace LunaparkGame
             return pathMap[x][y];       
         }
         public Amusements GetAmusement(byte x, byte y) {
-            if(pathMap[x][y]==null) return amusementMap[x][y];
+            Path p;
+            if ((p = pathMap[x][y]) == null || !p.tangible) return amusementMap[x][y];
             else return null;
                 
         }
