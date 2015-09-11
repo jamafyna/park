@@ -78,9 +78,11 @@ namespace LunaparkGame
         private new void Click(Button sender, EventArgs e )
         {
             model.SetLastClick((PathFactory)sender.Tag);
+            model.demolishOn = false;
         }
         private new void Click(object sender, EventArgs e) {
             model.SetLastClick((PathFactory)((Button)sender).Tag);
+            model.demolishOn = false;
         }
 
         private void PathForm_FormClosing(object sender, FormClosingEventArgs e) {

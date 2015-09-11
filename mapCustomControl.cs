@@ -11,28 +11,56 @@ using System.Windows.Forms;
 namespace LunaparkGame {
     public partial class mapCustomControl : Control {
         Model model;
+        View2 view;
         Pen pen = new Pen(Color.DarkSeaGreen, 1);
         SolidBrush sbr = new SolidBrush(Color.Lime);
         Point[] people = new Point[4000];
+        Rectangle[] borderRects;
 
-        public mapCustomControl(Model model) {
+        public mapCustomControl(Model model, View2 view) {                     
             InitializeComponent();
+            borderRects = InitializeBorderRects(model.playingWidth + 2, model.playingHeight + 2);
+            this.Width = (model.playingWidth + 2) * MainForm.sizeOfSquare + 1;
+            this.Height = (model.playingHeight + 2) * MainForm.sizeOfSquare + 1;
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
             SetStyle(ControlStyles.UserPaint, true);
             SetStyle(ControlStyles.ResizeRedraw, true);
             this.model = model;
+            this.view = view;
         }
 
         protected override void OnPaint(PaintEventArgs pe) {
             base.OnPaint(pe);
             this.BackColor = Color.Lime;
             DrawGrid(pe.Graphics, pen);
+            DrawBorder(pe.Graphics, Properties.Images.plot);
             //todo:draw paths
-            
+           //System.Collections.IEnumerator paths = model.maps.GetPathEnumerator();
+          /*  foreach (Path p in model.maps) {
+                DrawMapObject(pe.Graphics, p);
+            }*/
+            List<Path> paths = model.maps.GetPathsUnsynchronized();
+            foreach (Path item in paths) {
+                DrawMapObject(pe.Graphics,item);
+            }
             DrawPeople(pe.Graphics);
-            //todo:draw attraction
+            foreach (Amusements a in model.amusList.GetAmusementsUnsynchronized()) {
+                DrawAmusement(pe.Graphics, a);
+            }
             
+        }
+        private Rectangle[] InitializeBorderRects(int mapWidth, int mapHeight) {
+            int width = mapWidth * MainForm.sizeOfSquare - 1;
+            int height = mapHeight * MainForm.sizeOfSquare - 1;
+            int squareSize = MainForm.sizeOfSquare - 1;          
+            Rectangle[] rects = {
+                                    new Rectangle(1, 1, squareSize, height),
+                                    new Rectangle(1, 1, width, squareSize),
+                                    new Rectangle(1, height - squareSize + 1, width, squareSize ),
+                                    new Rectangle(width - squareSize + 1, 1, squareSize, height)
+                          };
+            return rects;
         }
 
         private void DrawPerson(Graphics gr, Person p) {
@@ -46,12 +74,16 @@ namespace LunaparkGame {
 
         private void DrawPeople(Graphics gr) {
             foreach (Person p in model.persList) {
-                sbr.Color = p.color;
-                Point point = p.GetRealCoordinatesUnsynchronized();
-                Size size = p.GetRealSize();
-                gr.FillRectangle(sbr, new Rectangle(point, size));
-                sbr.Color = Color.LightSalmon;
-                gr.FillEllipse(sbr, point.X, point.Y - size.Width, size.Width, size.Width);
+                if (p.visible) {
+                    sbr.Color = p.color;
+                    Point point = p.GetRealCoordinatesUnsynchronized();
+                    Size size = p.GetRealSize();
+                    point.Y -= size.Height;
+                    gr.FillRectangle(sbr, new Rectangle(point, size));
+                    sbr.Color = Color.LightSalmon;
+                    gr.FillEllipse(sbr, point.X - 1, point.Y - size.Width + 1, size.Width + 2, size.Width + 2);
+                   // gr.FillEllipse(sbr, point.X - 1, point.Y - 5, 7, 7);
+                }
             }      
         }
 
@@ -66,7 +98,15 @@ namespace LunaparkGame {
             Rectangle rect = new Rectangle(point, size);
             sbr.Color = amus.color;
             gr.FillRectangle(sbr, rect);
-            gr.DrawImage(amus.image, rect);
+            if (amus is RectangleAmusements && !((RectangleAmusements)amus).isHorizontalOriented) {
+                Image im = (Image)(view.images[amus.internTypeID]).Clone();
+#warning Proc rotace nefunguje???
+               // Image im = (Image)(view.images[amus.internTypeID]);
+                im.RotateFlip(RotateFlipType.Rotate90FlipNone);
+               // im.RotateFlip(RotateFlipType.Rotate90FlipY);
+                gr.DrawImage(im, rect);
+            }
+            gr.DrawImage(view.images[amus.internTypeID], rect);
         }
         /// <summary>
         /// Draws all MapObjects, except of an item which has own color.
@@ -75,7 +115,7 @@ namespace LunaparkGame {
         /// <param name="obj">MapObjects item but not item which has its own color.</param>
         private void DrawMapObject(Graphics gr, MapObjects obj) {
             Rectangle rect = new Rectangle(obj.GetRealCoordinates(), obj.GetRealSize());
-            gr.DrawImage(obj.image, rect);
+            gr.DrawImage(view.images[obj.internTypeID], rect);
         }
         
         private void DrawGrid(Graphics graphics, Pen pen) {
@@ -85,6 +125,10 @@ namespace LunaparkGame {
                 graphics.DrawLine(pen, i * MainForm.sizeOfSquare, 0, i * MainForm.sizeOfSquare, this.Height * MainForm.sizeOfSquare);
         }
 
+        private void DrawBorder(Graphics gr, Image im) {           
+            TextureBrush br = new TextureBrush(im, System.Drawing.Drawing2D.WrapMode.Tile);                       
+            gr.FillRectangles(br, borderRects);
+        }
         private void mapCustomControl_Click(object sender, EventArgs e) {
             MouseEventArgs mouse = (MouseEventArgs)e;
             int realX = mouse.X;

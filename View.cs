@@ -173,7 +173,7 @@ namespace LunaparkGame
                     if (o.GetType() == typeof(AmusementEnterPath)) pbox.BackColor = Color.Red;
                     else if (o.GetType() == typeof(AmusementExitPath)) pbox.BackColor = Color.Blue;
                     else {
-                        pbox.BackgroundImage = images[((IButtonCreatable)o).InternTypeId];
+                        pbox.BackgroundImage = images[o.internTypeID];
                         pbox.BackgroundImageLayout = ImageLayout.Zoom;
                         if(o is Amusements) pbox.BackColor = ((Amusements)o).color;
                     }
@@ -194,9 +194,16 @@ namespace LunaparkGame
                     forms.Add( new PersonUserControl((Person)o,map));                    
                 }
                 if (o is Amusements) {
-                    AmusementDetailForm f = new AmusementDetailForm(model, (Amusements)o, images[((Amusements)o).InternTypeId]);
-                    f.Show(dockPanel);
-                    forms.Add(f);
+                    if (o.isClicked) {
+                        foreach (Form f in forms) {
+                            if (f is AmusementDetailForm && ((AmusementDetailForm)f).a == o) { f.Activate(); break; }
+                        }
+                    }
+                    else {
+                        AmusementDetailForm f = new AmusementDetailForm(model, (Amusements)o, images[((Amusements)o).InternTypeId]);
+                        f.Show(dockPanel);
+                        forms.Add(f);
+                    }
                 }
             }
         

@@ -16,20 +16,21 @@ namespace LunaparkGame
             get { return status; }
             set { if (value != Status.waitingForPeople) status = value; }
         }
-        public Gate(Model m, Coordinates c) {
+        public Gate(Model m, Coordinates c, Image entrIm, Image exitIm) {
             this.model = m;
             this.coord = c;
-            this.entrance = new AmusementEnterPath(m, new Coordinates(c.x, (byte)(c.y + height / 2)), this, tangible: false);
-            this.exit = new AmusementExitPath(m, new Coordinates((byte)(c.x + width), entrance.coord.y), this, tangible: false);
+            this.entrance = new AmusementEnterPath(m, new Coordinates(c.x, (byte)(c.y + height / 2)), this, entrIm, tangible: false);
+            this.exit = new AmusementExitPath(m, new Coordinates((byte)(c.x + width), entrance.coord.y), this, exitIm, tangible: false);
+            this.image = Properties.Images.gate;
             m.maps.AddAmus(this);
         }
 
-        public Gate(Model m, Coordinates c, Coordinates entrance, Coordinates exit) {
+        public Gate(Model m, Coordinates c, Coordinates entrance, Coordinates exit, Image entrIm, Image exitIm) {
             this.model = m;
             this.coord = c;
-            this.entrance = new AmusementEnterPath(m, entrance, this, tangible: false);
-            this.exit = new AmusementExitPath(m, exit, this, tangible: false);
-           
+            this.entrance = new AmusementEnterPath(m, entrance, this, entrIm, tangible: false);
+            this.exit = new AmusementExitPath(m, exit, this, exitIm, tangible: false);
+            this.image = Properties.Images.gate;
             m.maps.AddAmus(this);
        }
         public override void Action() {
@@ -132,11 +133,12 @@ namespace LunaparkGame
             this.sizeB = sizeB;
         }*/
 
-        public RectangleAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height, bool isHorizontal, Color color, int typeId)
-        : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit, color, typeId){
+        public RectangleAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height, bool isHorizontal, Color color, int typeId, Image im, Image entrImage, Image exitImage)
+        : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit, color, typeId, im, entrImage, exitImage){
             this.sizeA = width;
             this.sizeB = height;
             this.isHorizontalOriented = isHorizontal;
+            model.maps.AddAmus(this);
         }
             
         
@@ -194,7 +196,7 @@ namespace LunaparkGame
         }
       
         public override MapObjects Build(byte x, byte y, Model model) {
-            return new RectangleAmusements(new Coordinates(x,y), model, prize, entranceFee, capacity, runningTime, name, hasSeparatedEnterExit, width, height, isHorizontal, color, internTypeId);
+            return new RectangleAmusements(new Coordinates(x,y), model, prize, entranceFee, capacity, runningTime, name, hasSeparatedEnterExit, width, height, isHorizontal, color, internTypeId, null, null,null);
         }
         public override string GetInfo() {
             return string.Concat(Labels.prize, prize, "\n",    
@@ -214,8 +216,10 @@ namespace LunaparkGame
         }*/
 
          public SquareAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, Color color, int typeId)
-             : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit, color, typeId) {
-             this.width = width;     
+             : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit, color, typeId, null, null, null) {
+#warning sirka se nastavuje az pote, co se pridava do mapy a se sirkou se pocita"!!!!!!!!!
+             this.width = width;
+             model.maps.AddAmus(this);
         }
 
 
@@ -279,8 +283,8 @@ namespace LunaparkGame
 
     public class FreeShapedAmusements : Amusements {
         public FreeShapedAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, Color color, int typeId)
-            : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit:false, color: color, typeId: typeId) {
-           
+            : base (c, m, prize, fee, capacity, runningTime, name, false, color, typeId, null,null,null) {
+                model.maps.AddAmus(this);
         }
         //nejspis v sobe jeste jednu vnorenou tridu reprezentujici kousky atrakce
         public override List<Coordinates> GetAllPoints() {
@@ -317,7 +321,8 @@ namespace LunaparkGame
     /// </summary>
     public abstract class LittleComplementaryAmusements : Amusements {
         public LittleComplementaryAmusements( Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, Color color, int typeId) 
-            : base(c, m, prize, fee, capacity, runningTime, name, hasEntranceExit: false, color: color, typeId: typeId) { }
+          //  : base(c, m, prize, fee, capacity, runningTime, name, hasEntranceExit: false, color: color, typeId: typeId) { }
+            : base(c, m, prize, fee, capacity, runningTime, name, false, color, typeId, null, null, null) { }
     }
     public class LittleComplementaryAmusementsFactory : AmusementsFactory {
 
@@ -358,8 +363,10 @@ namespace LunaparkGame
             : base(c, m, prize, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1, color: color, typeId: typeId ) {
             model.mustBeEnter = false; //todo: mozna tyto 2 nejsou potreba
             model.mustBeExit = false;
-            this.entrance = new AmusementEnterPath(m, c, this, tangible: false);
-            this.exit = new AmusementExitPath(m, c, this, tangible: false);
+            this.entrance = new AmusementEnterPath(m, c, this, entrImage, tangible: false);
+            this.exit = new AmusementExitPath(m, c, this, exitImage, tangible: false);
+            model.maps.AddAmus(this);
+            this.status = Status.waitingForPeople;
         }
         
       

@@ -295,6 +295,7 @@ namespace LunaparkGame
             // 
             // timer
             // 
+            this.timer.Interval = 32;
             this.timer.Tag = "";
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 

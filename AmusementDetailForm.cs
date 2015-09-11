@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace LunaparkGame {
     public partial class AmusementDetailForm : WeifenLuo.WinFormsUI.Docking.DockContent, IUpdatable {
-        Amusements a;
+        public readonly Amusements a;
         Model model;
         public AmusementDetailForm(Model model, Amusements a, Image im) {
             InitializeComponent();
@@ -18,6 +18,7 @@ namespace LunaparkGame {
             this.pictureBox.Image = im;
             this.a = a;
             this.Text = a.name;
+            a.isClicked = true;
             MyUpdate();
         }
 
@@ -67,10 +68,12 @@ namespace LunaparkGame {
 
         private void exit_button_Click(object sender, EventArgs e) {
             model.SetLastClick((AmusementExitPathFactory)((Button)sender).Tag);
+            model.demolishOn = false;
         }
 
         private void entrance_button_Click(object sender, EventArgs e) {
             model.SetLastClick((AmusementEnterPathFactory)((Button)sender).Tag);
+            model.demolishOn = false;
         }
 
         private void button1_Click(object sender, EventArgs e) {

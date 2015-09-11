@@ -25,9 +25,9 @@ namespace LunaparkGame
     public interface IClickable { 
     
     }
-    public interface IButtonCreatable {
+   /* public interface IButtonCreatable {
         int InternTypeId { get; set; }
-    }
+    }*/
     public abstract class MapObjectsFactory {
         public int internTypeId;
         public readonly string name;
@@ -77,17 +77,21 @@ namespace LunaparkGame
         public Image image;
         public bool isClicked = false;
         public readonly int prize;
+        public readonly int internTypeID;
         public MapObjects() { }
-        protected MapObjects(Model m, int prize, bool tangible=true) {
+        protected MapObjects(Model m, int prize, Image image, int typeID, bool tangible=true) {
             this.model = m;
             this.prize = prize;
             model.MoneyAdd(-this.prize);
-           if(tangible) model.dirtyNew.Enqueue(this);
-
+            this.image = image;
+            this.internTypeID = typeID;
+            if(tangible) model.dirtyNew.Enqueue(this);
+           
         }
-        public MapObjects(Model m,Coordinates coord, int prize, bool tangible=true):this(m, prize, tangible)
+        public MapObjects(Model m,Coordinates coord, int prize, Image image, int typeID, bool tangible=true):this(m, prize, image, typeID, tangible)
         {            
             this.coord = coord;
+            this.internTypeID = typeID;
         }
        
 
@@ -116,10 +120,13 @@ namespace LunaparkGame
     /// <summary>
     /// ts,pokud se pouzivaji fce Destruct/Click...z hlavniho vlakna
     /// </summary>
-    public abstract class Amusements : MapObjects, IActionable, IButtonCreatable
+    public abstract class Amusements : MapObjects, IActionable//, IButtonCreatable
     {
         #region
         public enum Status { waitingForPeople, running, outOfService, runningOut, disposing }
+        public readonly Image entrImage;
+        public readonly Image exitImage;
+        
 
         public int InternTypeId { get { return typeId; } set { } }
         public int id { get; private set; }
@@ -178,11 +185,16 @@ namespace LunaparkGame
         //----------------------------
         #endregion
         public Amusements(){}
-        public Amusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, Color color, int typeId)
-            : base(m, c, prize)       
+        public Amusements(Image entrImage, Image exitImage) {
+            this.entrImage = entrImage;
+            this.exitImage = exitImage;
+        }
+        public Amusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, Color color, int typeId, Image image, Image entrImage, Image exitImage)
+            : base(m, c, prize, image, typeId)       
         {
             this.zIndex = 0;
             this.originalFee = fee;
+            this.currFee = fee;
             this.capacity = capacity;
             this.WorkingPrice = capacity * fee / 2;
             this.fixedRunningTime = runningTime;
@@ -190,7 +202,9 @@ namespace LunaparkGame
             this.hasSeparatedEnterExit = hasEntranceExit;
             this.color = color;
             this.typeId = typeId;
-            
+            this.entrImage = entrImage;
+            this.exitImage = exitImage;
+
             model.LastBuiltAmus = this;                 
             if(hasEntranceExit) model.mustBeEnter = true;
             this.id = model.amusList.GetFreeID();           
@@ -426,7 +440,7 @@ namespace LunaparkGame
                 IsInsideInAmusement(x, y - 1) ||
                 IsInsideInAmusement(x, y + 1))
             {
-                this.entrance = new AmusementEnterPath(model, new Coordinates((byte)x,(byte)y),this);
+                this.entrance = new AmusementEnterPath(model, new Coordinates((byte)x,(byte)y),this, entrImage);
                 model.mustBeEnter = false;
                 model.mustBeExit = true;
                 return true;
@@ -446,7 +460,7 @@ namespace LunaparkGame
                 IsInsideInAmusement(x, y - 1) ||
                 IsInsideInAmusement(x, y + 1))
             {
-                this.exit = new AmusementExitPath(model,new Coordinates((byte)x,(byte)y),this);
+                this.exit = new AmusementExitPath(model,new Coordinates((byte)x,(byte)y),this, exitImage);
                 status = Status.waitingForPeople;
                 model.mustBeExit = false;
                 return true;
@@ -478,8 +492,7 @@ namespace LunaparkGame
                 }
                 else
                 {
-                    if (!isClicked) { model.dirtyClick.Enqueue(this); isClicked = true; }
-                    
+                   model.dirtyClick.Enqueue(this);                   
                 }
            // }
         }
@@ -529,21 +542,22 @@ namespace LunaparkGame
         public abstract string GetInfo();
     }
 
-    public abstract class Path : MapObjects, IButtonCreatable {
+    public abstract class Path : MapObjects//, IButtonCreatable 
+    {
         public Direction[] signpostAmus;//rozcestnik
         public readonly string name;
         public readonly int typeId;
         public int InternTypeId { get { return typeId; } set { } }
         
-        protected Path(Model m, int prize, bool tangible = true)
-            : base(m, prize, tangible) {
+        protected Path(Model m, int prize, Image image, int typeId, bool tangible = true)
+            : base(m, prize, image, typeId, tangible) {
             this.zIndex = 10;
             signpostAmus = new Direction[m.maxAmusementsCount];
             //todo: mozna neni treba, overit
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
         }
-        public Path(Model m, Coordinates c, int prize, string name, int typeId)
-            : base(m, c, prize) {
+        public Path(Model m, Coordinates c, int prize, string name, int typeId, Image image)
+            : base(m, c, prize, image, typeId) {
             this.name = name;
             this.typeId = typeId;
             signpostAmus = new Direction[m.maxAmusementsCount];
@@ -614,7 +628,7 @@ namespace LunaparkGame
         private Amusements currAmus;
         public Status status { set; get; } //protected get; }
         
-        public Person(Model m, int x, int y) : base(m, prize: 0) {
+        public Person(Model m, int x, int y) : base(m, prize: 0, typeID: -1, image: null) {
 
             this.zIndex = 1;
             this.id = m.persList.GetFreeId();
@@ -841,9 +855,8 @@ namespace LunaparkGame
         }
         
         public override void Click(object sender, EventArgs e)
-        {
-            if (!isClicked) { model.dirtyClick.Enqueue(this); isClicked = true; }
-          
+        {           
+            model.dirtyClick.Enqueue(this);         
         }
 
 

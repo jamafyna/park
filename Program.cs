@@ -18,7 +18,7 @@ namespace LunaparkGame
 
     public class Data {
 
-        List<Image> images = new List<Image>();
+        List<Image> images;
         public List<AmusementsFactory> initialAmus = new List<AmusementsFactory>();
         public List<PathFactory> initialPaths = new List<PathFactory>();
         public List<MapObjectsFactory> initialOthers = new List<MapObjectsFactory>();
@@ -26,6 +26,9 @@ namespace LunaparkGame
         public Queue<PathFactory> otherPaths = new Queue<PathFactory>();
         public Queue<MapObjectsFactory> otherOthers = new Queue<MapObjectsFactory>();
 
+        public Data(Image[] otherLoadedImages) {
+            images = new List<Image>(otherLoadedImages);
+        }
         public void LoadAmus(System.IO.StreamReader r) {
             string line;
             int count = 1;
@@ -196,18 +199,18 @@ namespace LunaparkGame
             Application.SetCompatibleTextRenderingDefault(false);
             StartForm s=new StartForm();
             Application.Run(s);
-            Data data = new Data();
+           /* Data data = new Data(null);
             System.IO.StreamReader sr = new System.IO.StreamReader("amusements.txt"); 
            // System.IO.StreamReader sr = new System.IO.StreamReader("amusementsInitial.txt");   
             data.LoadAmus(sr);
             sr.Close();
             sr = new System.IO.StreamReader("paths.txt");
             data.LoadPaths(sr);
-            sr.Close();
+            sr.Close();*/
             
 
-            Application.Run(new MainForm(s.width,s.height, data));
-            
+           // Application.Run(new MainForm(s.width,s.height,data));
+            Application.Run(new MainForm(s.width,s.height));
            // Application.Run(new MainForm());
             
         }

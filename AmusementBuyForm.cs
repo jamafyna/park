@@ -55,6 +55,7 @@ namespace LunaparkGame
             AmusementsFactory af = (AmusementsFactory)((Button)sender).Tag;
             if(af is RectangleAmusementsFactory) ((RectangleAmusementsFactory)af).isHorizontal=isHorizontal; 
             model.SetLastClick(af);
+            model.demolishOn = false;
             //this.Hide();
             
         }

@@ -68,7 +68,7 @@ namespace LunaparkGame
             
             maps = new Map(realWidth, realHeight, this);            
             maxAmusementsCount = playingHeight * playingWidth + 1; // max. count of amusements that can user build, + 1 due to the gate which does not lie on the playing place
-            gate=new Gate(this, new Coordinates(0,(byte) (new Random()).Next(1, realHeight - Gate.height -1)) );
+            gate=new Gate(this, new Coordinates(0,(byte) (new Random()).Next(1, realHeight - Gate.height -1)),null,null );
             amusList = new AmusementsList(maxAmusementsCount, gate);
             
 
@@ -196,8 +196,7 @@ namespace LunaparkGame
             }
         }
         public void Action()
-        {
-            
+        {           
             rwLock.EnterReadLock();
             try {
               //  list.ForEach(a => a.Action());
@@ -221,6 +220,9 @@ namespace LunaparkGame
             finally {
                 rwLock.ExitReadLock();
             }
+        }
+        public List<Amusements> GetAmusementsUnsynchronized() {
+            return this.list;
         }
     }
 
@@ -410,7 +412,7 @@ namespace LunaparkGame
         private int maxAmusCount; //todo: nejspis neni potreba, smazat
         
         /// <summary>
-        /// Represents current playing map, includes maps of paths and amusements, provides algorithms for navigation.
+        /// Represents the current playing map, includes maps of paths and amusements, provides algorithms for navigation.
         /// </summary>
         /// <param name="width">The internal width of the map.</param>
         /// <param name="height">The internal height of the map.</param>
@@ -435,6 +437,42 @@ namespace LunaparkGame
             amusementMap=new Amusements[width][];
             for (int i = 0; i < width; i++) amusementMap[i] = new Amusements[height];
         }
+#warning nejspis se nebude pouzivat, tak pak smazat
+        public List<Path> GetPathsUnsynchronized() {
+            List<Path> list = new List<Path>();
+            int height = pathMap[0].Length;
+            Path p;
+            for (int i = 0; i < pathMap.Length; i++) {
+                for (int j = 0; j < height; j++) {
+                    if ((p = pathMap[i][j]) != null) list.Add(p);
+                }
+            }
+            return list;
+        }
+#warning nejspis se nebude pouzivat
+        public System.Collections.IEnumerator GetEnumerator() {
+            int height = pathMap[0].Length;
+            Path p;
+            for (int i = 0; i < pathMap.Length; i++) {
+                for (int j = 0; j < height; j++) {
+                    if ((p = pathMap[i][j]) != null) { yield return p; }
+                }
+            }
+        }
+        /// <summary>
+        /// Not synchronized.
+        /// </summary>
+        /// <returns></returns>
+        public System.Collections.IEnumerator GetPathEnumerator() {
+            int height = pathMap[0].Length;
+            Path p;
+            for (int i = 0; i < pathMap.Length; i++) {
+                for (int j = 0; j < height; j++) {
+                    if ((p = pathMap[i][j]) != null) { yield return p; }
+                }
+            }
+        }
+
 #warning isFree metody jsou 2
         public bool isFree(byte x, byte y) {
 #if (DEBUG)
@@ -517,8 +555,7 @@ namespace LunaparkGame
                 pathRWLock.ExitReadLock();
             }
         }
-        
-
+       
         public void AddEntranceExit(AmusementPath p) {
             pathRWLock.EnterWriteLock();
             amusRWLock.EnterWriteLock();
@@ -793,7 +830,9 @@ namespace LunaparkGame
             return pathMap[x][y];       
         }
         public Amusements GetAmusement(byte x, byte y) {
-            return amusementMap[x][y];       
+            if(pathMap[x][y]==null) return amusementMap[x][y];
+            else return null;
+                
         }
     
     }

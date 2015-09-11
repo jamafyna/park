@@ -17,14 +17,13 @@ namespace LunaparkGame
         private const int propagatePrize = 10;
         private const int researchPrize = 10;
 
-        public Control map;
         Model model;
-        View view;
-        MapForm mapform;
+        View2 view;
+        public readonly MapForm mapform;
         int timerTicks = 0;
 
 
-        public MainForm(byte playingWidth, byte playingHeight, Data data) {
+        public MainForm(byte playingWidth, byte playingHeight) {
             InitializeComponent();
             IsMdiContainer = true;
             model = new Model(playingHeight, playingWidth);
@@ -32,7 +31,7 @@ namespace LunaparkGame
             AmusementsForm amusform = new AmusementsForm(model, mainDockPanel, amusementsToolStripMenuItem);
             PathForm pathform = new PathForm(model, pathToolStripMenuItem);
             AccessoriesForm otherform = new AccessoriesForm(model, accessoriesToolStripMenuItem);
-            view = new View(model, this, mainDockPanel, amusform, pathform, otherform, data);
+            view = new View2(model, this, mainDockPanel, amusform, pathform, otherform);
             mapform = new MapForm(model, view, playingWidth, playingHeight);
 
             amusform.Show(mainDockPanel);
@@ -40,7 +39,6 @@ namespace LunaparkGame
             accessoriesToolStripMenuItem.Checked = false;
             mapform.Show(mainDockPanel);
             timer.Enabled = true;
-
 
         }
 
@@ -102,10 +100,10 @@ namespace LunaparkGame
                 //    model.maps.Action();
                 if (model.propagateOn) {
                     Interlocked.Increment(ref model.propagation);
-                    model.MoneyAdd(propagatePrize);
+                    model.MoneyAdd(- propagatePrize);
                 }
                 if (model.researchOn) {
-                    model.MoneyAdd(researchPrize);
+                    model.MoneyAdd(- researchPrize);
                     Interlocked.Decrement(ref model.timeToShowNewItem);
                 }
 
@@ -122,10 +120,18 @@ namespace LunaparkGame
         public void MyUpdate() {
             this.moneyCount_toolStripMenuItem.Text = model.GetMoney().ToString();
             this.peopleCount_toolStripMenuItem.Text = model.CurrPeopleCount.ToString();
+            if (model.demolishOn) {
+                demolish_toolStripMenuItem.Text = Labels.demolishing;
+                demolish_toolStripMenuItem.ForeColor = Color.Red;
+            }
+            else {
+                demolish_toolStripMenuItem.Text = Labels.demolishStart;
+                demolish_toolStripMenuItem.ForeColor = Color.Black;
+            }
         }
 
         private void demolish_toolStripMenuItem_Click(object sender, EventArgs e) {
-            if (model.demolishOn) {
+          /*  if (model.demolishOn) {
                 model.demolishOn = false;
                 demolish_toolStripMenuItem.Text = Labels.demolishStart;
                 demolish_toolStripMenuItem.ForeColor = Color.Black;
@@ -135,7 +141,8 @@ namespace LunaparkGame
                 demolish_toolStripMenuItem.Text = Labels.demolishing;
                 demolish_toolStripMenuItem.ForeColor = Color.Red;
 
-            }
+            }*/
+            model.demolishOn = !model.demolishOn;
         }
 
         private void propagate_toolStripMenuItem_Click(object sender, EventArgs e) {
@@ -169,15 +176,18 @@ namespace LunaparkGame
     }   
     public partial class MapForm : WeifenLuo.WinFormsUI.Docking.DockContent {
         Model model;
-        Control map;
-
-        public MapForm(Model m, View view, byte playingWidth, byte playingHeight) {
+        public readonly Control map;
+        
+        public MapForm(Model m, View2 view, byte playingWidth, byte playingHeight) {
             InitializeComponent();
             model = m;
-            map = view.CreateVisualMap(playingWidth + 2, playingHeight + 2, MainForm.sizeOfSquare);
+            map = new mapCustomControl(model, view);
             map.Parent = this;
-            this.map.Click += new System.EventHandler(this.map_Click);
-            view.CreateGate(model.gate);
+           //hash: map = view.CreateVisualMap(playingWidth + 2, playingHeight + 2, MainForm.sizeOfSquare);
+          //hash:  map.Parent = this;
+          //hash:  this.map.Click += new System.EventHandler(this.map_Click);
+          //hash:  view.CreateGate(model.gate);
+            
         }
 
         private void MapForm_Load(object sender, EventArgs e) {
