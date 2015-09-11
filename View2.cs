@@ -22,14 +22,14 @@ namespace LunaparkGame {
             Image[] im={Properties.Images.gate, Properties.Images.enter, Properties.Images.exit} ;
             Data data = new Data(im);
             LoadExternalData(data);
-            images = data.GetImages();
-
+            images = data.GetImages();          
             this.model = m;
             this.form = form;
             this.dockPanel = mainDockPanel;
             this.amusform = amform;
             this.pathform = pform;
             this.accform = oform;
+            model.CreateCurrBuildedItems(data.GetItemsCount());
                     
             foreach (var item in data.initialAmus) amusform.CreateNewItem(images[item.internTypeId], item);
             foreach (var item in data.initialPaths) pathform.CreateNewItem(images[item.internTypeId], item);

@@ -25,9 +25,9 @@ namespace LunaparkGame
     public interface IClickable { 
     
     }
-   /* public interface IButtonCreatable {
-        int InternTypeId { get; set; }
-    }*/
+    public interface IButtonCreatable {
+       
+    }
     public abstract class MapObjectsFactory {
         public int internTypeId;
         public readonly string name;
@@ -130,8 +130,9 @@ namespace LunaparkGame
         public readonly Image exitImage;
         
 
-        public int InternTypeId { get { return typeId; } set { } }
-        public int id { get; private set; }
+      //  public int InternTypeId { get { return typeId; } set { } }
+        private int id;
+        public int Id { get { return id; } private set { id = value; } }
         public AmusementPath entrance { get;  set; } 
         public AmusementPath exit { get; set; }
         protected  ConcurrentQueue<Person> queue=new ConcurrentQueue<Person>();
@@ -172,7 +173,7 @@ namespace LunaparkGame
             get { if (crashnessPercent >= 600) return true; else return false; } 
         }
         //-------characteristics-------------
-        public readonly int typeId;
+       // public readonly int typeId;
         public readonly int capacity, originalFee;
         private int currFee;
         public int CurrFee { get { return currFee; } set { if (value > 0) currFee = value; } }
@@ -198,23 +199,25 @@ namespace LunaparkGame
             this.originalFee = fee;
             this.currFee = fee;
             this.capacity = capacity;
-            this.WorkingPrice = (int)(capacity * fee / (2.2 * runningTime));
-            
+            if (runningTime > 0) this.WorkingPrice = (int)(capacity * fee / (2.2 * runningTime));
+            else this.WorkingPrice = (int) (capacity * fee / 2.2);
+                     
             this.fixedRunningTime = runningTime;
             this.name = name;
             this.hasSeparatedEnterExit = hasEntranceExit;
             this.color = color;
-            this.typeId = typeId;
+            //this.typeId = typeId;
             this.entrImage = entrImage;
             this.exitImage = exitImage;
+            peopleInList = new List<Person>(capacity);
 
-            model.LastBuiltAmus = this;                 
+           model.LastBuiltAmus = this;                 
             if(hasEntranceExit) model.mustBeEnter = true;
-            this.id = model.amusList.GetFreeID();           
-            peopleInList = new List<Person>(capacity);           
+            this.Id = model.amusList.GetFreeID();                                 
             model.amusList.Add(this);
             model.maps.AddAmus(this);
-            model.CheckCheapestFee(this.CurrFee);   
+            model.CheckCheapestFee(this.CurrFee);
+           
        
            // mimoProvoz = true;
            // zacatek = true;
@@ -232,9 +235,10 @@ namespace LunaparkGame
             if(exit !=null) exit.Destruct();
             this.status = Status.disposing;
             model.MoneyAdd(refundCoef * prize);//refund money
-            model.amusList.Remove(this);
+            
+             model.amusList.Remove(this);
             model.maps.RemoveAmus(this);
-            model.dirtyDestruct.Enqueue(this);
+           
             
         }
         /// <summary>
@@ -323,23 +327,23 @@ namespace LunaparkGame
             }
             else {
                 DropPeopleOff();
-                if (isRunningOut) status = Status.runningOut;
+                if (isRunningOut) { status = Status.runningOut; Interlocked.Decrement(ref model.currBuildedItems[internTypeID]); }
                 else status = Status.waitingForPeople;
                 isRunning = false;
                 actRunningTime = 0;
-                model.MoneyAdd(-this.WorkingPrice);
+                
             }
-          //hash:
-          //  model.MoneyAdd( - this.WorkingPrice);
+           model.MoneyAdd( - this.WorkingPrice);
         }
-        protected virtual void RunningOutAction(){
+        protected virtual void RunningOutAction() {
         
             model.MoneyAdd(-WorkingPrice);
             
                 if (!isRunning) // it is used if user clicked while people are in amus ( amus is running )
                  {
                     status = Status.outOfService;
-                    this.entrance.signpostAmus[this.id] = Direction.no;
+                    model.MarkOutOfService(this);
+                    this.entrance.signpostAmus[this.Id] = Direction.no;
 #warning zde nesmi delat prekladac optimalizace, musi byt v tomto poradi
                     DeleteAllPeopleFromQueue(); 
                     isRunningOut = false;
@@ -356,6 +360,8 @@ namespace LunaparkGame
             // Cannot use anything from AmusementsList (it could create an cycle)!
             if (crashnessPercent >= 590) {
                 status = Status.runningOut;
+                Interlocked.Decrement(ref model.currBuildedItems[internTypeID]);      
+      
             }
             switch (status)
             {
@@ -558,7 +564,6 @@ namespace LunaparkGame
             : base(m, prize, image, typeId, tangible) {
             this.zIndex = 10;
             signpostAmus = new Direction[m.maxAmusementsCount];
-            //todo: mozna neni treba, overit
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
         }
         public Path(Model m, Coordinates c, int prize, string name, int typeId, Image image)
@@ -566,8 +571,8 @@ namespace LunaparkGame
             this.name = name;
             this.typeId = typeId;
             signpostAmus = new Direction[m.maxAmusementsCount];
-            //todo: mozna neni treba, overit
-            for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
+           for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
+          
             model.maps.AddPath(this);
         }
         public Path() { }
@@ -623,7 +628,7 @@ namespace LunaparkGame
         //----provozni hodnoty-----
         private int remainingStepsCount=0;//pocet zbyvajicich kroku
         private int waitingTimeInQueue = 0, startingWalkingTime=2*MainForm.sizeOfSquare;
-        private int contentment = 100;//spokojenost
+        public int contentment {protected set; get;}//spokojenost
         private int hunger=0;
 
         protected int realX, realY; //instead of coord 
@@ -635,6 +640,7 @@ namespace LunaparkGame
         
         public Person(Model m, int x, int y) : base(m, prize: 0, typeID: -1, image: null) {
 
+            this.contentment = 100;
             this.zIndex = 1;
             this.id = m.persList.GetFreeId();
             this.status = Status.initialWalking;
@@ -679,7 +685,7 @@ namespace LunaparkGame
                                     AddContentment(-20); //todo: ubrat spokojenost
                                     status = Status.choosesAmus; return;
                                 }
-                                if (currAmus.id != CurrAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
+                                if (currAmus.Id != CurrAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
                                 if (currAmus.CurrFee > maxAcceptablePrice){
                                     AddContentment(-40);//todo: nastavit poradne
                                     status = Status.choosesAmus;
@@ -718,7 +724,7 @@ namespace LunaparkGame
                 case Status.inAmusQueue:{
                     #region
                         if (waitingTimeInQueue > patience) {
-                            AddContentment(-10);//todo: mozna udelat: odejde, pokud prekroci patience a vzdy jindy se drobne snizi spokojenost
+                            AddContentment(-10);
                             currAmus.DeletePersonFromQueue(this);
                             status = Status.choosesAmus;
                         }
@@ -783,7 +789,7 @@ namespace LunaparkGame
         /// <returns>An nonnegative int, which represents the id of an amusement</returns>
         public int ChooseAmusement() {
             
-       /*     if(money<model.currCheapestFee || model.gate.State==Amusements.Status.runningOut) return model.amusList.GetGateId();//person cannot afford pay any amusement
+            if(money < model.currCheapestFee || model.gate.State == Amusements.Status.runningOut) return model.amusList.GetGateId();//person cannot afford pay any amusement
             if (contentment == 0) return model.amusList.GetGateId();
             if (hunger > 1800) //2000=100 %, i.e. 2000*0.9
                 return model.amusList.GetRandomRestaurant(); //kdyz je hlad > 90%, vybira obcerstveni
@@ -793,10 +799,10 @@ namespace LunaparkGame
             if (number > contentment) return model.amusList.GetGateId(); 
             //---- more hunger -> bigger probability of visiting a restaurant
             if (number < hunger / 20) return model.amusList.GetRandomRestaurant();
-            //---- go to an amusement
-        */
+            //---- go to an amusement      
             return model.amusList.GetRandomAmusement();
         }
+
         public void SetRealCoordinates(int x, int y) {
             lock (xyLock) {
                 this.realX = x;

@@ -12,6 +12,13 @@ namespace LunaparkGame
 
         public const int width = 1;
         public const int height = 3;
+        private const int workingPrize = 10;
+        public new const int originalFee = 100;
+        public int entranceFee;
+        private ProbabilityGenerationPeople peopleGeneration;
+        private bool beginning = true;
+        private int beginningCount = (new Random()).Next(20,50); 
+
         public new Status State {
             get { return status; }
             set { if (value != Status.waitingForPeople) status = value; }
@@ -20,9 +27,12 @@ namespace LunaparkGame
             this.model = m;
             this.coord = c;
             this.entrance = new AmusementEnterPath(m, new Coordinates(c.x, (byte)(c.y + height / 2)), this, entrIm, tangible: false);
-            this.exit = new AmusementExitPath(m, new Coordinates((byte)(c.x + width), entrance.coord.y), this, exitIm, tangible: false);
+            this.exit = new AmusementExitPath(m, new Coordinates((byte)(c.x + width), entrance.coord.y), this, exitIm, tangible: true);
             this.image = Properties.Images.gate;
+            this.CurrFee = 0;
+            this.entranceFee = originalFee;
             m.maps.AddAmus(this);
+            peopleGeneration = new ProbabilityGenerationPeople(model);
         }
 
         public Gate(Model m, Coordinates c, Coordinates entrance, Coordinates exit, Image entrIm, Image exitIm) {
@@ -45,12 +55,19 @@ namespace LunaparkGame
                         // a new person can be created
                         int a = exit.coord.x * MainForm.sizeOfSquare;
                         int b = exit.coord.y * MainForm.sizeOfSquare;
-
-                        //todo: if (model.maps.IsPath(a,b) && ShouldCreateNewPerson()) 
-                        if (ShouldCreateNewPerson()) {
-                            p = new Person(model, a + 1, b + MainForm.sizeOfSquare / 2);
-                            model.MoneyAdd(this.CurrFee);
+                        if (beginning) {
+                            if (peopleGeneration.ShouldCreateNewPersonBeginning()) {
+                                p = new Person(model, a + 1, b + MainForm.sizeOfSquare / 2);
+                                model.MoneyAdd(this.entranceFee);
+                                beginningCount--;
+                                if (beginningCount < 0) beginning = false;
+                            }                       
                         }
+                        else if (peopleGeneration.ShouldCreateNewPerson()) {
+                            p = new Person(model, a + 1, b + MainForm.sizeOfSquare / 2);
+                            model.MoneyAdd(this.entranceFee);
+                        }
+                        model.MoneyAdd(-workingPrize);
                         #endregion
                     }
                     break;
@@ -59,9 +76,12 @@ namespace LunaparkGame
                 case Status.runningOut: {
                         // deleting people from the park
                     Person p;
-                    while (queue.TryDequeue(out p)) p.Destruct();                         
-                    if (model.CurrPeopleCount == 0) 
+                    while (queue.TryDequeue(out p)) p.Destruct();
+                    if (model.CurrPeopleCount == 0) {
                         status = Status.outOfService;
+                        model.parkClosed = true;
+                    }
+                    model.MoneyAdd(-workingPrize);
                 }
                     break;
                 case Status.disposing: //nothing
@@ -71,11 +91,7 @@ namespace LunaparkGame
             }
            
         }
-        public bool ShouldCreateNewPerson() {
-            return true;
-#warning pozdeji dodelat pstni fci vyroby, pouzit exp.rozd. - pouzit castecne rozdelanou tridu v Program.cs
-
-        }
+       
         public override void Destruct() {
             // nothing, the gate cannot be demolished
         }
@@ -367,6 +383,7 @@ namespace LunaparkGame
             this.exit = new AmusementExitPath(m, c, this, exitImage, tangible: false);
             model.maps.AddAmus(this);
             this.status = Status.waitingForPeople;
+            model.MarkBackInService(this);
         }
         
       

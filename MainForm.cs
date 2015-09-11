@@ -21,7 +21,7 @@ namespace LunaparkGame
         View2 view;
         public readonly MapForm mapform;
         int timerTicks = 0;
-
+        long debugtime = 0;
 
         public MainForm(byte playingWidth, byte playingHeight) {
             InitializeComponent();
@@ -85,10 +85,11 @@ namespace LunaparkGame
         private void timer_Tick(object sender, EventArgs e) {
 
 #warning work with Person in view only when no another thread is running
+            
             //todo: rozvrstvit do vlaken
             //---actions
             Task.Factory.StartNew(model.persList.Action);
-
+            debugtime++;
             // model.persList.Action();
             if (timerTicks >= 10) {
                 Task.Factory.StartNew(model.amusList.Action);
@@ -99,9 +100,10 @@ namespace LunaparkGame
                 //    model.effects.Action();
                 //    model.maps.Action();
                 if (model.propagateOn) {
-                    Interlocked.Increment(ref model.propagation);
-                    model.MoneyAdd(- propagatePrize);
+                    model.propagation++;
+                    model.MoneyAdd(-propagatePrize);
                 }
+                else { model.propagation = Math.Max(0,model.propagation); }
                 if (model.researchOn) {
                     model.MoneyAdd(- researchPrize);
                     Interlocked.Decrement(ref model.timeToShowNewItem);

@@ -25,7 +25,7 @@ namespace LunaparkGame
         public Queue<AmusementsFactory> otherAmus = new Queue<AmusementsFactory>();
         public Queue<PathFactory> otherPaths = new Queue<PathFactory>();
         public Queue<MapObjectsFactory> otherOthers = new Queue<MapObjectsFactory>();
-
+       
         public Data(Image[] otherLoadedImages) {
             images = new List<Image>(otherLoadedImages);
         }
@@ -131,63 +131,84 @@ namespace LunaparkGame
         }
         public Image[] GetImages() {
             Image[] ia = images.ToArray();
-            images = null; // due to GC
             return ia;
+        }
+        public int GetItemsCount() { 
+            return images.Count;
+        }
+    }
+    public class ExponentialRandom {
+        public double lambda { get; set; }
+        Random rand;
+        public ExponentialRandom() {
+            rand = new Random();
+        }
+        public ExponentialRandom(int seed) {
+            rand = new Random(seed);
+        }
+
+        public double NextDouble() {
+            return (Math.Log(1 - rand.NextDouble()) * (-lambda));
+        }
+        public int NextInt() {
+            return (int)(0.5 + Math.Log(1 - rand.NextDouble()) * (-lambda));//0.5 due to rounding (zaokrouhlovani)
+        }
+    }
+    public class ProbabilityGenerationPeople { //predpoklada, ze se brana pta jednou za 1s, mozna pridat do konstruktoru
+        private ExponentialRandom expRnd;
+        private Random rnd;
+        private int waitingTime = 0;
+        private Model model;
+        System.IO.StreamWriter DEBUGwriter = new System.IO.StreamWriter("exponential.txt");
+
+        public ProbabilityGenerationPeople(Model model) {
+            expRnd = new ExponentialRandom();
+            rnd = new Random();
+            this.model = model;
+
+        }
+        public bool ShouldCreateNewPersonBeginning() {
+            waitingTime--;
+            if (waitingTime < 0) {             
+                waitingTime = rnd.Next(5);
+                return true;
+            }
+            return false;
+
+        }
+        public bool ShouldCreateNewPerson() { 
+            waitingTime--;
+            if (waitingTime < 0) {
+                expRnd.lambda = CalculateLambda();
+                waitingTime = expRnd.NextInt();
+                DEBUGwriter.WriteLine("lambda: " + expRnd.lambda + "  time: " +waitingTime);
+                return true;
+            }
+            return false;
+        }
+        private double CalculateLambda() {
+            int variousItems = 0;
+            foreach (var i in model.currBuildedItems) {
+                if (i > 0) variousItems++;
+            }
+            double variety = variousItems / model.currBuildedItems.Length * 100;
+            double propagation = Math.Min(model.propagation, 100);
+            double contenment = model.persList.contenment;
+            double fee = Gate.originalFee / (model.gate.entranceFee + 1) * 100;
+            double awards = model.effects.awardsCount / SpecialEffects.maxAwardsCount * 100;
+            double peopleCount = (1000 - Math.Min(model.CurrPeopleCount, 1000)) / 10;
+
+            return -((2 * contenment + 3 * propagation + 2 * fee + 3 * variety + awards + 5 * peopleCount) / 16 - 100) / 2;
         }
     }
       
+
+
     static class Program
     {
-        public class ExponentialRandom
-        {
-            public double lambda { get; set; }
-            Random rand;
-            public ExponentialRandom()
-            {
-                rand = new Random();
-            }
-            public ExponentialRandom(int seed)
-            {
-                rand = new Random(seed);
-            }
-
-            public double NextDouble()
-            {
-                return (Math.Log(1 - rand.NextDouble()) * (-lambda));
-            }
-            public int NextInt()
-            {
-                return (int)(0.5 + Math.Log(1 - rand.NextDouble()) * (-lambda));//0.5 due to rounding (zaokrouhlovani)
-            }
-        }
-
-        public class ProbabilityGenerationPeople
-        { //predpoklada, ze se brana pta jednou za 1s, mozna pridat do konstruktoru
-            private ExponentialRandom expRnd;
-            private int waitingTime = 0;
-
-            public ProbabilityGenerationPeople()
-            {
-                expRnd = new ExponentialRandom();
-            }
-            public bool ShouldGenerateNewPerson()
-            { //todo: sem patri vsechny faktory, ktere ovlivnuji tvorbu lidi
-                waitingTime--;
-                if (waitingTime < 0)
-                {
-                    expRnd.lambda = CalculateLambda();
-                    waitingTime = expRnd.NextInt();
-                    return true;
-                }
-                return false;
-            }
-            private double CalculateLambda()
-            {//todo: stejne parametry jako ShouldGenerateNewPerson
-                throw new NotImplementedException();
-            }
-        }
-    
        
+       
+      
         /// <summary>
         /// The main entry point for the application.
         /// </summary>

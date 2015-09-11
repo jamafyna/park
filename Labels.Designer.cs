@@ -295,6 +295,15 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Open.
+        /// </summary>
+        internal static string isRunningGate {
+            get {
+                return ResourceManager.GetString("isRunningGate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to LOAD THE GAME.
         /// </summary>
         internal static string loadMenu {
@@ -349,11 +358,29 @@ namespace LunaparkGame {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Closing.
+        /// </summary>
+        internal static string noEntryGate {
+            get {
+                return ResourceManager.GetString("noEntryGate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Out of service.
         /// </summary>
         internal static string outOfService {
             get {
                 return ResourceManager.GetString("outOfService", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Closed.
+        /// </summary>
+        internal static string outOfServiceGate {
+            get {
+                return ResourceManager.GetString("outOfServiceGate", resourceCulture);
             }
         }
         

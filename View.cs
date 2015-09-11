@@ -200,7 +200,7 @@ namespace LunaparkGame
                         }
                     }
                     else {
-                        AmusementDetailForm f = new AmusementDetailForm(model, (Amusements)o, images[((Amusements)o).InternTypeId]);
+                        AmusementDetailForm f = new AmusementDetailForm(model, (Amusements)o, images[((Amusements)o).internTypeID]);
                         f.Show(dockPanel);
                         forms.Add(f);
                     }

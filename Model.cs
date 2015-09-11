@@ -19,6 +19,7 @@ namespace LunaparkGame
         public readonly byte playingWidth, playingHeight; 
         public readonly byte realWidth, realHeight;
         public readonly int maxAmusementsCount;//todo: nejspis nepocita lavicky
+        public bool parkClosed = true;
         private int money;
         /// <summary>
         /// Represents park advertising, is not thread safe -> for manipulating use atomic operations
@@ -45,8 +46,10 @@ namespace LunaparkGame
         public AmusementsList amusList;// todo:thread-safe
         public PersonList persList = new PersonList(maxPeopleInPark);//todo: thread-safe
         public Map maps;
-        public SpecialEffects effects=new SpecialEffects();
-       
+        public SpecialEffects effects;
+        public int[] currBuildedItems { private set; get; }
+
+        
         //---running fields for Form1
         public Amusements LastBuiltAmus { get; set; }
         public MapObjectsFactory LastClick { private set; get; }
@@ -64,15 +67,17 @@ namespace LunaparkGame
             this.realWidth = (byte)(playingWidth + 2);
             money = initialMoney;
             propagation = 0;
+            effects = new SpecialEffects(this);
             timeToShowNewItem = effects.newItemWaitingTime.Dequeue();
             
             maps = new Map(realWidth, realHeight, this);            
             maxAmusementsCount = playingHeight * playingWidth + 1; // max. count of amusements that can user build, + 1 due to the gate which does not lie on the playing place
             gate=new Gate(this, new Coordinates(0,(byte) (new Random()).Next(1, realHeight - Gate.height -1)),null,null );
             amusList = new AmusementsList(maxAmusementsCount, gate);
-            
+           
 
         }
+       
         public void MoneyAdd(int value) {
             Interlocked.Add(ref money,value);
         }
@@ -97,6 +102,16 @@ namespace LunaparkGame
         public void SetNullToLastClick() {
             this.LastClick = null;
         }
+        public void MarkOutOfService(Amusements a) {
+            Interlocked.Decrement(ref currBuildedItems[a.internTypeID]);      
+        }
+        public void MarkBackInService(Amusements a) {
+            Interlocked.Increment(ref currBuildedItems[a.internTypeID]);           
+        }
+
+        public void CreateCurrBuildedItems(int maxItemsVariety) {
+            currBuildedItems = new int[maxItemsVariety];
+        }
     }
    
 
@@ -109,7 +124,8 @@ namespace LunaparkGame
         private List<Amusements> list; 
         private ConcurrentQueue<int> freeId;
         private List<int> foodIds;
-        /// <summary>
+        
+        // <summary>
         /// use for list and foodIds
         /// </summary>
         private ReaderWriterLockSlim rwLock=new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
@@ -136,7 +152,7 @@ namespace LunaparkGame
             try {
                 rwLock.EnterWriteLock();
                 list.Add(a);
-                if (a is Restaurant) foodIds.Add(a.id);
+                if (a is Restaurant) foodIds.Add(a.Id);
             }
             finally {
                 rwLock.ExitWriteLock();
@@ -159,13 +175,13 @@ namespace LunaparkGame
             rwLock.EnterWriteLock();
             try {
                 list.Remove(a);
-                if (a is Restaurant) foodIds.Remove(a.id);
+                if (a is Restaurant) foodIds.Remove(a.Id);
             }
             finally {
                 rwLock.ExitWriteLock();
             }
 
-            freeId.Enqueue(a.id);
+            freeId.Enqueue(a.Id);
         }
         /// <summary>
         /// Returns id of an amusement (except of the gate) if it is possible(at least one another amusement), if not - returns the gate's id
@@ -174,7 +190,7 @@ namespace LunaparkGame
         public int GetRandomAmusement() {
             rwLock.EnterReadLock(); 
             try {
-                if (list.Count > 1) return list[rand.Next(1, list.Count)].id;
+                if (list.Count > 1) return list[rand.Next(1, list.Count)].Id;
                 else return 0;
             }
             finally{
@@ -195,6 +211,7 @@ namespace LunaparkGame
                 rwLock.ExitReadLock();
             }
         }
+        
         public void Action()
         {           
             rwLock.EnterReadLock();
@@ -210,7 +227,7 @@ namespace LunaparkGame
             return gate.coord;       
         }
         public int GetGateId() {
-            return gate.id;
+            return gate.Id;
         }
         public Amusements[] GetCopyArray() { 
             rwLock.EnterReadLock();
@@ -224,6 +241,7 @@ namespace LunaparkGame
         public List<Amusements> GetAmusementsUnsynchronized() {
             return this.list;
         }
+
     }
 
     /// <summary>
@@ -239,8 +257,9 @@ namespace LunaparkGame
         private Person[] people;
         private int currPeopleCount;
         private int totalPeopleCount;
+        public double contenment { protected set; get; }
         /// <summary>
-        /// for manipulating s people array (read, write) and currPeopleCount
+        /// for manipulating with people array (read, write) and currPeopleCount
         /// </summary>
         private object peopleLock = new object();
       //  private ReaderWriterLockSlim peopleRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
@@ -253,6 +272,7 @@ namespace LunaparkGame
             //for (int = 0; i < people.Length; i++) people[i] = null; inicialni hodnota je uz nastavena           
             currPeopleCount = 0;
             totalPeopleCount = 0;
+            contenment = 100;
             people = new Person[maxPeopleCount];
             for (int i = 0; i < internChangablePeopleId.Length; i++) internChangablePeopleId[i] = -1;
         }
@@ -306,13 +326,23 @@ namespace LunaparkGame
             
             lock(peopleLock){
              
-                for (i = 0; i < currPeopleCount; i++) {
+               /* for (i = 0; i < currPeopleCount; i++) {
                     people[i].Action();
                 }
-               
+               */
                 //Parallel.ForEach(source: this, p => p.Action());
                 //Parallel.ForEach(source: (IEnumerable<Person>)this, body: p => p.Action());
-                Parallel.ForEach(people, p => { if (p != null) p.Action(); });
+                int newContenm = 0;
+
+                Parallel.ForEach(people, p => { if (p != null) { p.Action(); Interlocked.Add(ref newContenm, p.contentment); } });
+#warning Jak tady pockam na dokonceni vsech vlaken?
+                try {
+                    contenment = newContenm / currPeopleCount;
+                }
+                catch (DivideByZeroException) {
+                    contenment = 100;
+                }
+                
             }
            
          //   }
@@ -593,10 +623,10 @@ namespace LunaparkGame
             try {
                 pathMap[p.coord.x][p.coord.y] = null;
                 amusementMap[p.coord.x][p.coord.y] = null;
-                if (pathMap[p.coord.x - 1][p.coord.y] != null) pathMap[p.coord.x - 1][p.coord.y].signpostAmus[p.amusement.id] = Direction.no;
-                if (pathMap[p.coord.x + 1][p.coord.y] != null) pathMap[p.coord.x + 1][p.coord.y].signpostAmus[p.amusement.id] = Direction.no;
-                if (pathMap[p.coord.x][p.coord.y - 1] != null) pathMap[p.coord.x][p.coord.y - 1].signpostAmus[p.amusement.id] = Direction.no;
-                if (pathMap[p.coord.x][p.coord.y + 1] != null) pathMap[p.coord.x][p.coord.y + 1].signpostAmus[p.amusement.id] = Direction.no;            
+                if (pathMap[p.coord.x - 1][p.coord.y] != null) pathMap[p.coord.x - 1][p.coord.y].signpostAmus[p.amusement.Id] = Direction.no;
+                if (pathMap[p.coord.x + 1][p.coord.y] != null) pathMap[p.coord.x + 1][p.coord.y].signpostAmus[p.amusement.Id] = Direction.no;
+                if (pathMap[p.coord.x][p.coord.y - 1] != null) pathMap[p.coord.x][p.coord.y - 1].signpostAmus[p.amusement.Id] = Direction.no;
+                if (pathMap[p.coord.x][p.coord.y + 1] != null) pathMap[p.coord.x][p.coord.y + 1].signpostAmus[p.amusement.Id] = Direction.no;            
             }
             finally { 
                 pathRWLock.ExitWriteLock();
@@ -635,7 +665,7 @@ namespace LunaparkGame
                 for (int i = 0; i < internalWidthMap; i++) {
                     for (int j = 0; j < internalHeightMap; j++) {
                         if ((item = paths[i][j]) != null && pathMap[i][j] != null) {
-                            pathMap[i][j].signpostAmus[a.id] = item.dir;
+                            pathMap[i][j].signpostAmus[a.Id] = item.dir;
                         }
                     }
                 }
@@ -665,8 +695,7 @@ namespace LunaparkGame
        /// Updates directions to all amusements. Useful when paths changed.
        /// </summary>
         private void UpdateDirections()
-        {
-           
+        {           
             for (int i = 0; i < internalWidthMap; i++) {
                 for (int j = 0; j < internalHeightMap; j++) {
                     // here isnt a Lock, auxPathMap is not always actual -> lock here=nonsence
@@ -706,19 +735,23 @@ namespace LunaparkGame
             DirectionItem aux;
             if ((start.x - 1 >= 0) && (aux=paths[start.x - 1][start.y]) != null) {             
                 aux.dir= Direction.E;
-               if(!aux.isEnterExit) queue.Enqueue(aux); //cannot go over these paths (without stop in an amusement)
+              // if(!aux.isEnterExit) 
+                queue.Enqueue(aux); //cannot go over these paths (without stop in an amusement)
             }
             if ((aux=paths[start.x][start.y-1]) != null){
                 aux.dir = Direction.S;
-                if (!aux.isEnterExit) queue.Enqueue(aux);
+                //if (!aux.isEnterExit)
+                queue.Enqueue(aux);
             }
             if ((aux = paths[start.x][start.y + 1]) != null){
                 aux.dir = Direction.N;
-                if (!aux.isEnterExit) queue.Enqueue(aux);
+                //if (!aux.isEnterExit)
+                queue.Enqueue(aux);
             }
             if ((aux = paths[start.x+1][start.y]) != null){
                 aux.dir = Direction.W;
-                if (!aux.isEnterExit) queue.Enqueue(aux);
+               // if (!aux.isEnterExit)
+                queue.Enqueue(aux);
             }
             return true;
         

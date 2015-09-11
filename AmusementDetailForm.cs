@@ -8,8 +8,9 @@ using System.Windows.Forms;
 
 namespace LunaparkGame {
     public partial class AmusementDetailForm : WeifenLuo.WinFormsUI.Docking.DockContent, IUpdatable {
-        public readonly Amusements a;
-        Model model;
+        public Amusements a { protected set; get; }
+        protected Model model;
+        public AmusementDetailForm() { }
         public AmusementDetailForm(Model model, Amusements a, Image im) {
             InitializeComponent();
             exit_button.Tag = new AmusementExitPathFactory(a, Properties.Images.exit);
@@ -22,7 +23,7 @@ namespace LunaparkGame {
             MyUpdate();
         }
 
-        private void AmusementDetailForm_FormClosing(object sender, FormClosingEventArgs e) {
+        protected void AmusementDetailForm_FormClosing(object sender, FormClosingEventArgs e) {
             a.isClicked = false;
         }
         public void MyUpdate() {
@@ -50,13 +51,12 @@ namespace LunaparkGame {
         }
 
         private void outOfService_button_Click(object sender, EventArgs e) {
-            
-            if (a.State == Amusements.Status.outOfService || a.State == Amusements.Status.runningOut)
-            {
-                if(a.Crashed) MessageBox.Show(Labels.warningMessBox, Notices.cannotChangeFirstRepair, MessageBoxButtons.OK);
-                else a.State=Amusements.Status.waitingForPeople;
+
+            if (a.State == Amusements.Status.outOfService || a.State == Amusements.Status.runningOut) {
+                if (a.Crashed) MessageBox.Show(Labels.warningMessBox, Notices.cannotChangeFirstRepair, MessageBoxButtons.OK);
+                else { a.State = Amusements.Status.waitingForPeople; model.MarkBackInService(a); }
             }
-            else a.State = Amusements.Status.runningOut;
+            else { a.State = Amusements.Status.runningOut; model.MarkOutOfService(a); }
            
         }
 
