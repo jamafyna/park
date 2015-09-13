@@ -44,8 +44,8 @@ namespace LunaparkGame
         }
         public void Action()
         {
-            DestructDirty();
-            NewDirty();
+            //DestructDirty();
+            //NewDirty();
             PeopleMove();
             ClickDirty();
             UpdateDirty();
@@ -117,18 +117,18 @@ namespace LunaparkGame
                     
             }        
         }
-        private void DestructDirty()
+     /*   private void DestructDirty()
         {
             MapObjects o;
             while(model.dirtyDestruct.TryDequeue(out o))
             {
                if(o.control!=null) o.control.Dispose(); 
             }
-        }
+        }*/
         public static PictureBox PictureBoxCopy(PictureBox p) {
             throw new NotImplementedException();
         }
-        private void NewDirty()
+      /*  private void NewDirty()
         {            
             MapObjects o;
             PictureBox pbox;
@@ -182,6 +182,7 @@ namespace LunaparkGame
             }
 
         }
+      */
         private void ClickDirty() { 
             //if(.GetType()==typeof(Gate)) mozna, mozna staci amus
             //else if(is Amusements) atd.

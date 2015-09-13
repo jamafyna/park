@@ -68,17 +68,18 @@ namespace LunaparkGame {
             MapObjects o;
             while (model.dirtyClick.TryDequeue(out o)) {
                 if (o is Person) {
-
                     forms.Add(new PersonUserControl((Person)o, form.mapform.map));
                 }
                 if (o is Amusements) {
                     if (o.isClicked) {
                         foreach (Form f in forms) {
-                            if (f is AmusementDetailForm && ((AmusementDetailForm)f).a == o) { f.Activate(); break; }
+                            if (f is AmusementDetailForm  && ((AmusementDetailForm)f).a == o) { f.Activate(); break; }
                         }
                     }
                     else {
-                        AmusementDetailForm f = new AmusementDetailForm(model, (Amusements)o, images[o.internTypeID]);
+                        AmusementDetailForm f;
+                        if(o.GetType() == typeof(Gate))  f = new GateDetailForm(model, (Gate)o, images[o.internTypeID]);
+                        else f = new AmusementDetailForm(model, (Amusements)o, images[o.internTypeID]);
                         f.Show(dockPanel);
                         forms.Add(f);
                     }

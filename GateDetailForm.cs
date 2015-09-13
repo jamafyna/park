@@ -7,15 +7,16 @@ using System.Text;
 using System.Windows.Forms;
 
 namespace LunaparkGame {
-    public partial class GateDetailForm: WeifenLuo.WinFormsUI.Docking.DockContent, IUpdatable {
+    public partial class GateDetailForm: AmusementDetailForm {
         Gate gate;
-        Model model;
+       // Model model;
 
         public GateDetailForm(Model model, Gate gate, Image im) {
             InitializeComponent();
+            this.a = gate;
             this.gate = gate;         
             this.model = model;
-            this.pictureBox.Image = im;
+            this.pictureBox.BackgroundImage = im;
             this.Text = gate.name;
             gate.isClicked = true;
             MyUpdate();
@@ -25,7 +26,7 @@ namespace LunaparkGame {
             int fee = (int)prize_numericUpDown1.Value;
             gate.entranceFee = fee;  
         }
-        public void MyUpdate() {
+        public override void MyUpdate() {
 
             this.prize_numericUpDown1.Value = gate.entranceFee;
            
@@ -35,8 +36,8 @@ namespace LunaparkGame {
                 outOfService_button.Text = Labels.outOfServiceGate;
                 outOfService_button.BackColor = Color.Red;
             }
-            else if (gate.IsRunningOut) {
-                outOfService_button.Text = Labels.noEntryGate;             
+            else if (gate.State == Amusements.Status.runningOut) {
+                outOfService_button.Text = Labels.noEntryGate;
                 outOfService_button.BackColor = Color.Orange;
             }
             else {
@@ -48,7 +49,7 @@ namespace LunaparkGame {
 
         private void outOfService_button_Click(object sender, EventArgs e) {
             if (gate.State == Amusements.Status.outOfService || gate.State == Amusements.Status.runningOut) {
-                gate.State = Amusements.Status.waitingForPeople;
+                gate.State = Amusements.Status.running;
                 model.parkClosed = false;
             }
             else { gate.State = Amusements.Status.runningOut;  }

@@ -32,11 +32,9 @@ namespace LunaparkGame
         public int internTypeId;
         public readonly string name;
         public readonly int prize;
-        public Image image;
-        public MapObjectsFactory(int prize, string name, Image image) { 
+        public MapObjectsFactory(int prize, string name) { 
             this.prize = prize;
             this.name = name;
-            this.image = image;
            
         }
        /// <summary>
@@ -74,23 +72,21 @@ namespace LunaparkGame
         public Coordinates coord { protected set; get; }
         protected Model model;
         public Control control;
-        public Image image;
         public bool isClicked = false;
         public readonly int prize;
         public readonly int internTypeID;
         public readonly bool tangible;
         public MapObjects() { }
-        protected MapObjects(Model m, int prize, Image image, int typeID, bool tangible=true) {
+        protected MapObjects(Model m, int prize, int typeID, bool tangible=true) {
             this.model = m;
             this.prize = prize;
             this.tangible = tangible;
             model.MoneyAdd(-this.prize);
-            this.image = image;
             this.internTypeID = typeID;
             //if(tangible) model.dirtyNew.Enqueue(this);
            
         }
-        public MapObjects(Model m,Coordinates coord, int prize, Image image, int typeID, bool tangible=true):this(m, prize, image, typeID, tangible)
+        public MapObjects(Model m,Coordinates coord, int prize, int typeID, bool tangible=true):this(m, prize, typeID, tangible)
         {            
             this.coord = coord;
             this.internTypeID = typeID;
@@ -105,7 +101,7 @@ namespace LunaparkGame
         /// user action
         /// </summary>
         public virtual void Destruct() {
-            model.dirtyDestruct.Enqueue(this);
+           // model.dirtyDestruct.Enqueue(this);
         }
         public abstract Size GetRealSize();
         public abstract Point GetRealCoordinates();
@@ -161,7 +157,7 @@ namespace LunaparkGame
         /// 600 = 100 %
         /// </summary>
         protected int crashnessPercent = 0;
-        public int CrashnessPercent {
+        public int GetCrashnessPercent {
             private set { } 
             get {
                 if(crashnessPercent > 600) return 100;
@@ -179,12 +175,12 @@ namespace LunaparkGame
         public int CurrFee { get { return currFee; } set { if (value > 0) currFee = value; } }
         protected readonly int maxWaitingTime, fixedRunningTime;        
         public readonly string name;
+        public readonly int attractiveness;
         protected readonly bool hasSeparatedEnterExit;
         public readonly Color color;
         
-        public int WorkingPrice { get; protected set; }//todo: mozna nebude treba a pevne se vzdy urci procenta z provozu nebo tak nejak
-        //protected readonly int initialVisitPrice; nebude potreba, ziska se odnekud
-        protected int refundCoef;//todo: maybe zvolit pevna procenta vzdy stejna - napr. Amusement mit static polozku ebo tak nejak
+        public int WorkingCost { get; protected set; }
+
         //----------------------------
         #endregion
         public Amusements(){}
@@ -192,17 +188,18 @@ namespace LunaparkGame
             this.entrImage = entrImage;
             this.exitImage = exitImage;
         }
-        public Amusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, Color color, int typeId, Image image, Image entrImage, Image exitImage)
-            : base(m, c, prize, image, typeId)       
+        public Amusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, Color color, int typeId, int workingPrice, int attractiveness)
+            : base(m, c, prize, typeId)       
         {
             this.zIndex = 0;
             this.originalFee = fee;
             this.currFee = fee;
             this.capacity = capacity;
-            if (runningTime > 0) this.WorkingPrice = (int)(capacity * fee / (2.2 * runningTime));
-            else this.WorkingPrice = (int) (capacity * fee / 2.2);
+            this.WorkingCost = workingPrice;
+            this.attractiveness = attractiveness;
                      
             this.fixedRunningTime = runningTime;
+            this.maxWaitingTime = (int)(runningTime*1.5);
             this.name = name;
             this.hasSeparatedEnterExit = hasEntranceExit;
             this.color = color;
@@ -234,7 +231,7 @@ namespace LunaparkGame
             if(entrance != null) entrance.Destruct();
             if(exit !=null) exit.Destruct();
             this.status = Status.disposing;
-            model.MoneyAdd(refundCoef * prize);//refund money
+            model.MoneyAdd((int)((1-crashnessPercent/600.0)*0.9*prize));//refund money
             
              model.amusList.Remove(this);
             model.maps.RemoveAmus(this);
@@ -246,7 +243,7 @@ namespace LunaparkGame
         /// </summary>
         public void RepairWhole() { 
             // it isnt 100% correct because of not atomic money asking, but never mind, there can be a small debt
-            double repairPrize = crashnessPercent / 600.0 * prize * 0.9;
+            double repairPrize = crashnessPercent / 600.0 * prize * 0.1;
             if (model.GetMoney() >= repairPrize) crashnessPercent = 0;
             else MessageBox.Show(Labels.warningMessBox, Notices.cannotRepairNoMoney, MessageBoxButtons.OK);
         }
@@ -257,7 +254,7 @@ namespace LunaparkGame
         public bool TryRepairPart(int percent) {
             // it isnt 100% correct because of not atomic money asking, but never mind, there can be a small debt
             percent = Math.Min(percent * 6, crashnessPercent);
-            double repairPrize = percent / 600.0 * prize * 0.9;
+            double repairPrize = percent / 600.0 * prize * 0.1;
             if (model.GetMoney() >= repairPrize) {
                 Interlocked.Add(ref crashnessPercent, -1 * percent);
                 return true;
@@ -318,7 +315,7 @@ namespace LunaparkGame
                 }
                 else waitingTime++;
             }
-            model.MoneyAdd(-this.WorkingPrice / 64);         
+            model.MoneyAdd(-this.WorkingCost / 64);         
         }
         protected virtual void RunningAction() {
             if (actRunningTime < fixedRunningTime) {
@@ -333,11 +330,11 @@ namespace LunaparkGame
                 actRunningTime = 0;
                 
             }
-           model.MoneyAdd( - this.WorkingPrice);
+           model.MoneyAdd( - this.WorkingCost);
         }
         protected virtual void RunningOutAction() {
         
-            model.MoneyAdd(-WorkingPrice);
+            model.MoneyAdd(-WorkingCost);
             
                 if (!isRunning) // it is used if user clicked while people are in amus ( amus is running )
                  {
@@ -451,7 +448,7 @@ namespace LunaparkGame
                 IsInsideInAmusement(x, y - 1) ||
                 IsInsideInAmusement(x, y + 1))
             {
-                this.entrance = new AmusementEnterPath(model, new Coordinates((byte)x,(byte)y),this, entrImage);
+                this.entrance = new AmusementEnterPath(model, new Coordinates((byte)x,(byte)y),this);
                 model.mustBeEnter = false;
                 model.mustBeExit = true;
                 return true;
@@ -471,7 +468,7 @@ namespace LunaparkGame
                 IsInsideInAmusement(x, y - 1) ||
                 IsInsideInAmusement(x, y + 1))
             {
-                this.exit = new AmusementExitPath(model,new Coordinates((byte)x,(byte)y),this, exitImage);
+                this.exit = new AmusementExitPath(model,new Coordinates((byte)x,(byte)y),this);
                 status = Status.waitingForPeople;
                 model.mustBeExit = false;
                 return true;
@@ -518,15 +515,19 @@ namespace LunaparkGame
         public readonly int entranceFee, capacity, runningTime;
         public readonly bool hasSeparatedEnterExit;
         public Color color;
+        public int attractiveness;
+        public int workingCost;
 
-        public AmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, Image image) : base(prize, name, image) {
+        public AmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, int workingCost, int attractiveness) : base(prize, name) {
             this.entranceFee = fee;
             this.capacity = capacity;
             this.runningTime = runningTime;
             this.hasSeparatedEnterExit = hasEntranceExit;
             this.color = Color.Yellow;
+            this.workingCost = workingCost;
+            this.attractiveness = attractiveness;
         }
-        public AmusementsFactory(int prize, string name, Image image):base(prize, name, image){}
+        public AmusementsFactory(int prize, string name, int workingCost, int attractiveness):base(prize, name){}
         protected static bool CheckFreeLocation(byte x, byte y, Model model, byte width, byte height, bool hasSeparatedEntranceAndExit = true) {
             if (x + width > model.playingWidth + 1 || y + height > model.playingHeight + 1) return false;
             for (byte i = x; i < x + width; i++) {
@@ -560,14 +561,14 @@ namespace LunaparkGame
         public readonly int typeId;
         public int InternTypeId { get { return typeId; } set { } }
         
-        protected Path(Model m, int prize, Image image, int typeId, bool tangible = true)
-            : base(m, prize, image, typeId, tangible) {
+        protected Path(Model m, int prize, int typeId, bool tangible = true)
+            : base(m, prize, typeId, tangible) {
             this.zIndex = 10;
             signpostAmus = new Direction[m.maxAmusementsCount];
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
         }
-        public Path(Model m, Coordinates c, int prize, string name, int typeId, Image image)
-            : base(m, c, prize, image, typeId) {
+        public Path(Model m, Coordinates c, int prize, string name, int typeId)
+            : base(m, c, prize, typeId) {
             this.name = name;
             this.typeId = typeId;
             signpostAmus = new Direction[m.maxAmusementsCount];
@@ -581,7 +582,7 @@ namespace LunaparkGame
         }
         public override void Destruct() {
             model.maps.RemovePath(this);
-            model.dirtyDestruct.Enqueue(this);
+            //model.dirtyDestruct.Enqueue(this);
         }
         public override Size GetRealSize() {
             return new Size(MainForm.sizeOfSquare - 1, MainForm.sizeOfSquare - 1);              
@@ -602,8 +603,8 @@ namespace LunaparkGame
         }
     }
     public abstract class PathFactory: MapObjectsFactory{
-        public PathFactory(int prize, string name, Image image)
-        : base(prize, name, image) {
+        public PathFactory(int prize, string name)
+        : base(prize, name) {
            
         }
         public override bool CanBeBuild(byte x, byte y, Model model) {
@@ -621,14 +622,14 @@ namespace LunaparkGame
         private int money; 
         private readonly int patience;
         public readonly int id;
-        public readonly int maxAcceptablePrice;//max price which he is willing to pay per an amusement
+        public readonly double maxAcceptablePrice;//max price which he is willing to pay per an amusement
         public bool visible { get; set; }
         public readonly System.Drawing.Color color;
 
         //----provozni hodnoty-----
         private int remainingStepsCount=0;//pocet zbyvajicich kroku
         private int waitingTimeInQueue = 0, startingWalkingTime=2*MainForm.sizeOfSquare;
-        public int contentment {protected set; get;}//spokojenost
+        private int contentment;//spokojenost
         private int hunger=0;
 
         protected int realX, realY; //instead of coord 
@@ -638,7 +639,7 @@ namespace LunaparkGame
         private Amusements currAmus;
         public Status status { set; get; } //protected get; }
         
-        public Person(Model m, int x, int y) : base(m, prize: 0, typeID: -1, image: null) {
+        public Person(Model m, int x, int y) : base(m, prize: 0, typeID: -1) {
 
             this.contentment = 100;
             this.zIndex = 1;
@@ -646,7 +647,7 @@ namespace LunaparkGame
             this.status = Status.initialWalking;
             this.money = rand.Next(Person.minMoney,Person.maxMoney);
             this.patience = rand.Next(Person.minPatience, Person.maxPatience);
-            this.maxAcceptablePrice = 100;//todo: nastavit nejak podle vstupnich cen vstupu na atrakce
+            this.maxAcceptablePrice = rand.Next(1000,3000) / 1000.0;
             this.realX = x;
             this.realY = y;
             this.visible = true;
@@ -682,18 +683,16 @@ namespace LunaparkGame
                                     currAmus = model.maps.GetAmusement(realX, realY);
                                 }
                                 if (currAmus == null) {
-                                    AddContentment(-20); //todo: ubrat spokojenost
+                                    AddContentment(-10); //todo: ubrat spokojenost
                                     status = Status.choosesAmus; return;
                                 }
                                 if (currAmus.Id != CurrAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
-                                if (currAmus.CurrFee > maxAcceptablePrice){
-                                    AddContentment(-40);//todo: nastavit poradne
+                                if (currAmus.CurrFee > maxAcceptablePrice * currAmus.originalFee){
+                                    AddContentment(-25);//todo: nastavit poradne
                                     status = Status.choosesAmus;
                                 }
-                                else if (currAmus.CurrFee > money) {
-                                    AddContentment(-10);//todo: nastavit poradne
-                                    status = Status.choosesAmus;
-                                
+                                else if (currAmus.CurrFee > money) {                                  
+                                    status = Status.choosesAmus;                              
                                 }
                                 else {
                                     status = Status.inAmusQueue;
@@ -788,7 +787,11 @@ namespace LunaparkGame
         /// </summary>
         /// <returns>An nonnegative int, which represents the id of an amusement</returns>
         public int ChooseAmusement() {
-            
+
+            if (model.gate.State == Amusements.Status.runningOut) {
+                AddContentment(-20);
+                return model.amusList.GetGateId(); 
+            }
             if(money < model.currCheapestFee || model.gate.State == Amusements.Status.runningOut) return model.amusList.GetGateId();//person cannot afford pay any amusement
             if (contentment == 0) return model.amusList.GetGateId();
             if (hunger > 1800) //2000=100 %, i.e. 2000*0.9
@@ -796,7 +799,7 @@ namespace LunaparkGame
            
             int number = rand.Next(101); //0-100
             //---- less contenment increases the probability of leaving the park
-            if (number > contentment) return model.amusList.GetGateId(); 
+            if (number > contentment + 50) return model.amusList.GetGateId(); 
             //---- more hunger -> bigger probability of visiting a restaurant
             if (number < hunger / 20) return model.amusList.GetRandomRestaurant();
             //---- go to an amusement      
@@ -877,12 +880,14 @@ namespace LunaparkGame
         public override void Destruct()
         {
             model.persList.Remove(this);
-            model.dirtyDestruct.Enqueue(this);
+            //model.dirtyDestruct.Enqueue(this);
             this.status = Status.disposing;
+            model.ChangeLongtermContentment(this.contentment);
         }
         public void DestructWithoutListRemove() {
-            model.dirtyDestruct.Enqueue(this);
+           // model.dirtyDestruct.Enqueue(this);
             this.status = Status.disposing;
+            model.ChangeLongtermContentment(this.contentment);
         }
 
 

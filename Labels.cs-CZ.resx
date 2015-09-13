@@ -276,4 +276,10 @@
   <data name="outOfServiceGate" xml:space="preserve">
     <value>Zavřeno</value>
   </data>
+  <data name="currentContentment" xml:space="preserve">
+    <value>Spokojenost návštěvníků v parku: </value>
+  </data>
+  <data name="longtermContentment" xml:space="preserve">
+    <value>Dlouhodobá spokojenost: </value>
+  </data>
 </root>

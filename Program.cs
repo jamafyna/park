@@ -64,7 +64,7 @@ namespace LunaparkGame
 
             Image im = (Image)Properties.Images.ResourceManager.GetObject(parts[3].Trim());
             
-            object[] args = GetArgs(parts[2], im, lineCount);
+            object[] args = GetArgs(parts[2], lineCount);
                      
             bool visible;
             if (!Boolean.TryParse(parts[4], out visible)) throw new InputFileFormatException("Wrong format of the column Visible, line: " + lineCount);
@@ -89,7 +89,7 @@ namespace LunaparkGame
             }
 
         }
-        private object[] GetArgs(string argsLine, Image image, int lineCount) {
+        private object[] GetArgs(string argsLine, int lineCount) {
             string[] args = argsLine.Split(',');
             List<object> list = new List<object>();
             try {
@@ -122,7 +122,7 @@ namespace LunaparkGame
                     }
                     else throw new InputFileFormatException("Uncompatible type of an argument in Arguments, line:" + lineCount);
                 }
-                list.Add(image);
+                
                 return list.ToArray();
             }
             catch (IndexOutOfRangeException) {
@@ -168,6 +168,7 @@ namespace LunaparkGame
 
         }
         public bool ShouldCreateNewPersonBeginning() {
+           
             waitingTime--;
             if (waitingTime < 0) {             
                 waitingTime = rnd.Next(5);
@@ -178,28 +179,40 @@ namespace LunaparkGame
         }
         public bool ShouldCreateNewPerson() { 
             waitingTime--;
-            if (waitingTime < 0) {
-                expRnd.lambda = CalculateLambda();
-                waitingTime = expRnd.NextInt();
-                DEBUGwriter.WriteLine("lambda: " + expRnd.lambda + "  time: " +waitingTime);
-                return true;
-            }
-            return false;
-        }
-        private double CalculateLambda() {
+            if (waitingTime > 0) return false;
             int variousItems = 0;
-            foreach (var i in model.currBuildedItems) {
-                if (i > 0) variousItems++;
+            foreach (var i in model.currBuildedItems) if (i > 0) variousItems++;
+            
+            int propagation = Math.Min(model.propagation, 100);
+            int minCount = (int)(model.persList.contenment / 2 + variousItems * 4 + propagation / 2);
+            if (model.CurrPeopleCount < minCount) {
+                waitingTime = rnd.Next((int)(model.gate.entranceFee/Gate.originalFee * 2));
             }
+            else
+            {
+                double variety = variousItems / model.currBuildedItems.Length * 100;
+                double contenment = model.persList.contenment;
+                double fee = Gate.originalFee / (model.gate.entranceFee + 1) * 100;
+                double awards = model.effects.awardsCount / SpecialEffects.maxAwardsCount * 100;
+                double peopleCount = (1000 - Math.Min(model.CurrPeopleCount, 1000)) / 10;
+                               
+                expRnd.lambda = -((2 * contenment + 4 * Math.Max(propagation, variety) + 2 * fee + propagation + variety + awards + 5 * peopleCount) / 16 - 100) / 4;      
+                waitingTime = expRnd.NextInt();
+                DEBUGwriter.WriteLine("lambda: " + expRnd.lambda + "  time: " +waitingTime);               
+            }
+            return true;
+        }
+       /* private double CalculateLambda(int variousItems, int propagation) {
+                     
             double variety = variousItems / model.currBuildedItems.Length * 100;
-            double propagation = Math.Min(model.propagation, 100);
+            propagation = Math.Min(model.propagation, 100);
             double contenment = model.persList.contenment;
             double fee = Gate.originalFee / (model.gate.entranceFee + 1) * 100;
             double awards = model.effects.awardsCount / SpecialEffects.maxAwardsCount * 100;
             double peopleCount = (1000 - Math.Min(model.CurrPeopleCount, 1000)) / 10;
 
-            return -((2 * contenment + 3 * propagation + 2 * fee + 3 * variety + awards + 5 * peopleCount) / 16 - 100) / 2;
-        }
+            return -((2 * contenment + 4 * Math.Max(propagation, variety) + 2 * fee + propagation + variety + awards + 5 * peopleCount) / 16 - 100) / 4;
+        }*/
     }
       
 

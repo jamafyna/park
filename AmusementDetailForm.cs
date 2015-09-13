@@ -13,10 +13,10 @@ namespace LunaparkGame {
         public AmusementDetailForm() { }
         public AmusementDetailForm(Model model, Amusements a, Image im) {
             InitializeComponent();
-            exit_button.Tag = new AmusementExitPathFactory(a, Properties.Images.exit);
-            entrance_button.Tag = new AmusementEnterPathFactory(a, Properties.Images.enter);
+            exit_button.Tag = new AmusementExitPathFactory(a);
+            entrance_button.Tag = new AmusementEnterPathFactory(a);
             this.model = model;
-            this.pictureBox.Image = im;
+            this.pictureBox.BackgroundImage = im;
             this.a = a;
             this.Text = a.name;
             a.isClicked = true;
@@ -26,10 +26,10 @@ namespace LunaparkGame {
         protected void AmusementDetailForm_FormClosing(object sender, FormClosingEventArgs e) {
             a.isClicked = false;
         }
-        public void MyUpdate() {
+        virtual public void MyUpdate() {
             if (a.State == Amusements.Status.disposing) this.Close();
             this.prize_numericUpDown1.Value = a.CurrFee;
-            this.crashValue_label.Text = a.CrashnessPercent + "%";
+            this.crashValue_label.Text = a.GetCrashnessPercent + "%";
             if (a.isDemolishedEntrance()) entrance_button.Visible = true;
             else entrance_button.Visible = false;
             if (a.isDemolishedExit()) exit_button.Visible = true;

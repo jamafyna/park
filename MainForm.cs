@@ -88,12 +88,14 @@ namespace LunaparkGame
             
             //todo: rozvrstvit do vlaken
             //---actions
-            Task.Factory.StartNew(model.persList.Action);
+            if(!model.parkClosed) Task.Factory.StartNew(model.persList.Action);
             debugtime++;
             // model.persList.Action();
             if (timerTicks >= 10) {
-                Task.Factory.StartNew(model.amusList.Action);
-                Task.Factory.StartNew(model.maps.Action);
+                if (!model.parkClosed) {
+                    Task.Factory.StartNew(model.amusList.Action);
+                    Task.Factory.StartNew(model.maps.Action);
+                }
 
                 timerTicks = 0;
                 //   model.amusList.Action();

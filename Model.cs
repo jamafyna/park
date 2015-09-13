@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
 using System.Collections.Concurrent;
+using System.Runtime.Serialization;
 
 namespace LunaparkGame
 {
@@ -12,36 +13,45 @@ namespace LunaparkGame
     /// <summary>
     /// Keeps all items of the current game, is thread-safe.
     /// </summary>
+    [Serializable]
     public class Model //todo: Prejmenovat na evidenci
     {     
-        private const int initialMoney = 1000000;
+        private const int initialMoney = 4000;
         public const int maxPeopleInPark = 10000;
         public readonly byte playingWidth, playingHeight; 
         public readonly byte realWidth, realHeight;
-        public readonly int maxAmusementsCount;//todo: nejspis nepocita lavicky
+        public readonly int maxAmusementsCount; // count of big amusements, it doesnt include littleComplementaryAmusements
         public bool parkClosed = true;
         private int money;
         /// <summary>
         /// Represents park advertising, is not thread safe -> for manipulating use atomic operations
         /// </summary>
         public int propagation;
+        /// <summary>
+        /// ReaderWriterLockSlim item. Use for manipulation with longtermContentment.
+        /// </summary>
+        ReaderWriterLockSlim longContentmentRWL = new ReaderWriterLockSlim();
+        private int longtermContentment = 100;
+        
+        
        /// <summary>
        /// Represents researching, is not thread safe -> for manipulating use atomic operations
        /// </summary>
         public int timeToShowNewItem;
-        public int currCheapestFee { private set; get; }//todo: postarat se o vytvoreni
         /// <summary>
         /// use for manipulation with currCheapestFee
         /// </summary>
-        private object feeLock=new object();
+        private object feeLock = new object();
+        public int currCheapestFee { private set; get; }//todo: postarat se o vytvoreni
+       
         public int CurrPeopleCount { get { return persList.GetActualPeopleCount(); } }
         public int TotalPeopleCount { get { return persList.GetTotalPeopleCount(); } }
        //---containers---
-        public ConcurrentQueue<MapObjects> dirtyNew=new ConcurrentQueue<MapObjects>();
-        public ConcurrentQueue<MapObjects> dirtyDestruct=new ConcurrentQueue<MapObjects>();//mozna misto mapObjects staci byt Control
+       // public ConcurrentQueue<MapObjects> dirtyNew=new ConcurrentQueue<MapObjects>();
+       // public ConcurrentQueue<MapObjects> dirtyDestruct=new ConcurrentQueue<MapObjects>();//mozna misto mapObjects staci byt Control
         public ConcurrentQueue<MapObjects> dirtyClick = new ConcurrentQueue<MapObjects>();
 
-        public List<IUpdatable> updatableItems;// todo: sem dat taky hlavni form, udelat thread-safe, spis vlozit do view      
+      //  public List<IUpdatable> updatableItems;// todo: sem dat taky hlavni form, udelat thread-safe, spis vlozit do view      
         
         public AmusementsList amusList;// todo:thread-safe
         public PersonList persList = new PersonList(maxPeopleInPark);//todo: thread-safe
@@ -77,7 +87,31 @@ namespace LunaparkGame
            
 
         }
-       
+
+        public void ChangeLongtermContentment(int contentment) {
+            if (contentment > 100 || contentment < 0) return;
+            try {
+                longContentmentRWL.EnterWriteLock();
+                longtermContentment = (longtermContentment + contentment) / 2;
+            }
+            finally {
+                longContentmentRWL.ExitWriteLock();
+            }
+        }
+        public int GetLongTermContentment() {
+            try {
+                longContentmentRWL.EnterReadLock();
+                return longtermContentment;
+            }
+            finally {
+                longContentmentRWL.ExitReadLock();
+            }
+        
+        }
+        
+        
+    
+
         public void MoneyAdd(int value) {
             Interlocked.Add(ref money,value);
         }
@@ -120,11 +154,14 @@ namespace LunaparkGame
    /// </summary>
     public class AmusementsList:IActionable
     { 
+        [NonSerialized]
         static Random rand = new Random();
         private List<Amusements> list; 
+        [NonSerialized]
         private ConcurrentQueue<int> freeId;
+        [NonSerialized]
         private List<int> foodIds;
-        
+        private readonly int maxAmusCount;
         // <summary>
         /// use for list and foodIds
         /// </summary>
@@ -140,10 +177,27 @@ namespace LunaparkGame
             list = new List<Amusements>();
             list.Add(gate);
             foodIds = new List<int>();
-           // freeId = new Queue<int>(maxAmusCount);
+            this.maxAmusCount = maxAmusCount;
             freeId = new ConcurrentQueue<int>();
             for (int i = 1; i < maxAmusCount; i++) freeId.Enqueue(i);  //0 is not free, gate.id==0;          
         }
+        [OnDeserialized]
+        private void SetValuesAndCheckOnDeserialized() {
+            rand = new Random();
+            if (list.Count == 0) throw new MyDebugException("Wrong deseralization in AmusementList, a gate is not in the list.");
+            if (list[0] != gate) throw new MyDebugException("Wrong deseralization in AmusementList, a gate is not at the first position or has a wrong value.");
+            List<int> newFreeId = new List<int>();
+            for (int i = 0; i < maxAmusCount; i++) {
+                if (list.Find(a => a.Id == i) == null) newFreeId.Add(i);                
+            }
+            freeId = new ConcurrentQueue<int>(newFreeId);
+            foodIds=new List<int>();
+            foreach (Amusements a in list) {
+                if (a is Restaurant) foodIds.Add(a.Id);
+            }
+           
+        }
+        
         public void Add(Amusements a)
         {
             /*if (a.id == list.Count) list.Add(a);
@@ -334,7 +388,7 @@ namespace LunaparkGame
                 //Parallel.ForEach(source: (IEnumerable<Person>)this, body: p => p.Action());
                 int newContenm = 0;
 
-                Parallel.ForEach(people, p => { if (p != null) { p.Action(); Interlocked.Add(ref newContenm, p.contentment); } });
+                Parallel.ForEach(people, p => { if (p != null) { p.Action(); Interlocked.Add(ref newContenm, p.GetContentment()); } });
 #warning Jak tady pockam na dokonceni vsech vlaken?
                 try {
                     contenment = newContenm / currPeopleCount;
@@ -657,7 +711,7 @@ namespace LunaparkGame
             while (queue.Count != 0)
             {
                 item = queue.Dequeue();
-                ProcessQueueItem(item.x,item.y, queue, paths);
+                ProcessQueueItem(item, queue, paths);
             }
             // ---set calculated directions
             pathRWLock.EnterReadLock();
@@ -762,32 +816,33 @@ namespace LunaparkGame
         /// <param name="item">coordinates of the queue item which is analysed</param>
         /// <param name="queue">queue which realise BFS</param>
         /// <param name="paths">An auxilary array which represents a "copy" of pathMap </param>
-        private void ProcessQueueItem(byte x, byte y, Queue<DirectionItem> queue, DirectionItem[][] paths)
+        private void ProcessQueueItem(DirectionItem item, Queue<DirectionItem> queue, DirectionItem[][] paths)
         {
             // dont use pathRWLock (or change it to recursive mode)!!
             // border fields (except the gate) don't matter because there is a fence (i.e. null) around the playing map
             // direction is set the other way around because it is correct from a person perspective.
+            byte x = item.x, y = item.y;
             
             DirectionItem aux;
             if ((x - 1 >= 0) && (aux = paths[x - 1][y]) != null && aux.dir == Direction.no) // item.x - 1 >= 0 due to the gate
             {
                 aux.dir = Direction.E;
-                if (!aux.isEnterExit) queue.Enqueue(aux); // cannot go over these paths (without stop in an amusement)
+                if (!aux.isEnterExit ) queue.Enqueue(aux); // cannot go over these paths (without stop in an amusement)
             }
             if ((aux = paths[x][y - 1]) != null && aux.dir == Direction.no)
             {
                 aux.dir = Direction.S;
-                if (!aux.isEnterExit) queue.Enqueue(aux);
+                if (!aux.isEnterExit ) queue.Enqueue(aux);
             }
             if ((aux = paths[x][y + 1]) != null && aux.dir == Direction.no)
             {
                 aux.dir = Direction.N;
-                if (!aux.isEnterExit) queue.Enqueue(aux);
+                if (!aux.isEnterExit ) queue.Enqueue(aux);
             }
             if ((aux = paths[x + 1][y]) != null && aux.dir == Direction.no)
             {
                 aux.dir = Direction.W;
-                if (!aux.isEnterExit) queue.Enqueue(aux);
+                if (!aux.isEnterExit ) queue.Enqueue(aux);
             }       
         }   
 

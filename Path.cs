@@ -11,8 +11,8 @@ namespace LunaparkGame
 
    public abstract class AmusementPath : Path {
        public readonly Amusements amusement;
-        public AmusementPath(Model m, Coordinates c, Amusements a, Image image, int typeId, bool tangible = true)
-            : base(m, prize: 0, image: image, typeId: typeId, tangible: tangible) //not call base(m,c) because dont want to add to maps
+        public AmusementPath(Model m, Coordinates c, Amusements a, int typeId, bool tangible = true)
+            : base(m, prize: 0, typeId: typeId, tangible: tangible) //not call base(m,c) because dont want to add to maps
         {
             this.coord = c;
             this.amusement = a;
@@ -23,8 +23,8 @@ namespace LunaparkGame
 
     public class AmusementEnterPath : AmusementPath {
 
-        public AmusementEnterPath(Model m, Coordinates c, Amusements a, Image im, bool tangible = true)
-            : base(m, c, a, im, typeId: 1, tangible: tangible) {
+        public AmusementEnterPath(Model m, Coordinates c, Amusements a, bool tangible = true)
+            : base(m, c, a, typeId: 1, tangible: tangible) {
                 model.mustBeEnter = false;
                 a.entrance = this;
         }
@@ -35,24 +35,24 @@ namespace LunaparkGame
                 return;
             }       
             model.maps.RemoveEntranceExit(this);
-            model.dirtyDestruct.Enqueue(this);
+          //  model.dirtyDestruct.Enqueue(this);
             amusement.entrance = null; 
           
         }
     }
     public class AmusementEnterPathFactory : PathFactory {
         Amusements a;
-        public AmusementEnterPathFactory(Amusements a, Image image) :base(prize:0, name: "", image: image) {
+        public AmusementEnterPathFactory(Amusements a) :base(prize:0, name: "") {
             this.a = a;
         }
 #warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
         public override MapObjects Build(byte x, byte y, Model model) {
-            return new AmusementEnterPath(model, new Coordinates(x, y), a, this.image);
+            return new AmusementEnterPath(model, new Coordinates(x, y), a);
         }
     }
 
     public class AmusementExitPath : AmusementPath {
-        public AmusementExitPath(Model m, Coordinates c, Amusements a, Image image, bool tangible = true) : base(m, c, a, image, typeId: 2, tangible: tangible) {
+        public AmusementExitPath(Model m, Coordinates c, Amusements a, bool tangible = true) : base(m, c, a, typeId: 2, tangible: tangible) {
             a.exit = this;
         }
         public override void Destruct() {
@@ -61,20 +61,20 @@ namespace LunaparkGame
                 return; 
             }
             model.maps.RemoveEntranceExit(this);
-            model.dirtyDestruct.Enqueue(this);
+            //model.dirtyDestruct.Enqueue(this);
             model.mustBeExit = false;
             amusement.exit = null;
         }
     }
     public class AmusementExitPathFactory : PathFactory {
         Amusements a;
-        public AmusementExitPathFactory(Amusements a, Image im)
-            : base(prize: 0, name: "", image: im) {
+        public AmusementExitPathFactory(Amusements a)
+            : base(prize: 0, name: "") {
                 this.a = a;
         }
 #warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
         public override MapObjects Build(byte x, byte y, Model model) {
-            return new AmusementExitPath(model, new Coordinates(x, y), a, this.image);
+            return new AmusementExitPath(model, new Coordinates(x, y), a);
         }
     }
     
@@ -82,13 +82,13 @@ namespace LunaparkGame
     public class StonePath : Path
     {
         
-        public StonePath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId, null) { }
+        public StonePath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
        
         
     }
     public class StonePathFactory : PathFactory {
-        public StonePathFactory(int prize, string name, Image image) 
-        : base(prize, name, image) {         
+        public StonePathFactory(int prize, string name) 
+        : base(prize, name) {         
         }
         public override MapObjects Build(byte x, byte y, Model model) {
             return new StonePath(model, new Coordinates(x, y), prize, name, internTypeId);
@@ -96,15 +96,15 @@ namespace LunaparkGame
     }
     public class AsphaltPath : Path
     {
-        public AsphaltPath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId,  null) { }
+        public AsphaltPath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
         public AsphaltPath() { }
        
         
 
     }
     public class AsphaltPathFactory : PathFactory {
-        public AsphaltPathFactory(int prize, string name, Image image)
-            : base( prize, name, image) {
+        public AsphaltPathFactory(int prize, string name)
+            : base( prize, name) {
         }
         public override MapObjects Build(byte x, byte y, Model model) {
             return new AsphaltPath(model, new Coordinates(x, y), prize, name, internTypeId);
@@ -113,13 +113,13 @@ namespace LunaparkGame
    
     public class SandPath : Path
     {
-        public SandPath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId,  null) { }
+        public SandPath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
         
         
     }
     public class SandPathFactory : PathFactory {
-        public SandPathFactory(int prize, string name, Image image)
-            : base(prize, name, image) {
+        public SandPathFactory(int prize, string name)
+            : base(prize, name) {
         }
         public override MapObjects Build(byte x, byte y, Model model) {
             return new SandPath(model, new Coordinates(x, y), prize, name, internTypeId);
@@ -128,12 +128,12 @@ namespace LunaparkGame
    
     public class MarblePath : Path
     {
-        public MarblePath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId, null) { }
+        public MarblePath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
        
     }
     public class MarblePathFactory : PathFactory {
-        public MarblePathFactory(int prize, string name, Image image)
-            : base(prize, name, image) {
+        public MarblePathFactory(int prize, string name)
+            : base(prize, name) {
         }
         public override MapObjects Build(byte x, byte y, Model model) {
             return new MarblePath(model, new Coordinates(x, y), prize, name, internTypeId);

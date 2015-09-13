@@ -276,4 +276,10 @@
   <data name="outOfServiceGate" xml:space="preserve">
     <value>Closed</value>
   </data>
+  <data name="currentContentment" xml:space="preserve">
+    <value>Current contentment in the park: </value>
+  </data>
+  <data name="longtermContentment" xml:space="preserve">
+    <value>Long-term contentment: </value>
+  </data>
 </root>

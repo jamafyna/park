@@ -34,6 +34,7 @@
             // 
             // pictureBox
             // 
+            this.pictureBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.pictureBox.Location = new System.Drawing.Point(8, 11);
             this.pictureBox.Name = "pictureBox";
             this.pictureBox.Size = new System.Drawing.Size(171, 121);
@@ -92,12 +93,14 @@
             // 
             // GateDetailForm
             // 
-            this.ClientSize = new System.Drawing.Size(188, 262);
+            this.AutoScroll = true;
+            this.ClientSize = new System.Drawing.Size(188, 318);
             this.Controls.Add(this.info_label);
             this.Controls.Add(this.prize_numericUpDown1);
             this.Controls.Add(this.pictureBox);
             this.Controls.Add(this.prize_label);
             this.Controls.Add(this.outOfService_button);
+            this.DockAreas = ((WeifenLuo.WinFormsUI.Docking.DockAreas)((WeifenLuo.WinFormsUI.Docking.DockAreas.DockLeft | WeifenLuo.WinFormsUI.Docking.DockAreas.DockRight)));
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.Name = "GateDetailForm";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GateDetailForm_FormClosing);

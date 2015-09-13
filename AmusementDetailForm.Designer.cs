@@ -80,6 +80,7 @@
             // 
             // pictureBox
             // 
+            this.pictureBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.pictureBox.Location = new System.Drawing.Point(6, 12);
             this.pictureBox.Name = "pictureBox";
             this.pictureBox.Size = new System.Drawing.Size(171, 121);
@@ -151,6 +152,7 @@
             // AmusementDetailForm
             // 
             this.AutoScroll = true;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.ClientSize = new System.Drawing.Size(189, 342);
             this.Controls.Add(this.repair_button);
             this.Controls.Add(this.crashValue_label);
