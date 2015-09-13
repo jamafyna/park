@@ -19,7 +19,7 @@ namespace LunaparkGame
         private const int initialMoney = 4000;
         public const int maxPeopleInPark = 10000;
         public readonly byte playingWidth, playingHeight; 
-        public readonly byte realWidth, realHeight;
+        public readonly byte internalWidth, internalHeight;
         public readonly int maxAmusementsCount; // count of big amusements, it doesnt include littleComplementaryAmusements
         public bool parkClosed = true;
         private int money;
@@ -73,16 +73,16 @@ namespace LunaparkGame
         public Model(byte playingHeight, byte playingWidth){
             this.playingHeight=playingHeight;
             this.playingWidth=playingWidth;
-            this.realHeight = (byte)(playingHeight + 2);
-            this.realWidth = (byte)(playingWidth + 2);
+            this.internalHeight = (byte)(playingHeight + 2);
+            this.internalWidth = (byte)(playingWidth + 2);
             money = initialMoney;
             propagation = 0;
             effects = new SpecialEffects(this);
             timeToShowNewItem = effects.newItemWaitingTime.Dequeue();
             
-            maps = new Map(realWidth, realHeight, this);            
+            maps = new Map(internalWidth, internalHeight, this);            
             maxAmusementsCount = playingHeight * playingWidth + 1; // max. count of amusements that can user build, + 1 due to the gate which does not lie on the playing place
-            gate=new Gate(this, new Coordinates(0,(byte) (new Random()).Next(1, realHeight - Gate.height -1)),null,null );
+            gate=new Gate(this, new Coordinates(0,(byte) (new Random()).Next(1, internalHeight - Gate.height -1)),null,null );
             amusList = new AmusementsList(maxAmusementsCount, gate);
            
 
@@ -152,6 +152,7 @@ namespace LunaparkGame
    /// <summary>
    /// Keeps all Amusement items in the current game, is thread-safe.
    /// </summary>
+    [Serializable]
     public class AmusementsList:IActionable
     { 
         [NonSerialized]
@@ -181,8 +182,9 @@ namespace LunaparkGame
             freeId = new ConcurrentQueue<int>();
             for (int i = 1; i < maxAmusCount; i++) freeId.Enqueue(i);  //0 is not free, gate.id==0;          
         }
+      
         [OnDeserialized]
-        private void SetValuesAndCheckOnDeserialized() {
+        private void SetValuesAndCheckOnDeserialized(StreamingContext context) {
             rand = new Random();
             if (list.Count == 0) throw new MyDebugException("Wrong deseralization in AmusementList, a gate is not in the list.");
             if (list[0] != gate) throw new MyDebugException("Wrong deseralization in AmusementList, a gate is not at the first position or has a wrong value.");
@@ -301,6 +303,7 @@ namespace LunaparkGame
     /// <summary>
     /// 
     /// </summary>
+    [Serializable]
     public class PersonList: System.Collections.IEnumerable //todo: is TS, ale rozdelit si pole na casti a zamykat vice zamky (napr. %50)
     {
        // private List<Person> list;
@@ -330,6 +333,16 @@ namespace LunaparkGame
             people = new Person[maxPeopleCount];
             for (int i = 0; i < internChangablePeopleId.Length; i++) internChangablePeopleId[i] = -1;
         }
+        [OnDeserialized]
+        private void SetValuesAndCheckOnDeserialized(StreamingContext context) {
+            int count = 0;
+            for (int i = 0; i < people.Length; i++) {
+                if (people[i] != null) count++;
+            }
+            if (count != currPeopleCount) throw new MyDeserializationException("Wrong deseralization in PeopleList, wrong count of people.");
+            if (contenment < 0 || contenment > 100) throw new MyDeserializationException("in PeopleList, contentment out of bounds.");
+        }
+        
         public int GetActualPeopleCount() {
             return currPeopleCount;
         }
@@ -458,7 +471,8 @@ namespace LunaparkGame
     /// <summary>
     /// Keeps information about how are amusements and paths placed on the playing map. Takes care of updating directions.
     /// </summary>
-    public class Map: IActionable 
+    
+    public class Map: IActionable, ISerializable
     {
       
         class DirectionItem {
@@ -476,8 +490,7 @@ namespace LunaparkGame
             }
            
         }
-
-        private readonly DirectionItem[][] auxPathMap; // null = there isnt path     
+        private readonly DirectionItem[][] auxPathMap; // null = there isnt path  
         private readonly Amusements[][] amusementMap;
         private readonly Path[][] pathMap;
         private readonly Model model;
@@ -491,15 +504,11 @@ namespace LunaparkGame
         /// use for adding to queue (due to .Clear) and for "clear"
         /// </summary>
         private object lastAddedAmusLock = new object();
-        //todo: misto Lock pouzit aktivni zamek, ale jak? private SpinLock lastAddedAmusSLock = new SpinLock();
         private ReaderWriterLockSlim pathRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         private ReaderWriterLockSlim amusRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
-       
-       // private int amusDeletedId = -1;
         public readonly byte internalWidthMap;
         public readonly byte internalHeightMap;
-        private int maxAmusCount; //todo: nejspis neni potreba, smazat
         
         /// <summary>
         /// Represents the current playing map, includes maps of paths and amusements, provides algorithms for navigation.
@@ -511,7 +520,7 @@ namespace LunaparkGame
             this.internalWidthMap = width;
             this.internalHeightMap = height;
             this.model = m;
-            this.maxAmusCount = model.maxAmusementsCount;
+           
              
             //---initialize helpPath
             auxPathMap=new DirectionItem[width][];
@@ -527,6 +536,42 @@ namespace LunaparkGame
             amusementMap=new Amusements[width][];
             for (int i = 0; i < width; i++) amusementMap[i] = new Amusements[height];
         }
+
+        public Map(SerializationInfo si, StreamingContext sc) {
+            model = (Model)si.GetValue(model.ToString(), model.GetType());
+            amusementMap = (Amusements[][])si.GetValue(amusementMap.ToString(), amusementMap.GetType());
+            pathMap = (Path[][])si.GetValue("pathMap", pathMap.GetType()); //todo: Bylo by rychlejsi, kdybych si vytvorila seznam a teprve ten pak prochazela?
+            internalWidthMap = model.internalWidth;
+            internalHeightMap = model.internalHeight;
+
+            auxPathMap = new DirectionItem[internalWidthMap][];
+            for (int i = 0; i < internalWidthMap; i++) {
+                auxPathMap[i] = new DirectionItem[internalHeightMap];
+            }
+            lastAddedAmusLock = new object();
+            pathRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+            amusRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+            pathChanged = false;
+            lastAddedAmus=new ConcurrentQueue<Amusements>();
+            UpdateDirections(); 
+
+
+        }
+        public void GetObjectData(SerializationInfo si, StreamingContext sc) {
+            si.AddValue("pathMap", pathMap);
+            si.AddValue(amusementMap.ToString(), amusementMap); //todo: neni treba, pokud uz touhle dobou bude vyplneny AmusementList
+            si.AddValue(model.ToString(), model);
+        }
+
+        [OnDeserialized]
+        private void SetValuesAndCheckOnDeserialized(StreamingContext context) { 
+           // if(internalWidthMap!=model.internalWidth)
+            
+        
+        }
+         
+
+
 #warning nejspis se nebude pouzivat, tak pak smazat
         public List<Path> GetPathsUnsynchronized() {
             List<Path> list = new List<Path>();

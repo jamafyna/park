@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Threading;
 using System.Collections.Concurrent;
 using System.Drawing;
+using System.Runtime.Serialization;
 
 
 namespace LunaparkGame
@@ -53,7 +54,12 @@ namespace LunaparkGame
         public MyDebugException(string s) : base(s) { }
         
     }
-
+    public class MyDeserializationException : MyDebugException {
+        public MyDeserializationException() : base() { }
+        public MyDeserializationException(string s) : base(s) { }
+    }
+   
+    [Serializable]
     public struct Coordinates
     {
         public byte x;
@@ -62,7 +68,7 @@ namespace LunaparkGame
     }
 
 
-
+    [Serializable]
     public abstract class MapObjects
     {      
         /// <summary>
@@ -71,7 +77,7 @@ namespace LunaparkGame
         public int zIndex { protected set ; get; }
         public Coordinates coord { protected set; get; }
         protected Model model;
-        public Control control;
+        [NonSerialized]
         public bool isClicked = false;
         public readonly int prize;
         public readonly int internTypeID;
@@ -83,15 +89,17 @@ namespace LunaparkGame
             this.tangible = tangible;
             model.MoneyAdd(-this.prize);
             this.internTypeID = typeID;
-            //if(tangible) model.dirtyNew.Enqueue(this);
-           
         }
         public MapObjects(Model m,Coordinates coord, int prize, int typeID, bool tangible=true):this(m, prize, typeID, tangible)
         {            
             this.coord = coord;
             this.internTypeID = typeID;
         }
-       
+
+        [OnDeserialized]
+        protected void SetValuesAndCheckOnDeserialized(StreamingContext context) {
+            isClicked = false;       
+        }
 
         /// <summary>
         /// user action
@@ -118,14 +126,12 @@ namespace LunaparkGame
     /// <summary>
     /// ts,pokud se pouzivaji fce Destruct/Click...z hlavniho vlakna
     /// </summary>
+    [Serializable]
     public abstract class Amusements : MapObjects, IActionable//, IButtonCreatable
     {
         #region
         public enum Status { waitingForPeople, running, outOfService, runningOut, disposing }
-        public readonly Image entrImage;
-        public readonly Image exitImage;
-        
-
+       
       //  public int InternTypeId { get { return typeId; } set { } }
         private int id;
         public int Id { get { return id; } private set { id = value; } }
@@ -184,10 +190,7 @@ namespace LunaparkGame
         //----------------------------
         #endregion
         public Amusements(){}
-        public Amusements(Image entrImage, Image exitImage) {
-            this.entrImage = entrImage;
-            this.exitImage = exitImage;
-        }
+       
         public Amusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, Color color, int typeId, int workingPrice, int attractiveness)
             : base(m, c, prize, typeId)       
         {
@@ -204,8 +207,6 @@ namespace LunaparkGame
             this.hasSeparatedEnterExit = hasEntranceExit;
             this.color = color;
             //this.typeId = typeId;
-            this.entrImage = entrImage;
-            this.exitImage = exitImage;
             peopleInList = new List<Person>(capacity);
 
            model.LastBuiltAmus = this;                 
@@ -219,6 +220,11 @@ namespace LunaparkGame
            // mimoProvoz = true;
            // zacatek = true;
          
+        }
+        [OnDeserialized]
+        private void SetValuesAndCheckOnDeserialized(StreamingContext context) {
+            if (this.id < 0 || this.waitingTime < 0|| this.maxWaitingTime < 0) throw new MyDeserializationException("Wrong deserialization in Amusements, values < 0");
+        
         }
 
         /// <summary>
@@ -611,7 +617,8 @@ namespace LunaparkGame
             return true;
         }
     }
-
+    
+    [Serializable]
     public class Person : MapObjects,IActionable
     { //todo: Mozna sealed a nebo naopak moznost rozsiritelnosti dal...
         private static Random rand = new Random();
@@ -630,7 +637,7 @@ namespace LunaparkGame
         private int remainingStepsCount=0;//pocet zbyvajicich kroku
         private int waitingTimeInQueue = 0, startingWalkingTime=2*MainForm.sizeOfSquare;
         private int contentment;//spokojenost
-        private int hunger=0;
+        private int hunger = 0;
 
         protected int realX, realY; //instead of coord 
         protected object xyLock = new object(); //use for every manipulation with x and y together
@@ -655,6 +662,11 @@ namespace LunaparkGame
 
             m.persList.Add(this);
 
+        }
+
+        [OnDeserialized]
+        private void SetValuesAndCheckOnDeserialized(StreamingContext context) { 
+           //actualy nothing
         }
         public void Action()
         {

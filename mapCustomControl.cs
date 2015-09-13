@@ -137,7 +137,7 @@ namespace LunaparkGame {
             byte mapY = (byte)(mouse.Y / MainForm.sizeOfSquare);
             MapObjects obj = FindObject(realX, realY, mapX, mapY);
             if (obj != null) obj.Click(sender, e);
-            else if (mapX != 0 && mapX != model.realWidth - 1 && mapY != 0 && mapY != model.realHeight - 1) { // border
+            else if (mapX != 0 && mapX != model.internalWidth - 1 && mapY != 0 && mapY != model.internalHeight - 1) { // border
                 MapClick(mapX, mapY);
             }
         }

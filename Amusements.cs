@@ -16,8 +16,8 @@ namespace LunaparkGame
         public new const int originalFee = 50;
         public int entranceFee;
         private ProbabilityGenerationPeople peopleGeneration;
-        private bool beginning = true;
-        private int beginningCount = (new Random()).Next(20,50); 
+      //  private bool beginning = true;
+       // private int beginningCount = (new Random()).Next(20,50); 
 
         public new Status State {
             get { return status; }
@@ -55,15 +55,7 @@ namespace LunaparkGame
                         int a = (exit.coord.x + 1) * MainForm.sizeOfSquare;
                         int b = exit.coord.y * MainForm.sizeOfSquare;
                         if (!model.maps.IsPath(a, b)) break;
-                        if (beginning) {
-                            if (peopleGeneration.ShouldCreateNewPersonBeginning()) {
-                                p = new Person(model, a + 1, b + MainForm.sizeOfSquare / 2);
-                                model.MoneyAdd(this.entranceFee);
-                                beginningCount--;
-                                if (beginningCount < 0) beginning = false;
-                            }                       
-                        }
-                        else if (peopleGeneration.ShouldCreateNewPerson()) {
+                        if (peopleGeneration.ShouldCreateNewPerson()) {
                             p = new Person(model, a + 1, b + MainForm.sizeOfSquare / 2);
                             model.MoneyAdd(this.entranceFee);
                         }

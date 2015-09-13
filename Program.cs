@@ -167,16 +167,7 @@ namespace LunaparkGame
             this.model = model;
 
         }
-        public bool ShouldCreateNewPersonBeginning() {
-           
-            waitingTime--;
-            if (waitingTime < 0) {             
-                waitingTime = rnd.Next(5);
-                return true;
-            }
-            return false;
-
-        }
+       
         public bool ShouldCreateNewPerson() { 
             waitingTime--;
             if (waitingTime > 0) return false;

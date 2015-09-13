@@ -151,7 +151,6 @@
     <Compile Include="StartForm.Designer.cs">
       <DependentUpon>StartForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="View.cs" />
     <Compile Include="View2.cs" />
     <EmbeddedResource Include="AccessoriesForm.resx">
       <DependentUpon>AccessoriesForm.cs</DependentUpon>
