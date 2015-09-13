@@ -42,8 +42,9 @@ namespace LunaparkGame
        }
        
         [OnDeserialized]
-        private void SetValuesAndCheckOnDeserialized(StreamingContext context) {
-            peopleGeneration = new ProbabilityGenerationPeople(model);       
+        private new void SetValuesAndCheckOnDeserialized(StreamingContext context) {           
+            base.SetValuesAndCheckOnDeserialized(context);
+            peopleGeneration = new ProbabilityGenerationPeople(model);
         }
         
         public override void Action() {
@@ -185,6 +186,7 @@ namespace LunaparkGame
             throw new NotImplementedException();
         }
     }
+    [Serializable]
     public class RectangleAmusementsFactory : AmusementsFactory {
         protected readonly byte  width, height;
         public bool isHorizontal;
@@ -260,6 +262,7 @@ namespace LunaparkGame
             else return false;
         }
     }
+    [Serializable]
     public class SquareAmusementsFactory : AmusementsFactory {
         public readonly byte width;
 
@@ -284,7 +287,7 @@ namespace LunaparkGame
         }
     }
    
-  [Serializable]
+    [Serializable]
     public class FreeShapedAmusements : Amusements {
         public FreeShapedAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, Color color, int typeId, int workingCost, int attractiveness)
             : base (c, m, prize, fee, capacity, runningTime, name, false, color, typeId, workingCost ,attractiveness) {
@@ -305,6 +308,7 @@ namespace LunaparkGame
         }
         
     }
+    [Serializable]
     public class FreeShapedAmusementsFactory : AmusementsFactory {
         //todo: konstruktor nedokonceny
         public FreeShapedAmusementsFactory(int prize, string name, int workingCost, int attractiveness) : base(prize, name, workingCost, attractiveness) { }
@@ -329,6 +333,7 @@ namespace LunaparkGame
           //  : base(c, m, prize, fee, capacity, runningTime, name, hasEntranceExit: false, color: color, typeId: typeId) { }
             : base(c, m, prize, fee, capacity, runningTime, name, false, color, typeId, workingCost, attractiveness) { }
     }
+    [Serializable]
     public class LittleComplementaryAmusementsFactory : AmusementsFactory {
 
         public LittleComplementaryAmusementsFactory(int prize, int fee, int capacity, int runningTime, string name, int workingCost, int attractiveness)
@@ -370,7 +375,7 @@ namespace LunaparkGame
             peopleInList.Clear();               
         }
     }
-
+    [Serializable]
     public class RestaurantFactory : SquareAmusementsFactory {
 
         public RestaurantFactory(int prize, int foodPrize, int capacity, string name, int workingCost, int attractiveness)  

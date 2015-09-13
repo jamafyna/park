@@ -115,8 +115,8 @@
 
         private System.Windows.Forms.PictureBox pictureBox;
         private System.Windows.Forms.Label prize_label;
-        public System.Windows.Forms.Button outOfService_button;
-        public System.Windows.Forms.NumericUpDown prize_numericUpDown1;
+       // public System.Windows.Forms.Button outOfService_button;
+       // public System.Windows.Forms.NumericUpDown prize_numericUpDown1;
         private System.Windows.Forms.Label info_label;
     }
 }

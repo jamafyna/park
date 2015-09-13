@@ -30,6 +30,7 @@ namespace LunaparkGame
         /// <summary>
         /// ReaderWriterLockSlim item. Use for manipulation with longtermContentment.
         /// </summary>
+        [NonSerialized]
         ReaderWriterLockSlim longContentmentRWL = new ReaderWriterLockSlim();
         private int longtermContentment = 100;
         
@@ -41,6 +42,7 @@ namespace LunaparkGame
         /// <summary>
         /// use for manipulation with currCheapestFee
         /// </summary>
+        [NonSerialized]
         private object feeLock = new object();
         public int currCheapestFee { private set; get; }//todo: postarat se o vytvoreni
        
@@ -49,6 +51,7 @@ namespace LunaparkGame
        //---containers---
        // public ConcurrentQueue<MapObjects> dirtyNew=new ConcurrentQueue<MapObjects>();
        // public ConcurrentQueue<MapObjects> dirtyDestruct=new ConcurrentQueue<MapObjects>();//mozna misto mapObjects staci byt Control
+       [NonSerialized]
         public ConcurrentQueue<MapObjects> dirtyClick = new ConcurrentQueue<MapObjects>();
 
       //  public List<IUpdatable> updatableItems;// todo: sem dat taky hlavni form, udelat thread-safe, spis vlozit do view      
@@ -84,8 +87,15 @@ namespace LunaparkGame
             maxAmusementsCount = playingHeight * playingWidth + 1; // max. count of amusements that can user build, + 1 due to the gate which does not lie on the playing place
             gate = new Gate(this, new Coordinates(0, (byte)(new Random()).Next(1, internalHeight - Gate.height - 1)));
             amusList = new AmusementsList(maxAmusementsCount,gate);
-
         }
+        [OnDeserialized]
+        private void SetValuesAndCheckOnDeserialized(StreamingContext context) {
+            feeLock = new object();
+            longContentmentRWL = new ReaderWriterLockSlim();
+            dirtyClick = new ConcurrentQueue<MapObjects>();
+        }
+        
+
 
         public void ChangeLongtermContentment(int contentment) {
             if (contentment > 100 || contentment < 0) return;
@@ -165,6 +175,7 @@ namespace LunaparkGame
         // <summary>
         /// use for list and foodIds
         /// </summary>
+        [NonSerialized]
         private ReaderWriterLockSlim rwLock=new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         private readonly Amusements gate;
 
@@ -185,6 +196,7 @@ namespace LunaparkGame
         [OnDeserialized]
         private void SetValuesAndCheckOnDeserialized(StreamingContext context) {
             rand = new Random();
+            rwLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
             if (list.Count == 0) throw new MyDebugException("Wrong deseralization in AmusementList, a gate is not in the list.");
             if (list[0] != gate) throw new MyDebugException("Wrong deseralization in AmusementList, a gate is not at the first position or has a wrong value.");
             List<int> newFreeId = new List<int>();
@@ -317,6 +329,7 @@ namespace LunaparkGame
         /// <summary>
         /// for manipulating with people array (read, write) and currPeopleCount
         /// </summary>
+        [NonSerialized]
         private object peopleLock = new object();
       //  private ReaderWriterLockSlim peopleRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         /// <summary>
@@ -340,6 +353,7 @@ namespace LunaparkGame
             }
             if (count != currPeopleCount) throw new MyDeserializationException("Wrong deseralization in PeopleList, wrong count of people.");
             if (contenment < 0 || contenment > 100) throw new MyDeserializationException("in PeopleList, contentment out of bounds.");
+            peopleLock = new object();
         }
         
         public int GetActualPeopleCount() {
@@ -470,10 +484,9 @@ namespace LunaparkGame
     /// <summary>
     /// Keeps information about how are amusements and paths placed on the playing map. Takes care of updating directions.
     /// </summary>
-    
+    [Serializable()]
     public class Map: IActionable, ISerializable
-    {
-      
+    {      
         class DirectionItem {
             public Direction dir;
         
@@ -502,8 +515,11 @@ namespace LunaparkGame
         /// <summary>
         /// use for adding to queue (due to .Clear) and for "clear"
         /// </summary>
+        [NonSerialized]
         private object lastAddedAmusLock = new object();
+        [NonSerialized]
         private ReaderWriterLockSlim pathRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        [NonSerialized]
         private ReaderWriterLockSlim amusRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
         public readonly byte internalWidthMap;
@@ -552,9 +568,8 @@ namespace LunaparkGame
             amusRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
             pathChanged = false;
             lastAddedAmus=new ConcurrentQueue<Amusements>();
-            UpdateDirections(); 
-
-
+            UpdateDirections();
+            
         }
         public void GetObjectData(SerializationInfo si, StreamingContext sc) {
             si.AddValue("pathMap", pathMap);
@@ -562,12 +577,7 @@ namespace LunaparkGame
             si.AddValue(model.ToString(), model);
         }
 
-        [OnDeserialized]
-        private void SetValuesAndCheckOnDeserialized(StreamingContext context) { 
-           // if(internalWidthMap!=model.internalWidth)
-            
         
-        }
          
 
 

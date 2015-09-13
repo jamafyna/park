@@ -176,6 +176,10 @@ namespace LunaparkGame
             }
         }
 
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e) {
+            Program.SaveToFile(model,view, new System.IO.FileStream("zkouskaUkladani.txt",System.IO.FileMode.Create));
+        }
+
         
     }   
     public partial class MapForm : WeifenLuo.WinFormsUI.Docking.DockContent {

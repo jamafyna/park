@@ -9,7 +9,7 @@ using System.Drawing;
 namespace LunaparkGame
 {
     [Serializable]
-   public abstract class AmusementPath : Path {
+    public abstract class AmusementPath : Path {
        public readonly Amusements amusement;
         public AmusementPath(Model m, Coordinates c, Amusements a, int typeId, bool tangible = true)
             : base(m, prize: 0, typeId: typeId, tangible: tangible) //not call base(m,c) because dont want to add to maps
@@ -20,7 +20,7 @@ namespace LunaparkGame
         }
     }
 
-     [Serializable]
+    [Serializable]
     public class AmusementEnterPath : AmusementPath {
 
         public AmusementEnterPath(Model m, Coordinates c, Amusements a, bool tangible = true)
@@ -40,17 +40,17 @@ namespace LunaparkGame
           
         }
     }
+    [Serializable]
     public class AmusementEnterPathFactory : PathFactory {
         Amusements a;
         public AmusementEnterPathFactory(Amusements a) :base(prize:0, name: "") {
             this.a = a;
         }
-#warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
-        public override MapObjects Build(byte x, byte y, Model model) {
+    public override MapObjects Build(byte x, byte y, Model model) {
             return new AmusementEnterPath(model, new Coordinates(x, y), a);
         }
     }
-     [Serializable]
+    [Serializable]
     public class AmusementExitPath : AmusementPath {
         public AmusementExitPath(Model m, Coordinates c, Amusements a, bool tangible = true) : base(m, c, a, typeId: 2, tangible: tangible) {
             a.exit = this;
@@ -66,19 +66,19 @@ namespace LunaparkGame
             amusement.exit = null;
         }
     }
+    [Serializable]
     public class AmusementExitPathFactory : PathFactory {
         Amusements a;
         public AmusementExitPathFactory(Amusements a)
             : base(prize: 0, name: "") {
                 this.a = a;
         }
-#warning nepouzivat ty dve metody (lepe overit, jestli type==AmusEnterPathFactory a pak se ptat atrakce a ta si vytvori sama)
         public override MapObjects Build(byte x, byte y, Model model) {
             return new AmusementExitPath(model, new Coordinates(x, y), a);
         }
     }
 
-     [Serializable]
+    [Serializable]
     public class StonePath : Path
     {
         
@@ -87,6 +87,7 @@ namespace LunaparkGame
         
     }
     
+    [Serializable]
     public class StonePathFactory : PathFactory {
         public StonePathFactory(int prize, string name) 
         : base(prize, name) {         
@@ -105,6 +106,7 @@ namespace LunaparkGame
         
 
     }
+    [Serializable]
     public class AsphaltPathFactory : PathFactory {
         public AsphaltPathFactory(int prize, string name)
             : base( prize, name) {
@@ -114,13 +116,14 @@ namespace LunaparkGame
         }
     }
 
-     [Serializable]
+    [Serializable]
     public class SandPath : Path
     {
         public SandPath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
         
         
     }
+    [Serializable]
     public class SandPathFactory : PathFactory {
         public SandPathFactory(int prize, string name)
             : base(prize, name) {
@@ -135,6 +138,7 @@ namespace LunaparkGame
         public MarblePath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
        
     }
+    [Serializable]
     public class MarblePathFactory : PathFactory {
         public MarblePathFactory(int prize, string name)
             : base(prize, name) {

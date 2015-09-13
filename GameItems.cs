@@ -29,24 +29,7 @@ namespace LunaparkGame
     public interface IButtonCreatable {
        
     }
-    public abstract class MapObjectsFactory {
-        public int internTypeId;
-        public readonly string name;
-        public readonly int prize;
-        public MapObjectsFactory(int prize, string name) { 
-            this.prize = prize;
-            this.name = name;
-           
-        }
-       /// <summary>
-       /// 
-       /// </summary>
-       /// <param name="x">The intern x-coordinate of the playing map.</param>
-        /// <param name="y">The intern x-coordinate of the playing map.</param>
-       /// <returns>true if all conditions of building are satisfied, otherwise false.</returns>
-        public abstract bool CanBeBuild(byte x, byte y, Model model);
-        public abstract MapObjects Build(byte x, byte y, Model model);
-    }
+   
 
     public class MyDebugException : Exception
     {
@@ -66,7 +49,25 @@ namespace LunaparkGame
         public byte y;
         public Coordinates(byte x, byte y) { this.x = x; this.y = y; }
     }
+    [Serializable]
+    public abstract class MapObjectsFactory {
+        public int internTypeId;
+        public readonly string name;
+        public readonly int prize;
+        public MapObjectsFactory(int prize, string name) {
+            this.prize = prize;
+            this.name = name;
 
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="x">The intern x-coordinate of the playing map.</param>
+        /// <param name="y">The intern x-coordinate of the playing map.</param>
+        /// <returns>true if all conditions of building are satisfied, otherwise false.</returns>
+        public abstract bool CanBeBuild(byte x, byte y, Model model);
+        public abstract MapObjects Build(byte x, byte y, Model model);
+    }
 
     [Serializable]
     public abstract class MapObjects
@@ -138,7 +139,9 @@ namespace LunaparkGame
         public AmusementPath entrance { get;  set; } 
         public AmusementPath exit { get; set; }
         protected  ConcurrentQueue<Person> queue=new ConcurrentQueue<Person>();
+        [NonSerialized]
         protected object queueDeleteLock = new object();
+        [NonSerialized]
         protected ReaderWriterLockSlim queueAddRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         /// <summary>
         /// Contains people who are in the amusement now.
@@ -222,9 +225,12 @@ namespace LunaparkGame
          
         }
         [OnDeserialized]
-        private void SetValuesAndCheckOnDeserialized(StreamingContext context) {
+        private new void SetValuesAndCheckOnDeserialized(StreamingContext context) {
+            base.SetValuesAndCheckOnDeserialized(context);
             if (this.id < 0 || this.waitingTime < 0|| this.maxWaitingTime < 0) throw new MyDeserializationException("Wrong deserialization in Amusements, values < 0");
-        
+            queueAddRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+            queueDeleteLock = new object();
+
         }
 
         /// <summary>
@@ -517,6 +523,7 @@ namespace LunaparkGame
             return (hasSeparatedEnterExit && exit == null);
         }
     }
+    [Serializable]
     public abstract class AmusementsFactory : MapObjectsFactory {
         public readonly int entranceFee, capacity, runningTime;
         public readonly bool hasSeparatedEnterExit;
@@ -560,6 +567,7 @@ namespace LunaparkGame
         public abstract string GetInfo();
     }
 
+    [Serializable]
     public abstract class Path : MapObjects//, IButtonCreatable 
     {
         public Direction[] signpostAmus;//rozcestnik
@@ -608,6 +616,7 @@ namespace LunaparkGame
             else return false;
         }
     }
+    [Serializable]
     public abstract class PathFactory: MapObjectsFactory{
         public PathFactory(int prize, string name)
         : base(prize, name) {
@@ -640,6 +649,7 @@ namespace LunaparkGame
         private int hunger = 0;
 
         protected int realX, realY; //instead of coord 
+        [NonSerialized]
         protected object xyLock = new object(); //use for every manipulation with x and y together
         private Direction currDirection = Direction.no;
         public int CurrAmusId { get; private set; }
@@ -665,8 +675,9 @@ namespace LunaparkGame
         }
 
         [OnDeserialized]
-        private void SetValuesAndCheckOnDeserialized(StreamingContext context) { 
-           //actualy nothing
+        private new void SetValuesAndCheckOnDeserialized(StreamingContext context) {
+            base.SetValuesAndCheckOnDeserialized(context);
+            xyLock = new object();
         }
         public void Action()
         {
