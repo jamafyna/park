@@ -7,9 +7,11 @@ using System.Threading;
 
 namespace LunaparkGame
 {
+     [Serializable]
     public class SpecialEffects:IActionable
     {
-       //todo: propagace a research nejspis dat do modelu nebo do FORm, sem davat ruzne kontroly na pocet lidi, pocet atrakci..., tj. o zviditelneni dalsi polozky se stara nekdo jiny (idealne hlavni form)
+       //todo: Udelat uzitecne + spravnou serializaci
+         //todo: propagace a research nejspis dat do modelu nebo do FORm, sem davat ruzne kontroly na pocet lidi, pocet atrakci..., tj. o zviditelneni dalsi polozky se stara nekdo jiny (idealne hlavni form)
         private double contentment;
         private int research;        
         public int attractiveness = 0;

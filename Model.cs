@@ -82,9 +82,8 @@ namespace LunaparkGame
             
             maps = new Map(internalWidth, internalHeight, this);            
             maxAmusementsCount = playingHeight * playingWidth + 1; // max. count of amusements that can user build, + 1 due to the gate which does not lie on the playing place
-            gate=new Gate(this, new Coordinates(0,(byte) (new Random()).Next(1, internalHeight - Gate.height -1)),null,null );
-            amusList = new AmusementsList(maxAmusementsCount, gate);
-           
+            gate = new Gate(this, new Coordinates(0, (byte)(new Random()).Next(1, internalHeight - Gate.height - 1)));
+            amusList = new AmusementsList(maxAmusementsCount,gate);
 
         }
 

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace LunaparkGame
 {
@@ -210,8 +211,14 @@ namespace LunaparkGame
 
     static class Program
     {
-       
-       
+        public static void SaveToFile(Model model, View2 view, System.IO.FileStream file) {
+
+           BinaryFormatter binF = new BinaryFormatter();
+           object[] args = { model, view };
+            //binF.Serialize(file, args);
+           binF.Serialize(file, model);
+        
+        }      
       
         /// <summary>
         /// The main entry point for the application.
