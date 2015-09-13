@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.Runtime.Serialization;
 
 namespace LunaparkGame
 {
-
+    [Serializable]
     public class Gate : Amusements {
 
         public const int width = 1;
@@ -15,19 +16,16 @@ namespace LunaparkGame
         private const int workingPrize = 10;
         public new const int originalFee = 50;
         public int entranceFee;
+        [NonSerialized]
         private ProbabilityGenerationPeople peopleGeneration;
-      //  private bool beginning = true;
-       // private int beginningCount = (new Random()).Next(20,50); 
-
         public new Status State {
             get { return status; }
             set { if (value != Status.waitingForPeople) status = value; }
         }
-        public Gate(Model m, Coordinates c, Image entrIm, Image exitIm) {
+        public Gate(Model m, Coordinates c) {
             this.model = m;
             this.coord = c;
             this.entrance = new AmusementEnterPath(m, new Coordinates(c.x, (byte)(c.y + height / 2)), this, tangible: false);
-            //this.exit = new AmusementExitPath(m, new Coordinates((byte)(c.x + width), entrance.coord.y), this, exitIm, tangible: true);
             this.exit = new AmusementExitPath(m, new Coordinates(c.x, (byte)(c.y + height / 2)), this, tangible: false);
             this.CurrFee = 0;
             this.entranceFee = originalFee;
@@ -42,6 +40,12 @@ namespace LunaparkGame
             this.exit = new AmusementExitPath(m, exit, this, tangible: false);
             m.maps.AddAmus(this);
        }
+       
+        [OnDeserialized]
+        private void SetValuesAndCheckOnDeserialized(StreamingContext context) {
+            peopleGeneration = new ProbabilityGenerationPeople(model);       
+        }
+        
         public override void Action() {
             switch (status) {
 
@@ -125,23 +129,12 @@ namespace LunaparkGame
    /// <summary>
     /// Class for rectangle, not square, amusements. It can have a different orientation.
     /// </summary>
+    [Serializable]
     public class RectangleAmusements : Amusements {
         public readonly byte sizeA;
         public readonly byte sizeB;
         public readonly bool isHorizontalOriented;
 
-
-        /*public RectangleAmusements(Model m, Coordinates c, bool isHorizontal = true)
-            : base(m, c) {
-            isHorizontalOriented = isHorizontal;
-            model.CheckCheapestFee(this.currFee);
-        }
-
-        public RectangleAmusements(Model m, Coordinates c, byte sizeA, byte sizeB, bool isHorizontal = true)
-            : this(m, c, isHorizontal) {
-            this.sizeA = sizeA;
-            this.sizeB = sizeB;
-        }*/
 
         public RectangleAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height, bool isHorizontal, Color color, int typeId, int workingCost, int attractiveness)
         : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit, color, typeId, workingCost, attractiveness){
@@ -217,6 +210,7 @@ namespace LunaparkGame
         }
     }
     
+    [Serializable]
     public class SquareAmusements : Amusements {
         public readonly byte width;
         public SquareAmusements() { }
@@ -290,7 +284,7 @@ namespace LunaparkGame
         }
     }
    
-
+  [Serializable]
     public class FreeShapedAmusements : Amusements {
         public FreeShapedAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, Color color, int typeId, int workingCost, int attractiveness)
             : base (c, m, prize, fee, capacity, runningTime, name, false, color, typeId, workingCost ,attractiveness) {
@@ -329,6 +323,7 @@ namespace LunaparkGame
     /// <summary>
     /// napr. pro lavicky
     /// </summary>
+    [Serializable]
     public abstract class LittleComplementaryAmusements : Amusements {
         public LittleComplementaryAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, Color color, int typeId, int workingCost, int attractiveness) 
           //  : base(c, m, prize, fee, capacity, runningTime, name, hasEntranceExit: false, color: color, typeId: typeId) { }
@@ -351,24 +346,9 @@ namespace LunaparkGame
         }
 
     }  
+    [Serializable]
     public class Restaurant : SquareAmusements
     {
-
-        /*public Restaurant(Model m):base() { 
-         width = 1;
-         model = m;
-         fixedRunningTime = 0;
-            
-        }
-        public Restaurant(Model m, Coordinates c) : base(m, c) {
-            width = 1;
-            model.mustBeEnter = false;
-            model.mustBeExit = false;
-            fixedRunningTime = 0;
-            this.entrance = new AmusementEnterPath(m, c, this, tangible:false);
-            this.exit = new AmusementExitPath(m,c,this, tangible:false);
-        }*/
-
         public Restaurant(Coordinates c, Model m, int prize, int foodPrize, int capacity, string name, Color color, int typeId, int workingCost, int attractiveness)
             : base(c, m, prize, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1, color: color, typeId: typeId, workingCost: workingCost, attractiveness: attractiveness ) {
             model.mustBeEnter = false; //todo: mozna tyto 2 nejsou potreba
