@@ -68,6 +68,7 @@ namespace LunaparkGame
             this.peopleCount_toolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainDockPanel = new WeifenLuo.WinFormsUI.Docking.DockPanel();
             this.timer = new System.Windows.Forms.Timer(this.components);
+            this.button1 = new System.Windows.Forms.Button();
             this.firstMenuStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -107,6 +108,7 @@ namespace LunaparkGame
             this.newGameToolStripMenuItem.Name = "newGameToolStripMenuItem";
             this.newGameToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.newGameToolStripMenuItem.Text = global::LunaparkGame.Labels.newGameMenu;
+            this.newGameToolStripMenuItem.Click += new System.EventHandler(this.newGameToolStripMenuItem_Click);
             // 
             // saveToolStripMenuItem
             // 
@@ -120,6 +122,7 @@ namespace LunaparkGame
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
             this.loadToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.loadToolStripMenuItem.Text = global::LunaparkGame.Labels.loadMenu;
+            this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
             // quitToolStripMenuItem
             // 
@@ -300,17 +303,29 @@ namespace LunaparkGame
             this.timer.Tag = "";
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(290, 5);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(94, 37);
+            this.button1.TabIndex = 16;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(773, 386);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.mainDockPanel);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.firstMenuStrip);
             this.MainMenuStrip = this.firstMenuStrip;
             this.Name = "MainForm";
             this.Text = "Lunapark";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.firstMenuStrip.ResumeLayout(false);
             this.firstMenuStrip.PerformLayout();
@@ -346,6 +361,7 @@ namespace LunaparkGame
         private System.Windows.Forms.ToolStripMenuItem peopleCount_toolStripMenuItem;
         public WeifenLuo.WinFormsUI.Docking.DockPanel mainDockPanel;
         private System.Windows.Forms.Timer timer;
+        private System.Windows.Forms.Button button1;
     }
 }
 

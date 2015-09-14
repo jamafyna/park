@@ -129,6 +129,12 @@
   <data name="cannotRepairNoMoney" xml:space="preserve">
     <value>"No money to repair."</value>
   </data>
+  <data name="closingApplication" xml:space="preserve">
+    <value>"Do you really want to close this application?"</value>
+  </data>
+  <data name="quitGame" xml:space="preserve">
+    <value>"Do you really want to close this game?"</value>
+  </data>
   <data name="unfinishedBuilding" xml:space="preserve">
     <value>"The building has not been finnished. Finish it first."</value>
   </data>

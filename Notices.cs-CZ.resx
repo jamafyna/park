@@ -129,6 +129,12 @@
   <data name="cannotRepairNoMoney" xml:space="preserve">
     <value>"Nelze opravit. Nedostatek peněz."</value>
   </data>
+  <data name="closingApplication" xml:space="preserve">
+    <value>"Chcete opravdu skončit aplikaci?"</value>
+  </data>
+  <data name="quitGame" xml:space="preserve">
+    <value>"Opravdu chcete ukončit tuto hru?"</value>
+  </data>
   <data name="unfinishedBuilding" xml:space="preserve">
     <value>"Stavba nebyla dokončena. Nejprve dokončete stavbu."</value>
   </data>

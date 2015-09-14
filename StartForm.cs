@@ -41,7 +41,11 @@ namespace LunaparkGame
 
         private void Start_button1_Click(object sender, EventArgs e)
         {
-            this.Close();  
+            //this.Close(); 
+            this.Visible = false;
+            MainForm mainForm = new MainForm(this.width, this.height);
+            mainForm.Visible = true;
+            //Application.Run(mainForm);
         }
 
         private void radioButton20_CheckedChanged(object sender, EventArgs e)

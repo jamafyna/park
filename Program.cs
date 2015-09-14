@@ -160,7 +160,7 @@ namespace LunaparkGame
         private Random rnd;
         private int waitingTime = 0;
         private Model model;
-        System.IO.StreamWriter DEBUGwriter = new System.IO.StreamWriter("exponential.txt");
+       // System.IO.StreamWriter DEBUGwriter = new System.IO.StreamWriter("exponential.txt");
 
         public ProbabilityGenerationPeople(Model model) {
             expRnd = new ExponentialRandom();
@@ -190,7 +190,7 @@ namespace LunaparkGame
                                
                 expRnd.lambda = -((2 * contenment + 4 * Math.Max(propagation, variety) + 2 * fee + propagation + variety + awards + 5 * peopleCount) / 16 - 100) / 4;      
                 waitingTime = expRnd.NextInt();
-                DEBUGwriter.WriteLine("lambda: " + expRnd.lambda + "  time: " +waitingTime);               
+                //DEBUGwriter.WriteLine("lambda: " + expRnd.lambda + "  time: " +waitingTime);               
             }
             return true;
         }
@@ -211,14 +211,37 @@ namespace LunaparkGame
 
     static class Program
     {
-        public static void SaveToFile(Model model, View2 view, System.IO.FileStream file) {
+       
+        public static void SaveToFile(MainForm mf, System.IO.FileStream fs) {
+            try {
+                BinaryFormatter binF = new BinaryFormatter();
+               
+                binF.Serialize(fs, mf);
+            }
+            finally{
+                if (fs != null) fs.Close();
+            }       
+        }
+        public static void SaveToFile(View2 view, System.IO.FileStream fs) {
+            try {
+                BinaryFormatter binF = new BinaryFormatter();
 
-           BinaryFormatter binF = new BinaryFormatter();
-           object[] args = { model, view };
-            //binF.Serialize(file, args);
-           binF.Serialize(file, model);
-        
-        }      
+                binF.Serialize(fs, view);
+            }
+            finally {
+                if (fs != null) fs.Close();
+            }
+        }
+        public static View2 LoadFromFile(System.IO.FileStream fs) {
+
+            BinaryFormatter binF = new BinaryFormatter();
+            return (View2)binF.Deserialize(fs);
+        }
+      /*  public static MainForm LoadFromFile(System.IO.FileStream fs) {
+
+            BinaryFormatter binF = new BinaryFormatter();
+            return (MainForm)binF.Deserialize(fs);    
+        }*/
       
         /// <summary>
         /// The main entry point for the application.
@@ -242,7 +265,8 @@ namespace LunaparkGame
             
 
            // Application.Run(new MainForm(s.width,s.height,data));
-            Application.Run(new MainForm(s.width,s.height));
+           // MainForm mainForm = new MainForm(s.width, s.height);
+           // Application.Run(mainForm);
            // Application.Run(new MainForm());
             
         }

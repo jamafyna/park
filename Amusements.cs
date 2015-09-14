@@ -356,7 +356,7 @@ namespace LunaparkGame
     {
         public Restaurant(Coordinates c, Model m, int prize, int foodPrize, int capacity, string name, Color color, int typeId, int workingCost, int attractiveness)
             : base(c, m, prize, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1, color: color, typeId: typeId, workingCost: workingCost, attractiveness: attractiveness ) {
-            model.mustBeEnter = false; //todo: mozna tyto 2 nejsou potreba
+            model.mustBeEnter = false; 
             model.mustBeExit = false;
             this.entrance = new AmusementEnterPath(m, c, this, tangible: false);
             this.exit = new AmusementExitPath(m, c, this,  tangible: false);

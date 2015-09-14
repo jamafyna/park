@@ -238,10 +238,15 @@ namespace LunaparkGame
         /// </summary>
         public override void Destruct()
         {
-            //todo: smi je volat pouze 1x, tj.pokud by nekdy v budoucnu se mela volat i z jineho duvodu, nez user akce, nutno pridat omezeni - napr.nejaky unikatni zamek a pokud je zamcen, return
-#warning entrance a exit by mely byt nejspis nejak zabezpeceny (v pripade, ze je null a pak se nastavi na nenull)
-            if(entrance != null) entrance.Destruct();
-            if(exit !=null) exit.Destruct();
+            try { if (entrance != null) entrance.Destruct(); }
+            catch (NullReferenceException) { 
+                // nothing, everything is OK
+            }
+            try {  if (exit != null) exit.Destruct();}               
+            catch (NullReferenceException) {
+                // nothing, everything is OK
+            }
+           
             this.status = Status.disposing;
             model.MoneyAdd((int)((1-crashnessPercent/600.0)*0.9*prize));//refund money
             

@@ -21,7 +21,7 @@ namespace LunaparkGame
         public readonly byte playingWidth, playingHeight; 
         public readonly byte internalWidth, internalHeight;
         public readonly int maxAmusementsCount; // count of big amusements, it doesnt include littleComplementaryAmusements
-        public bool parkClosed = true;
+        public bool parkClosed;// = true;
         private int money;
         /// <summary>
         /// Represents park advertising, is not thread safe -> for manipulating use atomic operations
@@ -74,6 +74,7 @@ namespace LunaparkGame
         public Gate gate;
         
         public Model(byte playingHeight, byte playingWidth){
+            parkClosed = true;
             this.playingHeight=playingHeight;
             this.playingWidth=playingWidth;
             this.internalHeight = (byte)(playingHeight + 2);
@@ -93,6 +94,7 @@ namespace LunaparkGame
             feeLock = new object();
             longContentmentRWL = new ReaderWriterLockSlim();
             dirtyClick = new ConcurrentQueue<MapObjects>();
+            parkClosed = false; //todo: jakmile zjistim, proc je vzdy true po deserializaci a spravim to, toto odstranit
         }
         
 
@@ -152,7 +154,7 @@ namespace LunaparkGame
             Interlocked.Increment(ref currBuildedItems[a.internTypeID]);           
         }
 
-        public void CreateCurrBuildedItems(int maxItemsVariety) {
+        public void InitializeCurrBuildedItems(int maxItemsVariety) {
             currBuildedItems = new int[maxItemsVariety];
         }
     }
@@ -284,7 +286,7 @@ namespace LunaparkGame
             rwLock.EnterReadLock();
             try {
               //  list.ForEach(a => a.Action());
-                Parallel.ForEach(list, a=> a.Action());
+               Parallel.ForEach(list, a=> a.Action() );
             }
             finally {
                 rwLock.ExitReadLock();
@@ -553,9 +555,9 @@ namespace LunaparkGame
         }
 
         public Map(SerializationInfo si, StreamingContext sc) {
-            model = (Model)si.GetValue(model.ToString(), model.GetType());
-            amusementMap = (Amusements[][])si.GetValue(amusementMap.ToString(), amusementMap.GetType());
-            pathMap = (Path[][])si.GetValue("pathMap", pathMap.GetType()); //todo: Bylo by rychlejsi, kdybych si vytvorila seznam a teprve ten pak prochazela?
+            model = (Model)si.GetValue("model", typeof(Model));
+            amusementMap = (Amusements[][])si.GetValue("amusementMap", typeof(Amusements[][]));
+            pathMap = (Path[][])si.GetValue("pathMap", typeof(Path[][])); //todo: Bylo by rychlejsi, kdybych si vytvorila seznam a teprve ten pak prochazela?
             internalWidthMap = model.internalWidth;
             internalHeightMap = model.internalHeight;
 
@@ -566,15 +568,15 @@ namespace LunaparkGame
             lastAddedAmusLock = new object();
             pathRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
             amusRWLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
-            pathChanged = false;
+            pathChanged = true; // due to calling UpdateDirection()
             lastAddedAmus=new ConcurrentQueue<Amusements>();
-            UpdateDirections();
+            
             
         }
         public void GetObjectData(SerializationInfo si, StreamingContext sc) {
             si.AddValue("pathMap", pathMap);
-            si.AddValue(amusementMap.ToString(), amusementMap); //todo: neni treba, pokud uz touhle dobou bude vyplneny AmusementList
-            si.AddValue(model.ToString(), model);
+            si.AddValue("amusementMap", amusementMap); //todo: neni treba, pokud uz touhle dobou bude vyplneny AmusementList
+            si.AddValue("model", model);
         }
 
         
@@ -820,9 +822,7 @@ namespace LunaparkGame
                 for (int i = 0; i < internalWidthMap; i++)
                     for (int j = 0; j < internalHeightMap; j++) {
                         if (auxPathMap[i][j] != null) auxPathMap[i][j].dir = Direction.no;
-                       //todo:rozhodnout, kterou variantu pouzit
-                        /* if (pathMap[i][j] != null) auxPathMap[i][j] = new DirectionItem((byte)i, (byte)j);
-                        else auxPathMap[i][j] = null;*/
+                       
                     }  
             }
         }
@@ -911,13 +911,14 @@ namespace LunaparkGame
                 lock (lastAddedAmusLock) {
                     lastAddedAmus = new ConcurrentQueue<Amusements>();
                 }
-#warning pouzit jedine tehdy, pokud se puvodni task ukonci bez cekani na tohoto
-                Task.Factory.StartNew(UpdateDirections,TaskCreationOptions.LongRunning);
-                //UpdateDirections(); 
+#warning pouzit jedine tehdy, pokud se puvodni task ukonci bez cekani na tohoto - to prave nechci kvuli cekani na dokonceni vsech tasku
+               // Task.Factory.StartNew(UpdateDirections,TaskCreationOptions.LongRunning);
+                UpdateDirections(); 
             }
             
             else {
-                Task.Factory.StartNew(UpdateDirectionToNonupdatedAmusements, TaskCreationOptions.LongRunning);
+               // Task.Factory.StartNew(UpdateDirectionToNonupdatedAmusements, TaskCreationOptions.LongRunning);
+                UpdateDirectionToNonupdatedAmusements();
             }
         }
         /// <summary>

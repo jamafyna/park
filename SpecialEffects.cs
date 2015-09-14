@@ -29,7 +29,6 @@ namespace LunaparkGame
             this.model = model;
         }
         public void Action() {
-        //todo 1x za min projit vsechny lidi a vzit prumer jejich spokojenosti
             contentment = model.persList.contenment;
         }
         

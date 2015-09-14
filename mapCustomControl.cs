@@ -14,7 +14,6 @@ namespace LunaparkGame {
         View2 view;
         Pen pen = new Pen(Color.DarkSeaGreen, 1);
         SolidBrush sbr = new SolidBrush(Color.Lime);
-        Point[] people = new Point[4000];
         Rectangle[] borderRects;
 
         public mapCustomControl(Model model, View2 view) {                     
@@ -30,16 +29,19 @@ namespace LunaparkGame {
             this.view = view;
         }
 
+        public void InitializeAfterDeserialization(Model m, View2 v ) {
+            this.model = m;
+            this.view = v;
+            this.Width = (model.playingWidth + 2) * MainForm.sizeOfSquare + 1;
+            this.Height = (model.playingHeight + 2) * MainForm.sizeOfSquare + 1;
+            borderRects = InitializeBorderRects(model.playingWidth + 2, model.playingHeight + 2);
+        }
         protected override void OnPaint(PaintEventArgs pe) {
             base.OnPaint(pe);
             this.BackColor = Color.Lime;
             DrawGrid(pe.Graphics, pen);
             DrawBorder(pe.Graphics, Properties.Images.plot);
-            //todo:draw paths
-           //System.Collections.IEnumerator paths = model.maps.GetPathEnumerator();
-          /*  foreach (Path p in model.maps) {
-                DrawMapObject(pe.Graphics, p);
-            }*/
+            
             List<Path> paths = model.maps.GetPathsUnsynchronized();
             foreach (Path item in paths) {
                 DrawMapObject(pe.Graphics,item);
