@@ -7,6 +7,7 @@ using System.Drawing;
 using WeifenLuo.WinFormsUI.Docking;
 using System.Runtime.Serialization;
 using System.Collections.Concurrent;
+using System.IO;
 
 namespace LunaparkGame {
     [Serializable]
@@ -24,6 +25,7 @@ namespace LunaparkGame {
         public ConcurrentQueue<AmusementsFactory> notOfferedAmus;
         public ConcurrentQueue<PathFactory> notOfferedPaths;
         public ConcurrentQueue<MapObjectsFactory> notOfferedOthers;
+        public ConcurrentQueue<LaterShownItem> laterAddedObjects;
 
 
         public View2(Model m, MainForm form) {
@@ -39,9 +41,10 @@ namespace LunaparkGame {
             currOfferedAmus = new ConcurrentBag<AmusementsFactory>(data.initialAmus);
             currOfferedPaths = new ConcurrentBag<PathFactory>(data.initialPaths);
             currOfferedOthers = new ConcurrentBag<MapObjectsFactory>(data.initialOthers);
-            notOfferedAmus = new ConcurrentQueue<AmusementsFactory>(data.otherAmus);
+          /*  notOfferedAmus = new ConcurrentQueue<AmusementsFactory>(data.otherAmus);
             notOfferedPaths = new ConcurrentQueue<PathFactory>(data.otherPaths);
-            notOfferedOthers = new ConcurrentQueue<MapObjectsFactory>(data.otherOthers);
+            notOfferedOthers = new ConcurrentQueue<MapObjectsFactory>(data.otherOthers);*/
+            laterAddedObjects = new ConcurrentQueue<LaterShownItem>(data.laterShowedItems);
 
             form.PrepareFormsStartAppearance(data.initialAmus, data.initialPaths, data.initialOthers, images);
            /* foreach (var item in data.initialAmus) form.amusform.CreateNewItem(images[item.internTypeId], item);
@@ -57,11 +60,18 @@ namespace LunaparkGame {
         private void LoadExternalData(Data data) {
             System.IO.StreamReader sr = new System.IO.StreamReader("amusements.txt");
             // System.IO.StreamReader sr = new System.IO.StreamReader("amusementsInitial.txt");   
-            data.LoadAmus(sr);
+            StreamReader srAmus = new StreamReader("amusements.txt");
+            StreamReader srPath = new StreamReader("paths.txt");
+            StreamReader srAddition = new StreamReader("additionRules.txt");
+            data.LoadAll(srAmus, srPath, null, srAddition);
+            srAmus.Close();
+            srPath.Close();
+            srAddition.Close();
+            /* data.LoadAmus(sr);
             sr.Close();
             sr = new System.IO.StreamReader("paths.txt");
             data.LoadPaths(sr);
-            sr.Close();       
+            sr.Close();    */   
         }
         [OnDeserialized]
         private void SetValuesAndCheckOnDeserialized(StreamingContext context) {

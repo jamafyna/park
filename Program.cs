@@ -18,12 +18,12 @@ namespace LunaparkGame
         public InputFileFormatException(string message, Exception inner) : base(message, inner) { }
     }
 
-    public class LaterShowedItem {
+    public class LaterShownItem {
         public readonly MapObjectsFactory item;
-        public readonly int timeToShowed;
-        public LaterShowedItem(MapObjectsFactory i, int time) {
+        public readonly int timeToShow;
+        public LaterShownItem(MapObjectsFactory i, int time) {
             this.item = i;
-            this.timeToShowed = time;
+            this.timeToShow = time;
         }
     
     }
@@ -33,10 +33,10 @@ namespace LunaparkGame
         public List<AmusementsFactory> initialAmus = new List<AmusementsFactory>();
         public List<PathFactory> initialPaths = new List<PathFactory>();
         public List<MapObjectsFactory> initialOthers = new List<MapObjectsFactory>();
-        public List<AmusementsFactory> otherAmus = new List<AmusementsFactory>();
-        public List<PathFactory> otherPaths = new List<PathFactory>();
-        public List<MapObjectsFactory> otherOthers = new List<MapObjectsFactory>();
-        public List<LaterShowedItem> laterShowedItems = new List<LaterShowedItem>();
+        private List<AmusementsFactory> otherAmus = new List<AmusementsFactory>();
+        private List<PathFactory> otherPaths = new List<PathFactory>();
+        private List<MapObjectsFactory> otherOthers = new List<MapObjectsFactory>();
+        public List<LaterShownItem> laterShowedItems = new List<LaterShownItem>();
         
        
         public Data(Image[] otherLoadedImages) {
@@ -48,7 +48,7 @@ namespace LunaparkGame
             if (otherR != null) LoadOthers(otherR);
             if (rulesR != null) LoadAdditionRules(rulesR);      
         }
-        public void LoadAmus(System.IO.StreamReader r) {
+        private void LoadAmus(System.IO.StreamReader r) {
            string line;
             int count = 1;
             while ((line = r.ReadLine()) != null) {
@@ -56,7 +56,7 @@ namespace LunaparkGame
                 count++;
             }
         }
-        public void LoadPaths(System.IO.StreamReader r) {
+        private void LoadPaths(System.IO.StreamReader r) {
             string line;
             int count = 1;
             while ((line = r.ReadLine()) != null) {
@@ -65,7 +65,7 @@ namespace LunaparkGame
             }
         }
 
-        public void LoadOthers(System.IO.StreamReader r) {
+        private void LoadOthers(System.IO.StreamReader r) {
             string line;
             int count = 1;
             while ((line = r.ReadLine()) != null) {
@@ -91,7 +91,7 @@ namespace LunaparkGame
             if (i == arg.Length && !char.IsWhiteSpace(c) && c != '(') sb.Append(c);
             return sb.ToString();
         }
-        public void LoadAdditionRules(System.IO.StreamReader r) {
+        private void LoadAdditionRules(System.IO.StreamReader r) {
             string line;
             int count = 1;
             string name;
@@ -132,7 +132,7 @@ namespace LunaparkGame
                     time = Int32.Parse(parts[2].Trim()); 
                 }
                 catch(FormatException) { throw new InputFileFormatException("Expecting number but found anything else, line: " + count); }
-                laterShowedItems.Add(new LaterShowedItem(obj, time));
+                laterShowedItems.Add(new LaterShownItem(obj, time));
                 count++;
             }
         }
