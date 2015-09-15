@@ -18,16 +18,26 @@ namespace LunaparkGame
         public InputFileFormatException(string message, Exception inner) : base(message, inner) { }
     }
 
+    public class LaterShowedItem {
+        public readonly MapObjectsFactory item;
+        public readonly int timeToShowed;
+        public LaterShowedItem(MapObjectsFactory i, int time) {
+            this.item = i;
+            this.timeToShowed = time;
+        }
+    
+    }
     public class Data {
 
         List<Image> images;
         public List<AmusementsFactory> initialAmus = new List<AmusementsFactory>();
         public List<PathFactory> initialPaths = new List<PathFactory>();
         public List<MapObjectsFactory> initialOthers = new List<MapObjectsFactory>();
-        public Queue<AmusementsFactory> otherAmus = new Queue<AmusementsFactory>();
-        public Queue<PathFactory> otherPaths = new Queue<PathFactory>();
-        public Queue<MapObjectsFactory> otherOthers = new Queue<MapObjectsFactory>();
-        public Queue<MapObjectsFactory> laterShowedItems = new Queue<MapObjectsFactory>();
+        public List<AmusementsFactory> otherAmus = new List<AmusementsFactory>();
+        public List<PathFactory> otherPaths = new List<PathFactory>();
+        public List<MapObjectsFactory> otherOthers = new List<MapObjectsFactory>();
+        public List<LaterShowedItem> laterShowedItems = new List<LaterShowedItem>();
+        
        
         public Data(Image[] otherLoadedImages) {
             images = new List<Image>(otherLoadedImages);
@@ -63,24 +73,74 @@ namespace LunaparkGame
                 count++;
             }
         }
-
+       
+        private string GetClearArg(string arg, out string type) {
+            char c = arg[0];
+            int i = 1;
+            while (char.IsWhiteSpace(c)) { c = arg[i]; i++; }
+            if (c != '[') throw new InputFileFormatException("Wrong format of arguments");
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            c = arg[i];
+            while (c != ']') { sb.Append(c); i++; c = arg[i]; }
+            i++; c = arg[i];
+            type = sb.ToString();
+            while (char.IsWhiteSpace(c)) { i++; c = arg[i]; }
+            sb.Clear();
+            i++;
+            while (!char.IsWhiteSpace(c) && c != '(' && i < arg.Length) { sb.Append(c); c = arg[i]; i++; }
+            if (i == arg.Length && !char.IsWhiteSpace(c) && c != '(') sb.Append(c);
+            return sb.ToString();
+        }
         public void LoadAdditionRules(System.IO.StreamReader r) {
             string line;
             int count = 1;
+            string name;
+            string type;
             while ((line = r.ReadLine()) != null) {
+                // ---- getting name -----
                 line = line.Trim();
                 if (line == "" || line[0] == '#') continue;
                 string[] parts = line.Split('|');
                 if (parts.Length != 3) throw new InputFileFormatException("Wrong count of columns, line: " + count);
+               
+                name = GetClearArg(parts[1], out type);
+                if (type == "resx") {
+                    try { 
+                         name = Properties.Images.ResourceManager.GetString(name.Replace('_', ' '));
+                    }
+                    catch(System.Resources.MissingManifestResourceException ) {
+                        throw new InputFileFormatException("Given resources do not exist, line: " + count);                      
+                    }
+                }
+                else if (type != "string" && type != "String" && type != "System.String") throw new InputFileFormatException("Uncompatible type of an argument in Arguments, line:" + count);                       
+                // ---- getting MapObjectFactory accordings to name and writen letter -----
+                MapObjectsFactory obj;
+                parts[0]=parts[0].Trim();
+                switch (parts[0].Trim()) {
+                    case "P": obj = FindCorrespondingObject<PathFactory>(name, otherPaths);
+                        break;
+                    case "A": obj = FindCorrespondingObject<AmusementsFactory>(name, otherAmus);
+                        break;
+                    case "O": obj = FindCorrespondingObject<MapObjectsFactory>(name, otherOthers);
+                        break;
+                    default: throw new InputFileFormatException("Uncompatible letter as type of an item in rules" + count);                                     
+                }
+                // ---- geting time and create new item in List -----
+                int time;
+                if(obj == null) return;
+                try{
+                    time = Int32.Parse(parts[2].Trim()); 
+                }
+                catch(FormatException) { throw new InputFileFormatException("Expecting number but found anything else, line: " + count); }
+                laterShowedItems.Add(new LaterShowedItem(obj, time));
                 count++;
-
             }
         }
-        private void FindCorrespondingObject<T>(string name) { 
-            
-        
+        private MapObjectsFactory FindCorrespondingObject<T>(string name, List<T> list) where T: MapObjectsFactory {
+            return list.Find(i => i.name == name);          
         }
-        private void ProcessLine<T>(string line, List<T> list, Queue<T> queue, int lineCount) {
+
+        private void ProcessLine<T>(string line, List<T> initialList, List<T> laterList, int lineCount) {
             line=line.Trim();
             if (line == "" || line[0] == '#') return;
             string[] parts = line.Split('|');
@@ -100,8 +160,8 @@ namespace LunaparkGame
                 int typeId = images.Count;
                 ((MapObjectsFactory)o).internTypeId = typeId;
                 images.Add(im);
-                if (visible) list.Add((T)o);
-                else queue.Enqueue((T)o);
+                if (visible) initialList.Add((T)o);
+                else laterList.Add((T)o);
             }
            /* catch (TypeLoadException) {
                 throw new InputFileFormatException("The given type is not valid, line: " + lineCount);
@@ -119,27 +179,43 @@ namespace LunaparkGame
             List<object> list = new List<object>();
             try {
                 foreach (var arg in args) {
-                    char c = arg[0];
-                    int i = 1;
-                    while (char.IsWhiteSpace(c)) { c = arg[i]; i++; }
-                    if (c != '[') throw new InputFileFormatException("Wrong format of arguments, line: " + lineCount);
-                    System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                    c = arg[i];
-                    while (c != ']') { sb.Append(c); i++; c = arg[i]; }
-                    i++; c = arg[i];
-                    string type = sb.ToString();
-                    while (char.IsWhiteSpace(c)) { i++; c = arg[i]; }
-                    sb.Clear();
-                    i++;
-                    while (!char.IsWhiteSpace(c) && c != '(' && i < arg.Length) { sb.Append(c); c = arg[i]; i++; }
-                    if (i == arg.Length && !char.IsWhiteSpace(c) && c != '(') sb.Append(c);
-                    if (type == "int" || type == "Int32" || type == "System.Int32") list.Add(Int32.Parse(sb.ToString()));
-                    else if (type == "string" || type == "String" || type == "System.String") list.Add(sb.ToString());
-                    else if (type == "byte" || type == "Byte") list.Add(Byte.Parse(sb.ToString()));
-                    else if (type == "bool" || type == "Boolean") list.Add(Boolean.Parse(sb.ToString()));
+                    /* char c = arg[0];
+                     int i = 1;
+                     while (char.IsWhiteSpace(c)) { c = arg[i]; i++; }
+                     if (c != '[') throw new InputFileFormatException("Wrong format of arguments, line: " + lineCount);
+                     System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                     c = arg[i];
+                     while (c != ']') { sb.Append(c); i++; c = arg[i]; }
+                     i++; c = arg[i];
+                     string type = sb.ToString();
+                     while (char.IsWhiteSpace(c)) { i++; c = arg[i]; }
+                     sb.Clear();
+                     i++;
+                     while (!char.IsWhiteSpace(c) && c != '(' && i < arg.Length) { sb.Append(c); c = arg[i]; i++; }
+                     if (i == arg.Length && !char.IsWhiteSpace(c) && c != '(') sb.Append(c);
+                      if (type == "int" || type == "Int32" || type == "System.Int32") list.Add(Int32.Parse(sb.ToString()));
+                     else if (type == "string" || type == "String" || type == "System.String") list.Add(sb.ToString());
+                     else if (type == "byte" || type == "Byte") list.Add(Byte.Parse(sb.ToString()));
+                     else if (type == "bool" || type == "Boolean") list.Add(Boolean.Parse(sb.ToString()));
+                     else if (type == "resx") {
+                         string s, r;
+                         s = sb.ToString().Replace('_', ' ');
+                         if ((r = Properties.Images.ResourceManager.GetString(s)) == null) {
+                             throw new InputFileFormatException("Given resources do not exist, line: " + lineCount);
+                         }
+                         else list.Add(r);
+                     }
+                     else throw new InputFileFormatException("Uncompatible type of an argument in Arguments, line:" + lineCount);
+                 */
+                    string type;
+                    string clearArg = GetClearArg(arg, out type);
+                    if (type == "int" || type == "Int32" || type == "System.Int32") list.Add(Int32.Parse(clearArg));
+                    else if (type == "string" || type == "String" || type == "System.String") list.Add(clearArg);
+                    else if (type == "byte" || type == "Byte") list.Add(Byte.Parse(clearArg));
+                    else if (type == "bool" || type == "Boolean") list.Add(Boolean.Parse(clearArg));
                     else if (type == "resx") {
                         string s, r;
-                        s = sb.ToString().Replace('_', ' ');
+                        s = clearArg.Replace('_', ' ');
                         if ((r = Properties.Images.ResourceManager.GetString(s)) == null) {
                             throw new InputFileFormatException("Given resources do not exist, line: " + lineCount);
                         }
