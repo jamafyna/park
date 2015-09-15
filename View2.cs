@@ -17,40 +17,29 @@ namespace LunaparkGame {
         public MainForm form;
         [NonSerialized]
         List<IUpdatable> clickForms = new List<IUpdatable>(); 
-        public Image[] images;
+        public readonly Image[] images;
        
         public ConcurrentBag<AmusementsFactory> currOfferedAmus;
         public ConcurrentBag<PathFactory> currOfferedPaths;
         public ConcurrentBag<MapObjectsFactory> currOfferedOthers;
-        public ConcurrentQueue<AmusementsFactory> notOfferedAmus;
-        public ConcurrentQueue<PathFactory> notOfferedPaths;
-        public ConcurrentQueue<MapObjectsFactory> notOfferedOthers;
+     //   public ConcurrentQueue<AmusementsFactory> notOfferedAmus;
+     //   public ConcurrentQueue<PathFactory> notOfferedPaths;
+     //   public ConcurrentQueue<MapObjectsFactory> notOfferedOthers;
         public ConcurrentQueue<LaterShownItem> laterAddedObjects;
 
 
         public View2(Model m, MainForm form) {
+            this.model = m;
+            this.form = form;  
+            
             Image[] im = {Properties.Images.gate, Properties.Images.enter, Properties.Images.exit} ;
             Data data = new Data(im);
             LoadExternalData(data);
-            images = data.GetImages();          
-            this.model = m;
-            this.form = form;
-            
+            images = data.GetImages();                              
             model.InitializeCurrBuildedItems(data.GetItemsCount());
-
-            currOfferedAmus = new ConcurrentBag<AmusementsFactory>(data.initialAmus);
-            currOfferedPaths = new ConcurrentBag<PathFactory>(data.initialPaths);
-            currOfferedOthers = new ConcurrentBag<MapObjectsFactory>(data.initialOthers);
-          /*  notOfferedAmus = new ConcurrentQueue<AmusementsFactory>(data.otherAmus);
-            notOfferedPaths = new ConcurrentQueue<PathFactory>(data.otherPaths);
-            notOfferedOthers = new ConcurrentQueue<MapObjectsFactory>(data.otherOthers);*/
-            laterAddedObjects = new ConcurrentQueue<LaterShownItem>(data.laterShowedItems);
-
-            form.PrepareFormsStartAppearance(data.initialAmus, data.initialPaths, data.initialOthers, images);
-           /* foreach (var item in data.initialAmus) form.amusform.CreateNewItem(images[item.internTypeId], item);
-            foreach (var item in data.initialPaths) form.pathform.CreateNewItem(images[item.internTypeId], item);
-            foreach (var item in data.initialOthers) form.accform.CreateNewItem(images[item.internTypeId], item);*/
-            
+            //form.PrepareFormsStartAppearance(data.initialAmus, data.initialPaths, data.initialOthers, images);
+            form.PrepareFormsStartAppearance(currOfferedAmus, currOfferedPaths, currOfferedOthers, images);
+           
             data = null; // due to GC
         }
         public void CallBeforeDeserialization(){
@@ -71,7 +60,14 @@ namespace LunaparkGame {
             sr.Close();
             sr = new System.IO.StreamReader("paths.txt");
             data.LoadPaths(sr);
-            sr.Close();    */   
+            sr.Close();    */
+            currOfferedAmus = new ConcurrentBag<AmusementsFactory>(data.initialAmus);
+            currOfferedPaths = new ConcurrentBag<PathFactory>(data.initialPaths);
+            currOfferedOthers = new ConcurrentBag<MapObjectsFactory>(data.initialOthers);
+            /*  notOfferedAmus = new ConcurrentQueue<AmusementsFactory>(data.otherAmus);
+              notOfferedPaths = new ConcurrentQueue<PathFactory>(data.otherPaths);
+              notOfferedOthers = new ConcurrentQueue<MapObjectsFactory>(data.otherOthers);*/
+            laterAddedObjects = new ConcurrentQueue<LaterShownItem>(data.laterShowedItems);
         }
         [OnDeserialized]
         private void SetValuesAndCheckOnDeserialized(StreamingContext context) {

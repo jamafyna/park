@@ -56,6 +56,8 @@ namespace LunaparkGame
             
         }
         public MainForm(SerializationInfo si, StreamingContext sc) {                        
+//todo: odstranit button1
+            this.button1.Visible = false;
             model = (Model)si.GetValue("model", typeof(Model));
             view = (View2)si.GetValue("view", typeof(View2));
             view.form = this;

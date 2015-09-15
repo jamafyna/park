@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace LunaparkGame
 {
@@ -17,7 +18,8 @@ namespace LunaparkGame
         public InputFileFormatException(string message) : base(message) { }
         public InputFileFormatException(string message, Exception inner) : base(message, inner) { }
     }
-
+    
+    [Serializable]
     public class LaterShownItem {
         public readonly MapObjectsFactory item;
         public readonly int timeToShow;
@@ -25,6 +27,11 @@ namespace LunaparkGame
             this.item = i;
             this.timeToShow = time;
         }
+        [OnDeserialized]
+        private void CheckOnDeserialized(StreamingContext context) {
+            if (timeToShow <= 0) throw new MyDeserializationException("Wrong value after deserialization in LaterShownItem.");
+        }
+            
     
     }
     public class Data {
@@ -128,10 +135,7 @@ namespace LunaparkGame
                 // ---- geting time and create new item in List -----
                 int time;
                 if(obj == null) return;
-                try{
-                    time = Int32.Parse(parts[2].Trim()); 
-                }
-                catch(FormatException) { throw new InputFileFormatException("Expecting number but found anything else, line: " + count); }
+                if(!Int32.TryParse(parts[2].Trim(), out time) || time <= 0) throw new InputFileFormatException("Expecting a positive integer but found anything else, line: " + count); 
                 laterShowedItems.Add(new LaterShownItem(obj, time));
                 count++;
             }
