@@ -21,7 +21,8 @@ namespace LunaparkGame
         private byte playingWidth, playingHeight;
 
         volatile Model model;
-        volatile View2 view;      
+        volatile View2 view;
+        private StartForm startForm;
         public MapForm mapform;
         private AmusementsForm amusform;
         private PathForm pathform;
@@ -30,12 +31,14 @@ namespace LunaparkGame
         long debugtime = 0;
         Task[] tasks;
 
-        public MainForm(byte playingWidth, byte playingHeight) {
+        public MainForm(byte playingWidth, byte playingHeight, StartForm startForm) {
             InitializeComponent();
             InitializeTasks();
             IsMdiContainer = true;
             this.playingHeight = playingHeight;
             this.playingWidth = playingWidth;
+            this.startForm = startForm;
+
             model = new Model(playingHeight, playingWidth);
 
             amusform = new AmusementsForm(model, mainDockPanel, amusementsToolStripMenuItem);
@@ -49,11 +52,13 @@ namespace LunaparkGame
             accessoriesToolStripMenuItem.Checked = false;
             mapform.Show(mainDockPanel);
             timer.Enabled = true;
+           
             
         }
         public MainForm(SerializationInfo si, StreamingContext sc) {                        
             model = (Model)si.GetValue("model", typeof(Model));
             view = (View2)si.GetValue("view", typeof(View2));
+            view.form = this;
             playingHeight = si.GetByte("height");
             playingWidth = si.GetByte("width");
             InitializeComponent();
@@ -64,18 +69,23 @@ namespace LunaparkGame
             amusform = new AmusementsForm(model, mainDockPanel, amusementsToolStripMenuItem);
             pathform = new PathForm(model, pathToolStripMenuItem);
             accform = new AccessoriesForm(model, accessoriesToolStripMenuItem);
-                       
+            mapform = new MapForm(model, view, playingWidth, playingHeight);           
 #warning po debug odlazeni vyndat z komentare
-          //  PrepareFormsStartAppearance(view.currOfferedAmus, view.currOfferedPaths, view.currOfferedOthers, view.images);           
+            PrepareFormsStartAppearance(view.currOfferedAmus, view.currOfferedPaths, view.currOfferedOthers, view.images);           
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
-            mapform = new MapForm(model, view, playingWidth, playingHeight);
+           
+            view.form = this;
+            mapform.InitializeAfterDeserialization(model, view);
+            
             timer.Enabled = true;
             MyUpdate();
+            this.Refresh();
         }
 
-        public void ChangeAfterDeserialization(Model model, View2 view) {
-            this.model = model;
+        public void ChangeAfterDeserialization(View2 view) {
+            view.form = this;
+            this.model = view.model;
             this.view = view;
             this.playingHeight = model.playingHeight;
             this.playingWidth = model.playingWidth;
@@ -87,16 +97,13 @@ namespace LunaparkGame
             amusform.Dispose();
             pathform.Dispose();
             accform.Dispose();
-           // mapform.Dispose();
             amusform = new AmusementsForm(model, mainDockPanel, amusementsToolStripMenuItem);
             pathform = new PathForm(model, pathToolStripMenuItem);
             accform = new AccessoriesForm(model, accessoriesToolStripMenuItem);
-
-#warning po debug odlazeni vyndat z komentare
-           // PrepareFormsStartAppearance(view.currOfferedAmus, view.currOfferedPaths, view.currOfferedOthers, view.images);
+ 
+            PrepareFormsStartAppearance(view.currOfferedAmus, view.currOfferedPaths, view.currOfferedOthers, view.images);
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
-
             mapform.InitializeAfterDeserialization(model, view);
             
             timer.Enabled = true;
@@ -285,19 +292,43 @@ namespace LunaparkGame
             }
         }
 
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e) {
-            Program.SaveToFile(view, new System.IO.FileStream("zkouskaUkladani.txt",System.IO.FileMode.Create));
+        private void gameToolStripMenuItem_Click(object sender, EventArgs e) {
+           // timer.Enabled = false;
         }
+        private void pause_EToolStripMenuItem_Click(object sender, EventArgs e) {
+            timer.Enabled = false;
+        }
+        private void continueToolStripMenuItem_Click(object sender, EventArgs e) {
+            timer.Enabled = true;
+        }
+        private void newGameToolStripMenuItem_Click(object sender, EventArgs e) {
+           
+#warning Zde se nepouzivaji resources, protoze pridavani do nich ted hlasi chybu
+            DialogResult dr = MessageBox.Show("Chcete opravdu skončit rozehranou hru?", "Varování", MessageBoxButtons.YesNo);
 
+             if (dr == DialogResult.Yes) {
+                 startForm.NewGame();
+             }
+            
+        }
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e) {
+            //Program.SaveToFile(view, new System.IO.FileStream("zkouskaUkladani.txt",System.IO.FileMode.Create));
+            startForm.Save(view);
+            timer.Enabled = true;
+        }
+        private void saveAs_ToolStripMenuItem_Click(object sender, EventArgs e) {
+            startForm.SaveAs(view);
+        }
         private void loadToolStripMenuItem_Click(object sender, EventArgs e) {
-            button1_Click(this, null);
+            if(MessageBox.Show("Do you really want to leave this game?","Warning", MessageBoxButtons.YesNo) == DialogResult.No) return;
+            view.CallBeforeDeserialization();
             Task.WaitAll(tasks);
-            button1_Click(this, null);
-                        
-            view = Program.LoadFromFile(new System.IO.FileStream("zkouskaUkladani.txt", System.IO.FileMode.Open));
+            view = (View2) startForm.LoadGame();
+            ChangeAfterDeserialization(view);
+            /* view = Program.LoadFromFile(new System.IO.FileStream("zkouskaUkladani.txt", System.IO.FileMode.Open));
             view.form = this;
             model = view.model;
-            ChangeAfterDeserialization(model, view);
+            ChangeAfterDeserialization(model, view);*/
         }
 
         private void button1_Click(object sender, EventArgs e) {
@@ -311,20 +342,31 @@ namespace LunaparkGame
                             
         }
 
-        private void newGameToolStripMenuItem_Click(object sender, EventArgs e) {
-            DialogResult dr = MessageBox.Show("Chcete opravdu skončit rozehranou hru?", "Varování", MessageBoxButtons.YesNo);
+        
 
-           /* if (dr == DialogResult.Yes) {
-                inicializaceNovaHra();
-            }
-            else rozhodovaciFormular.ShowDialog();*/
+        public void CloseAll() {
+
+            Application.Exit();
         }
-
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e) {
-            DialogResult dr = MessageBox.Show(Notices.closingApplication, Labels.warningMessBox, MessageBoxButtons.YesNo);
+            DialogResult dr = MessageBox.Show(Notices2.closingApplication, Labels.warningMessBox, MessageBoxButtons.YesNo);
             if (dr == DialogResult.No) e.Cancel = true;
-            else Application.Exit();
+            else CloseAll();
+            
         }
+
+       
+        private void firstMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
+
+        }
+
+      
+
+        
+
+       
+
+        
 
         
     }   

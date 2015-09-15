@@ -466,7 +466,16 @@ namespace LunaparkGame {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SAVE THE GAME.
+        ///   Looks up a localized string similar to SAVE AS.
+        /// </summary>
+        internal static string saveAsMenu {
+            get {
+                return ResourceManager.GetString("saveAsMenu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SAVE.
         /// </summary>
         internal static string saveMenu {
             get {

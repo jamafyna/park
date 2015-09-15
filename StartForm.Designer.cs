@@ -38,6 +38,8 @@
             this.exit_button = new System.Windows.Forms.Button();
             this.loadGame_button = new System.Windows.Forms.Button();
             this.newGame_button = new System.Windows.Forms.Button();
+            this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.sizeOfMap_panel.SuspendLayout();
             this.Start_panel.SuspendLayout();
             this.SuspendLayout();
@@ -147,6 +149,7 @@
             this.loadGame_button.TabIndex = 3;
             this.loadGame_button.Text = "LOAD SAVED GAME";
             this.loadGame_button.UseVisualStyleBackColor = true;
+            this.loadGame_button.Click += new System.EventHandler(this.loadGame_button_Click);
             // 
             // newGame_button
             // 
@@ -159,6 +162,10 @@
             this.newGame_button.UseVisualStyleBackColor = true;
             this.newGame_button.Click += new System.EventHandler(this.newGame_button_Click);
             // 
+            // openFileDialog
+            // 
+            this.openFileDialog.FileName = "file";
+            // 
             // StartForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -168,6 +175,7 @@
             this.Controls.Add(this.sizeOfMap_panel);
             this.Name = "StartForm";
             this.Text = "StartForm";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.StartForm_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.StartForm_FormClosed);
             this.Load += new System.EventHandler(this.StartForm_Load);
             this.sizeOfMap_panel.ResumeLayout(false);
@@ -189,5 +197,7 @@
         private System.Windows.Forms.Button loadGame_button;
         private System.Windows.Forms.Button newGame_button;
         private System.Windows.Forms.Panel sizeOfMap_panel;
+        private System.Windows.Forms.OpenFileDialog openFileDialog;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog;
     }
 }

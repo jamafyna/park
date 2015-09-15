@@ -103,20 +103,20 @@
       <DependentUpon>MapForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Model.cs" />
-    <Compile Include="Notices.cs-CZ.Designer.cs">
+    <Compile Include="Notices2.cs-CZ.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Notices.cs-CZ.resx</DependentUpon>
+      <DependentUpon>Notices2.cs-CZ.resx</DependentUpon>
     </Compile>
     <Compile Include="Notices.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Notices.resx</DependentUpon>
+      <DependentUpon>Notices2.resx</DependentUpon>
     </Compile>
-    <Compile Include="Notices1.Designer.cs">
+    <Compile Include="Notices2.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Notices.resx</DependentUpon>
+      <DependentUpon>Notices2.resx</DependentUpon>
     </Compile>
     <Compile Include="Path.cs" />
     <Compile Include="PathForm.cs">
@@ -185,13 +185,13 @@
     <EmbeddedResource Include="MapForm.resx">
       <DependentUpon>MapForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Notices.cs-CZ.resx">
+    <EmbeddedResource Include="Notices2.cs-CZ.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Notices.cs-CZ.Designer.cs</LastGenOutput>
+      <LastGenOutput>Notices2.cs-CZ.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="Notices.resx">
+    <EmbeddedResource Include="Notices2.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Notices1.Designer.cs</LastGenOutput>
+      <LastGenOutput>Notices2.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="PathForm.resx">
       <DependentUpon>PathForm.cs</DependentUpon>
@@ -209,7 +209,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Labels.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Labels.Designer.cs</LastGenOutput>
+      <LastGenOutput>Labels1.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="StartForm.resx">
       <DependentUpon>StartForm.cs</DependentUpon>

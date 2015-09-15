@@ -371,6 +371,7 @@ namespace LunaparkGame
                 p.status = Person.Status.choosesAmus;
                 p.visible = true;
                 p.Feed();
+                this.crashnessPercent++;
             }
             peopleInList.Clear();               
         }

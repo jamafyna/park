@@ -172,7 +172,7 @@
     <value>Start research</value>
   </data>
   <data name="saveMenu" xml:space="preserve">
-    <value>SAVE THE GAME</value>
+    <value>SAVE</value>
   </data>
   <data name="sizeOfMap" xml:space="preserve">
     <value>SIZE OF A PLAYING MAP</value>
@@ -281,5 +281,11 @@
   </data>
   <data name="longtermContentment" xml:space="preserve">
     <value>Long-term contentment: </value>
+  </data>
+  <data name="saveAsMenu" xml:space="preserve">
+    <value>SAVE AS</value>
+  </data>
+  <data name="savedGamesDir" xml:space="preserve">
+    <value>Saved-games</value>
   </data>
 </root>

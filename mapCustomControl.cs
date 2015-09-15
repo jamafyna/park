@@ -98,7 +98,8 @@ namespace LunaparkGame {
             Size size = amus.GetRealSize();
             Point point = amus.GetRealCoordinates();
             Rectangle rect = new Rectangle(point, size);
-            sbr.Color = amus.color;
+            if (!amus.Crashed) sbr.Color = amus.color;
+            else sbr.Color = Color.Black;
             gr.FillRectangle(sbr, rect);
             if (amus is RectangleAmusements && !((RectangleAmusements)amus).isHorizontalOriented) {
                 Image im = (Image)(view.images[amus.internTypeID]).Clone();
@@ -108,7 +109,7 @@ namespace LunaparkGame {
                // im.RotateFlip(RotateFlipType.Rotate90FlipY);
                 gr.DrawImage(im, rect);
             }
-            gr.DrawImage(view.images[amus.internTypeID], rect);
+            else gr.DrawImage(view.images[amus.internTypeID], rect);
         }
         /// <summary>
         /// Draws all MapObjects, except of an item which has own color.

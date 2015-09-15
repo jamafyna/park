@@ -16,6 +16,7 @@ namespace LunaparkGame {
             model = m;
             map = new mapCustomControl(model, view);
             map.Parent = this;
+           
 
         }
 

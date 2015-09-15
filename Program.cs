@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 namespace LunaparkGame
 {
@@ -26,12 +27,19 @@ namespace LunaparkGame
         public Queue<AmusementsFactory> otherAmus = new Queue<AmusementsFactory>();
         public Queue<PathFactory> otherPaths = new Queue<PathFactory>();
         public Queue<MapObjectsFactory> otherOthers = new Queue<MapObjectsFactory>();
+        public Queue<MapObjectsFactory> laterShowedItems = new Queue<MapObjectsFactory>();
        
         public Data(Image[] otherLoadedImages) {
             images = new List<Image>(otherLoadedImages);
         }
+        public void LoadAll(StreamReader amusR, StreamReader pathsR, StreamReader otherR, StreamReader rulesR){
+            if (amusR != null) LoadAmus(amusR);
+            if (pathsR != null) LoadPaths(pathsR);
+            if (otherR != null) LoadOthers(otherR);
+            if (rulesR != null) LoadAdditionRules(rulesR);      
+        }
         public void LoadAmus(System.IO.StreamReader r) {
-            string line;
+           string line;
             int count = 1;
             while ((line = r.ReadLine()) != null) {
                 ProcessLine<AmusementsFactory>(line, initialAmus, otherAmus, count);
@@ -56,6 +64,22 @@ namespace LunaparkGame
             }
         }
 
+        public void LoadAdditionRules(System.IO.StreamReader r) {
+            string line;
+            int count = 1;
+            while ((line = r.ReadLine()) != null) {
+                line = line.Trim();
+                if (line == "" || line[0] == '#') continue;
+                string[] parts = line.Split('|');
+                if (parts.Length != 3) throw new InputFileFormatException("Wrong count of columns, line: " + count);
+                count++;
+
+            }
+        }
+        private void FindCorrespondingObject<T>(string name) { 
+            
+        
+        }
         private void ProcessLine<T>(string line, List<T> list, Queue<T> queue, int lineCount) {
             line=line.Trim();
             if (line == "" || line[0] == '#') return;
@@ -169,7 +193,8 @@ namespace LunaparkGame
 
         }
        
-        public bool ShouldCreateNewPerson() { 
+        public bool ShouldCreateNewPerson() {
+            return true;
             waitingTime--;
             if (waitingTime > 0) return false;
             int variousItems = 0;
@@ -254,20 +279,12 @@ namespace LunaparkGame
             Application.SetCompatibleTextRenderingDefault(false);
             StartForm s=new StartForm();
             Application.Run(s);
-           /* Data data = new Data(null);
-            System.IO.StreamReader sr = new System.IO.StreamReader("amusements.txt"); 
-           // System.IO.StreamReader sr = new System.IO.StreamReader("amusementsInitial.txt");   
-            data.LoadAmus(sr);
-            sr.Close();
-            sr = new System.IO.StreamReader("paths.txt");
-            data.LoadPaths(sr);
-            sr.Close();*/
+           
             
 
            // Application.Run(new MainForm(s.width,s.height,data));
-           // MainForm mainForm = new MainForm(s.width, s.height);
-           // Application.Run(mainForm);
-           // Application.Run(new MainForm());
+          
+           
             
         }
     }

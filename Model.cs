@@ -16,7 +16,8 @@ namespace LunaparkGame
     [Serializable]
     public class Model //todo: Prejmenovat na evidenci
     {     
-        private const int initialMoney = 4000;
+        private const int initialMoney = 10000000;
+        //private const int initialMoney = 4000;
         public const int maxPeopleInPark = 10000;
         public readonly byte playingWidth, playingHeight; 
         public readonly byte internalWidth, internalHeight;

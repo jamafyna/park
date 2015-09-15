@@ -50,6 +50,10 @@ namespace LunaparkGame {
             
             data = null; // due to GC
         }
+        public void CallBeforeDeserialization(){
+            if (clickForms != null) foreach (Control item in clickForms) item.Dispose();
+        
+        }
         private void LoadExternalData(Data data) {
             System.IO.StreamReader sr = new System.IO.StreamReader("amusements.txt");
             // System.IO.StreamReader sr = new System.IO.StreamReader("amusementsInitial.txt");   
@@ -61,8 +65,10 @@ namespace LunaparkGame {
         }
         [OnDeserialized]
         private void SetValuesAndCheckOnDeserialized(StreamingContext context) {
+            if (clickForms != null) foreach (Control item in clickForms) item.Dispose();
             clickForms = new List<IUpdatable>();       
         }
+        
         
         public void Action() {
             // DestructDirty();
@@ -91,8 +97,11 @@ namespace LunaparkGame {
                 }
                 if (o is Amusements) {
                     if (o.isClicked) {
-                        foreach (Form f in clickForms) {
-                            if (f is AmusementDetailForm  && ((AmusementDetailForm)f).a == o) { f.Activate(); break; }
+                        foreach (var f in clickForms) {
+                            if (f is AmusementDetailForm  && ((AmusementDetailForm)f).a == o) { 
+                                ((Form)f).Activate();
+                                ((Form)f).Activate();
+                                break; }
                         }
                     }
                     else {

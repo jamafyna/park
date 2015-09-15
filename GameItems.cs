@@ -260,8 +260,8 @@ namespace LunaparkGame
         /// </summary>
         public void RepairWhole() { 
             // it isnt 100% correct because of not atomic money asking, but never mind, there can be a small debt
-            double repairPrize = crashnessPercent / 600.0 * prize * 0.1;
-            if (model.GetMoney() >= repairPrize) crashnessPercent = 0;
+            double repairPrize = crashnessPercent / 600.0 * prize * 0.8;
+            if (model.GetMoney() >= repairPrize) { crashnessPercent = 0; model.MoneyAdd(-(int)repairPrize); }
             else MessageBox.Show(Labels.warningMessBox, Notices.cannotRepairNoMoney, MessageBoxButtons.OK);
         }
         /// <summary>

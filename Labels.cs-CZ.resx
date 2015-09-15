@@ -282,4 +282,10 @@
   <data name="longtermContentment" xml:space="preserve">
     <value>Dlouhodobá spokojenost: </value>
   </data>
+  <data name="saveAsMenu" xml:space="preserve">
+    <value>ULOŽ JAKO</value>
+  </data>
+  <data name="savedGamesDir" xml:space="preserve">
+    <value>Ulozene-hry</value>
+  </data>
 </root>
