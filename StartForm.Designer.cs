@@ -175,9 +175,6 @@
             this.Controls.Add(this.sizeOfMap_panel);
             this.Name = "StartForm";
             this.Text = "StartForm";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.StartForm_FormClosing);
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.StartForm_FormClosed);
-            this.Load += new System.EventHandler(this.StartForm_Load);
             this.sizeOfMap_panel.ResumeLayout(false);
             this.sizeOfMap_panel.PerformLayout();
             this.Start_panel.ResumeLayout(false);

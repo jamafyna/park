@@ -105,9 +105,8 @@ namespace LunaparkGame {
                     if (o.isClicked) {
                         foreach (var f in clickForms) {
                             if (f is AmusementDetailForm  && ((AmusementDetailForm)f).a == o) { 
-                                ((Form)f).Activate();
-                                ((Form)f).Activate();
-                                break; }
+                                ((AmusementDetailForm)f).Activate();
+                                 break; }
                         }
                     }
                     else {

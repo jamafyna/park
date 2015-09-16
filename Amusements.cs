@@ -88,7 +88,7 @@ namespace LunaparkGame
             }
            
         }
-       
+
         public override void Destruct() {
             // nothing, the gate cannot be demolished
         }

@@ -33,6 +33,8 @@
             this.crashText_label = new System.Windows.Forms.Label();
             this.crashValue_label = new System.Windows.Forms.Label();
             this.repair_button = new System.Windows.Forms.Button();
+            this.queueValue_label = new System.Windows.Forms.Label();
+            this.queueText_label = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.prize_numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
             this.SuspendLayout();
@@ -57,7 +59,6 @@
             // 
             // outOfService_button
             // 
-            this.outOfService_button.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.outOfService_button.BackColor = System.Drawing.Color.Red;
             this.outOfService_button.Font = new System.Drawing.Font("Comic Sans MS", 8.25F);
             this.outOfService_button.ImeMode = System.Windows.Forms.ImeMode.NoControl;
@@ -97,7 +98,7 @@
             // 
             // entrance_button
             // 
-            this.entrance_button.Location = new System.Drawing.Point(6, 260);
+            this.entrance_button.Location = new System.Drawing.Point(6, 299);
             this.entrance_button.Name = "entrance_button";
             this.entrance_button.Size = new System.Drawing.Size(75, 23);
             this.entrance_button.TabIndex = 10;
@@ -108,10 +109,10 @@
             // 
             // exit_button
             // 
-            this.exit_button.Location = new System.Drawing.Point(92, 260);
+            this.exit_button.Location = new System.Drawing.Point(102, 299);
             this.exit_button.Name = "exit_button";
             this.exit_button.Size = new System.Drawing.Size(75, 23);
-            this.exit_button.TabIndex = 11;
+            this.exit_button.TabIndex = 10;
             this.exit_button.Text = global::LunaparkGame.Labels.exitBuild;
             this.exit_button.UseVisualStyleBackColor = true;
             this.exit_button.Visible = false;
@@ -137,23 +138,42 @@
             // 
             // repair_button
             // 
-            this.repair_button.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.repair_button.BackColor = System.Drawing.Color.Red;
             this.repair_button.Font = new System.Drawing.Font("Comic Sans MS", 8.25F);
             this.repair_button.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.repair_button.Location = new System.Drawing.Point(6, 289);
+            this.repair_button.Location = new System.Drawing.Point(6, 268);
             this.repair_button.Name = "repair_button";
             this.repair_button.Size = new System.Drawing.Size(75, 25);
-            this.repair_button.TabIndex = 14;
+            this.repair_button.TabIndex = 10;
             this.repair_button.Text = global::LunaparkGame.Labels.repairButton;
             this.repair_button.UseVisualStyleBackColor = false;
             this.repair_button.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // queueValue_label
+            // 
+            this.queueValue_label.AutoSize = true;
+            this.queueValue_label.Location = new System.Drawing.Point(89, 246);
+            this.queueValue_label.Name = "queueValue_label";
+            this.queueValue_label.Size = new System.Drawing.Size(74, 13);
+            this.queueValue_label.TabIndex = 16;
+            this.queueValue_label.Text = "Entrance fee: ";
+            // 
+            // queueText_label
+            // 
+            this.queueText_label.AutoSize = true;
+            this.queueText_label.Location = new System.Drawing.Point(12, 246);
+            this.queueText_label.Name = "queueText_label";
+            this.queueText_label.Size = new System.Drawing.Size(62, 13);
+            this.queueText_label.TabIndex = 15;
+            this.queueText_label.Text = "Crashness: ";
             // 
             // AmusementDetailForm
             // 
             this.AutoScroll = true;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.ClientSize = new System.Drawing.Size(189, 342);
+            this.ClientSize = new System.Drawing.Size(189, 341);
+            this.Controls.Add(this.queueValue_label);
+            this.Controls.Add(this.queueText_label);
             this.Controls.Add(this.repair_button);
             this.Controls.Add(this.crashValue_label);
             this.Controls.Add(this.crashText_label);
@@ -192,5 +212,7 @@
         private System.Windows.Forms.Label crashText_label;
         private System.Windows.Forms.Label crashValue_label;
         public System.Windows.Forms.Button repair_button;
+        private System.Windows.Forms.Label queueValue_label;
+        private System.Windows.Forms.Label queueText_label;
     }
 }

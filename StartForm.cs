@@ -38,7 +38,6 @@ namespace LunaparkGame
 
         public void NewGame() {
             if (mainForm != null) {
-                mainForm.CloseAll();
                 mainForm.Visible = false; }
             this.Visible = true;
             sizeOfMap_panel.Visible = true;
@@ -82,6 +81,7 @@ namespace LunaparkGame
                 if (fs != null) fs.Close();
             }
         }
+        
         public object LoadGame() {
             openFileDialog.InitialDirectory = mainDirectory;
             openFileDialog.Filter = "Lunapark Files (.lun)|*.lun";
@@ -104,9 +104,20 @@ namespace LunaparkGame
             }
         }
 
+        public void MainFormWasClosed() {
+            this.mainForm = null;
+        }
+      
         private void newGame_button_Click(object sender, EventArgs e)
         {
             NewGame();
+        }
+
+        private void loadGame_button_Click(object sender, EventArgs e) {
+            this.Visible = false;
+            mainForm = new MainForm(this.width, this.height, this);
+            mainForm.ChangeAfterDeserialization((View2)LoadGame());
+            mainForm.Visible = true;
         }
 
         private void exit_button_Click(object sender, EventArgs e)
@@ -116,11 +127,11 @@ namespace LunaparkGame
 
         private void Start_button1_Click(object sender, EventArgs e)
         {
-            //this.Close(); 
             this.Visible = false;
+            sizeOfMap_panel.Visible = false;
+            Start_panel.Visible = true;
             mainForm = new MainForm(this.width, this.height, this);
-            mainForm.Visible = true;
-            //Application.Run(mainForm);
+            mainForm.Visible = true;          
         }
 
         private void radioButton20_CheckedChanged(object sender, EventArgs e)
@@ -141,32 +152,9 @@ namespace LunaparkGame
             height = height3;
         }
 
-        private void StartForm_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void StartForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-          //  this.Close();//Application.Exit();
-        }
-
-        private void StartForm_FormClosing(object sender, FormClosingEventArgs e) {
-            Application.Exit();
-           // this.Close();
-           // if (mainForm != null) mainForm.Close();
-        }
-
-        private void loadGame_button_Click(object sender, EventArgs e) {
-
-            this.Visible = false;
-            mainForm = new MainForm(this.width, this.height, this);           
-            mainForm.ChangeAfterDeserialization((View2)LoadGame()) ;
-            mainForm.Visible = true; 
-        }
+      
 
        
-
 
     }
 }

@@ -22,7 +22,10 @@ namespace LunaparkGame {
             a.isClicked = true;
             MyUpdate();
         }
-
+        public void MyActivate() {
+            this.Activate();
+            
+        }
         protected void AmusementDetailForm_FormClosing(object sender, FormClosingEventArgs e) {
             a.isClicked = false;
         }
@@ -54,9 +57,18 @@ namespace LunaparkGame {
 
             if (a.State == Amusements.Status.outOfService || a.State == Amusements.Status.runningOut) {
                 if (a.Crashed) MessageBox.Show(Labels.warningMessBox, Notices.cannotChangeFirstRepair, MessageBoxButtons.OK);
-                else { a.State = Amusements.Status.waitingForPeople; model.MarkBackInService(a); }
+                else { 
+                    //a.State = Amusements.Status.waitingForPeople; model.MarkBackInService(a); 
+                    a.SetBackInService();
+                }
             }
-            else { a.State = Amusements.Status.runningOut; model.MarkOutOfService(a); }
+            else {
+               /* if (!model.parkClosed) a.State = Amusements.Status.runningOut;
+                else a.State = Amusements.Status.outOfService; */
+               // a.State = Amusements.Status.runningOut;
+               // model.MarkOutOfService(a);
+                a.SetOutOfService();
+            }
            
         }
 

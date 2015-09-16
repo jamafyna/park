@@ -351,15 +351,29 @@ namespace LunaparkGame
             Application.Exit();
         }
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e) {
-            DialogResult dr = MessageBox.Show(Notices2.closingApplication, Labels.warningMessBox, MessageBoxButtons.YesNo);
-            if (dr == DialogResult.No) e.Cancel = true;
-            else CloseAll();
-            
+
         }
 
        
         private void firstMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
 
+        }
+
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e) {
+
+            
+            //startForm.Visible = true;
+            
+            //Application.Exit();
+        }
+
+        private void MainForm_FormClosing_1(object sender, FormClosingEventArgs e) {
+            DialogResult dr = MessageBox.Show(Notices2.closingApplication, Labels.warningMessBox, MessageBoxButtons.YesNo);
+            if (dr == DialogResult.No) e.Cancel = true;
+            else {
+                startForm.Visible = true;
+                startForm.MainFormWasClosed();
+            }
         }
 
       

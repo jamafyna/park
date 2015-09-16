@@ -85,11 +85,6 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="GameItems.cs" />
-    <Compile Include="Labels.cs-CZ.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Labels.cs-CZ.resx</DependentUpon>
-    </Compile>
     <Compile Include="mapCustomControl.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -103,11 +98,6 @@
       <DependentUpon>MapForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Model.cs" />
-    <Compile Include="Notices2.cs-CZ.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Notices2.cs-CZ.resx</DependentUpon>
-    </Compile>
     <Compile Include="Notices.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -175,20 +165,14 @@
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Labels.cs-CZ.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Labels.cs-CZ.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Labels.cs-CZ.resx" />
     <EmbeddedResource Include="mapCustomControl.resx">
       <DependentUpon>mapCustomControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MapForm.resx">
       <DependentUpon>MapForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Notices2.cs-CZ.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Notices2.cs-CZ.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Notices2.cs-CZ.resx" />
     <EmbeddedResource Include="Notices2.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Notices2.Designer.cs</LastGenOutput>
