@@ -34,5 +34,9 @@ namespace LunaparkGame {
             this.debug.Text = p.status.ToString();
             
         }
+
+        private void close_button_Click(object sender, EventArgs e) {
+            this.Dispose();
+        }
     }
 }

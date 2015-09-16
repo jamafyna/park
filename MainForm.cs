@@ -16,8 +16,9 @@ namespace LunaparkGame
     public partial class MainForm : Form, IUpdatable, ISerializable {
         
         public const int sizeOfSquare = 40;
-        private const int propagatePrize = 10;
-        private const int researchPrize = 10;
+        public const int propagatePrize = 10;
+        public const int researchPrize = 10;
+
         private byte playingWidth, playingHeight;
 
         volatile Model model;
@@ -72,7 +73,6 @@ namespace LunaparkGame
             pathform = new PathForm(model, pathToolStripMenuItem);
             accform = new AccessoriesForm(model, accessoriesToolStripMenuItem);
             mapform = new MapForm(model, view, playingWidth, playingHeight);           
-#warning po debug odlazeni vyndat z komentare
             PrepareFormsStartAppearance(view.currOfferedAmus, view.currOfferedPaths, view.currOfferedOthers, view.images);           
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
@@ -131,6 +131,7 @@ namespace LunaparkGame
             Task.WaitAll(tasks);
         
         }
+       
         public void PrepareFormsStartAppearance(IEnumerable<AmusementsFactory> amus, IEnumerable<PathFactory> paths, IEnumerable<MapObjectsFactory> others, Image[] images) {
             foreach (AmusementsFactory item in amus) {
                 amusform.CreateNewItem(images[item.internTypeId], item);
@@ -143,15 +144,19 @@ namespace LunaparkGame
             }
         
         }
-        public void AddNewAmusementToForm(AmusementsFactory a, Image im) {
-            amusform.CreateNewItem(im, a) ;
+        /// <summary>
+        /// Creates a new buyButton for the given item in an corresponding form.
+        /// </summary>
+        /// <param name="item">A MapObjectFactory item which represents new item to buy. </param>
+        /// <param name="im">An Image which is corresponding to given MapObjectFactory item. </param>
+        public void AddNewItemToForm(MapObjectsFactory item, Image im) {
+            if (item.GetType() == typeof(AmusementsFactory))
+                amusform.CreateNewItem(im, (AmusementsFactory)item);
+            else if (item.GetType() == typeof(PathFactory))
+                pathform.CreateNewItem(im, (PathFactory)item);
+            else accform.CreateNewItem(im, item);
         }
-        public void AddNewPathToForm(PathFactory p, Image im) {
-            pathform.CreateNewItem(im, p);
-        }
-        public void AddNewOtherItemToForm(MapObjectsFactory mo, Image im) {
-            accform.CreateNewItem(im, mo);
-        }
+
         public void ShowDockingForm(WeifenLuo.WinFormsUI.Docking.DockContent form) {
             form.Show(mainDockPanel);
         }
@@ -199,9 +204,7 @@ namespace LunaparkGame
 #warning work with Person in view only when no another thread is running
             
             //todo: rozvrstvit do vlaken
-            foreach (Task t in tasks) {
-                if (!t.IsCompleted) throw new MyDebugException("Timer se nejspise predbiha");
-            }
+           
             //---actions
             if(!model.parkClosed) tasks[0] = Task.Factory.StartNew(model.persList.Action);
           
@@ -217,16 +220,16 @@ namespace LunaparkGame
                 //   model.amusList.Action();
                 //    model.effects.Action();
                 //    model.maps.Action();
-                if (model.propagateOn) {
-                    model.propagation++;
+                if (view.effects.propagateOn) {
+                    view.effects.propagation++; // is thread-safe because it is changed only in this thread
                     model.MoneyAdd(-propagatePrize);
                 }
-                else { model.propagation = Math.Max(0,model.propagation); }
-                if (model.researchOn) {
-                    model.MoneyAdd(- researchPrize);
-                    Interlocked.Decrement(ref model.timeToShowNewItem);
+                else { view.effects.propagation = Math.Max(0, view.effects.propagation); ;}
+                if (view.effects.researchOn) {
+                    model.MoneyAdd(-researchPrize);
+                    Interlocked.Decrement(ref view.effects.timeToShowNewItem);
                 }
-
+                
             }
 
             //---visual
@@ -268,26 +271,26 @@ namespace LunaparkGame
         }
 
         private void propagate_toolStripMenuItem_Click(object sender, EventArgs e) {
-            if (model.propagateOn) {
-                model.propagateOn = false;
+            if (view.effects.propagateOn) {
+                view.effects.propagateOn = false;
                 propagate_toolStripMenuItem.Text = Labels.advertiseStart;
                 propagate_toolStripMenuItem.ForeColor = Color.Black;
             }
             else {
-                model.propagateOn = true;
+                view.effects.propagateOn = true;
                 propagate_toolStripMenuItem.Text = Labels.advertising;
                 propagate_toolStripMenuItem.ForeColor = Color.DarkGreen;
             }
         }
 
         private void research_toolStripMenuItem_Click(object sender, EventArgs e) {
-            if (model.researchOn) {
-                model.researchOn = false;
+            if (view.effects.researchOn) {
+                view.effects.researchOn = false;
                 research_toolStripMenuItem.Text = Labels.researchStart;
                 research_toolStripMenuItem.ForeColor = Color.Black;
             }
             else {
-                model.researchOn = true;
+                view.effects.researchOn = true;
                 research_toolStripMenuItem.Text = Labels.researching;
                 research_toolStripMenuItem.ForeColor = Color.DarkGreen;
 
@@ -306,8 +309,7 @@ namespace LunaparkGame
         private void newGameToolStripMenuItem_Click(object sender, EventArgs e) {
            
 #warning Zde se nepouzivaji resources, protoze pridavani do nich ted hlasi chybu
-            DialogResult dr = MessageBox.Show("Chcete opravdu skončit rozehranou hru?", "Varování", MessageBoxButtons.YesNo);
-
+            DialogResult dr = MessageBox.Show(Notices.closeGame, Labels.warningMessBox, MessageBoxButtons.YesNo);
              if (dr == DialogResult.Yes) {
                  startForm.NewGame();
              }
@@ -368,7 +370,7 @@ namespace LunaparkGame
         }
 
         private void MainForm_FormClosing_1(object sender, FormClosingEventArgs e) {
-            DialogResult dr = MessageBox.Show(Notices2.closingApplication, Labels.warningMessBox, MessageBoxButtons.YesNo);
+            DialogResult dr = MessageBox.Show(Notices.closeGame, Labels.warningMessBox, MessageBoxButtons.YesNo);
             if (dr == DialogResult.No) e.Cancel = true;
             else {
                 startForm.Visible = true;

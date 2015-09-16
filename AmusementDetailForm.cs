@@ -10,9 +10,12 @@ namespace LunaparkGame {
     public partial class AmusementDetailForm : WeifenLuo.WinFormsUI.Docking.DockContent, IUpdatable {
         public Amusements a { protected set; get; }
         protected Model model;
+        int timeCount = 10;
         public AmusementDetailForm() { }
         public AmusementDetailForm(Model model, Amusements a, Image im) {
             InitializeComponent();
+            exit_button.Parent = panel1;
+            entrance_button.Parent = panel1;
             exit_button.Tag = new AmusementExitPathFactory(a);
             entrance_button.Tag = new AmusementEnterPathFactory(a);
             this.model = model;
@@ -22,17 +25,19 @@ namespace LunaparkGame {
             a.isClicked = true;
             MyUpdate();
         }
-        public void MyActivate() {
-            this.Activate();
-            
-        }
+        
         protected void AmusementDetailForm_FormClosing(object sender, FormClosingEventArgs e) {
             a.isClicked = false;
         }
         virtual public void MyUpdate() {
             if (a.State == Amusements.Status.disposing) this.Close();
             this.prize_numericUpDown1.Value = a.CurrFee;
-            this.crashValue_label.Text = a.GetCrashnessPercent + "%";
+            this.damageValue_label.Text = a.GetCrashnessPercent + "%";
+            if (timeCount < 0) {
+                this.queueValue_label.Text = a.GetWaitingPeopleCount().ToString();
+                timeCount = 10;
+            }
+            else timeCount--;
             if (a.isDemolishedEntrance()) entrance_button.Visible = true;
             else entrance_button.Visible = false;
             if (a.isDemolishedExit()) exit_button.Visible = true;
@@ -58,16 +63,11 @@ namespace LunaparkGame {
             if (a.State == Amusements.Status.outOfService || a.State == Amusements.Status.runningOut) {
                 if (a.Crashed) MessageBox.Show(Labels.warningMessBox, Notices.cannotChangeFirstRepair, MessageBoxButtons.OK);
                 else { 
-                    //a.State = Amusements.Status.waitingForPeople; model.MarkBackInService(a); 
-                    a.SetBackInService();
+                   a.SetBackInService();
                 }
             }
             else {
-               /* if (!model.parkClosed) a.State = Amusements.Status.runningOut;
-                else a.State = Amusements.Status.outOfService; */
-               // a.State = Amusements.Status.runningOut;
-               // model.MarkOutOfService(a);
-                a.SetOutOfService();
+               a.SetOutOfService();
             }
            
         }
@@ -88,7 +88,7 @@ namespace LunaparkGame {
             model.demolishOn = false;
         }
 
-        private void button1_Click(object sender, EventArgs e) {
+        private void repareButton_Click(object sender, EventArgs e) {
             a.RepairWhole();
         }
 

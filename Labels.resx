@@ -261,8 +261,8 @@
   <data name="verticalButtonText" xml:space="preserve">
     <value>VERTICAL</value>
   </data>
-  <data name="crashness" xml:space="preserve">
-    <value>Crashness: </value>
+  <data name="damage" xml:space="preserve">
+    <value>Damage: </value>
   </data>
   <data name="repairButton" xml:space="preserve">
     <value>Repair</value>
@@ -287,5 +287,11 @@
   </data>
   <data name="savedGamesDir" xml:space="preserve">
     <value>Saved-games</value>
+  </data>
+  <data name="peopleInQueue" xml:space="preserve">
+    <value>Waiting people:</value>
+  </data>
+  <data name="zkouskaFunkcnosti" xml:space="preserve">
+    <value>Debug</value>
   </data>
 </root>

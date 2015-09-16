@@ -71,9 +71,9 @@
             this.info_label.AutoSize = true;
             this.info_label.Location = new System.Drawing.Point(12, 151);
             this.info_label.Name = "info_label";
-            this.info_label.Size = new System.Drawing.Size(35, 13);
+            this.info_label.Size = new System.Drawing.Size(28, 13);
             this.info_label.TabIndex = 3;
-            this.info_label.Text = "label1";
+            this.info_label.Text = "Text";
             // 
             // rectangleA_button
             // 

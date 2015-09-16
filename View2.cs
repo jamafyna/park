@@ -26,6 +26,8 @@ namespace LunaparkGame {
      //   public ConcurrentQueue<PathFactory> notOfferedPaths;
      //   public ConcurrentQueue<MapObjectsFactory> notOfferedOthers;
         public ConcurrentQueue<LaterShownItem> laterAddedObjects;
+        public readonly SpecialEffects effects;
+       
 
 
         public View2(Model m, MainForm form) {
@@ -37,9 +39,8 @@ namespace LunaparkGame {
             LoadExternalData(data);
             images = data.GetImages();                              
             model.InitializeCurrBuildedItems(data.GetItemsCount());
-            //form.PrepareFormsStartAppearance(data.initialAmus, data.initialPaths, data.initialOthers, images);
             form.PrepareFormsStartAppearance(currOfferedAmus, currOfferedPaths, currOfferedOthers, images);
-           
+            effects = new SpecialEffects(model, data.laterShowedItems, form); 
             data = null; // due to GC
         }
         public void CallBeforeDeserialization(){

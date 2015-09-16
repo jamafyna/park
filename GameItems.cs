@@ -356,7 +356,6 @@ namespace LunaparkGame
                 if (!isRunning) // it is used if user clicked while people are in amus ( amus is running )
                  {
                     status = Status.outOfService;
-                    this.entrance.signpostAmus[this.Id] = Direction.no;
 #warning zde nesmi delat prekladac optimalizace, musi byt v tomto poradi
                     DeleteAllPeopleFromQueue(); 
                     isRunningOut = false;
@@ -368,12 +367,13 @@ namespace LunaparkGame
         }
 
         public void SetOutOfService() {
-            this.State = Amusements.Status.runningOut;
+            if (!model.parkClosed) this.State = Status.runningOut;
+            else this.State = Status.outOfService;
             model.MarkOutOfService(this);
             this.entrance.signpostAmus[this.Id] = Direction.no;
         }
         public void SetBackInService() {
-            this.State = Amusements.Status.waitingForPeople;
+            this.State = Status.waitingForPeople;
             model.MarkBackInService(this);
             this.entrance.signpostAmus[this.Id] = Direction.here;
         }
@@ -465,6 +465,9 @@ namespace LunaparkGame
             
         }
 
+        public int GetWaitingPeopleCount() {
+            return queue.Count;
+        }
         /// <summary>
         /// checks if the entrance can be built on the given place and creates it if yes
         /// </summary>

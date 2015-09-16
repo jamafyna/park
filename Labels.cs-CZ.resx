@@ -261,7 +261,7 @@
   <data name="verticalButtonText" xml:space="preserve">
     <value>SVISLE</value>
   </data>
-  <data name="crashness" xml:space="preserve">
+  <data name="damage" xml:space="preserve">
     <value>Poškození: </value>
   </data>
   <data name="repairButton" xml:space="preserve">
@@ -287,5 +287,8 @@
   </data>
   <data name="savedGamesDir" xml:space="preserve">
     <value>Ulozene-hry</value>
+  </data>
+  <data name="peopleInQueue" xml:space="preserve">
+    <value>Lidí ve frontě: </value>
   </data>
 </root>

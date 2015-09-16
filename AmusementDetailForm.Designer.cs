@@ -30,13 +30,15 @@
             this.info_label = new System.Windows.Forms.Label();
             this.entrance_button = new System.Windows.Forms.Button();
             this.exit_button = new System.Windows.Forms.Button();
-            this.crashText_label = new System.Windows.Forms.Label();
-            this.crashValue_label = new System.Windows.Forms.Label();
+            this.damageText_label = new System.Windows.Forms.Label();
+            this.damageValue_label = new System.Windows.Forms.Label();
             this.repair_button = new System.Windows.Forms.Button();
             this.queueValue_label = new System.Windows.Forms.Label();
             this.queueText_label = new System.Windows.Forms.Label();
+            this.panel1 = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.prize_numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // prize_numericUpDown1
@@ -98,7 +100,7 @@
             // 
             // entrance_button
             // 
-            this.entrance_button.Location = new System.Drawing.Point(6, 299);
+            this.entrance_button.Location = new System.Drawing.Point(5, 4);
             this.entrance_button.Name = "entrance_button";
             this.entrance_button.Size = new System.Drawing.Size(75, 23);
             this.entrance_button.TabIndex = 10;
@@ -109,7 +111,7 @@
             // 
             // exit_button
             // 
-            this.exit_button.Location = new System.Drawing.Point(102, 299);
+            this.exit_button.Location = new System.Drawing.Point(101, 4);
             this.exit_button.Name = "exit_button";
             this.exit_button.Size = new System.Drawing.Size(75, 23);
             this.exit_button.TabIndex = 10;
@@ -118,23 +120,23 @@
             this.exit_button.Visible = false;
             this.exit_button.Click += new System.EventHandler(this.exit_button_Click);
             // 
-            // crashText_label
+            // damageText_label
             // 
-            this.crashText_label.AutoSize = true;
-            this.crashText_label.Location = new System.Drawing.Point(12, 226);
-            this.crashText_label.Name = "crashText_label";
-            this.crashText_label.Size = new System.Drawing.Size(62, 13);
-            this.crashText_label.TabIndex = 12;
-            this.crashText_label.Text = "Crashness: ";
+            this.damageText_label.AutoSize = true;
+            this.damageText_label.Location = new System.Drawing.Point(12, 226);
+            this.damageText_label.Name = "damageText_label";
+            this.damageText_label.Size = new System.Drawing.Size(53, 13);
+            this.damageText_label.TabIndex = 12;
+            this.damageText_label.Text = "Damage: ";
             // 
-            // crashValue_label
+            // damageValue_label
             // 
-            this.crashValue_label.AutoSize = true;
-            this.crashValue_label.Location = new System.Drawing.Point(89, 226);
-            this.crashValue_label.Name = "crashValue_label";
-            this.crashValue_label.Size = new System.Drawing.Size(74, 13);
-            this.crashValue_label.TabIndex = 13;
-            this.crashValue_label.Text = "Entrance fee: ";
+            this.damageValue_label.AutoSize = true;
+            this.damageValue_label.Location = new System.Drawing.Point(89, 226);
+            this.damageValue_label.Name = "damageValue_label";
+            this.damageValue_label.Size = new System.Drawing.Size(13, 13);
+            this.damageValue_label.TabIndex = 13;
+            this.damageValue_label.Text = "0";
             // 
             // repair_button
             // 
@@ -147,38 +149,46 @@
             this.repair_button.TabIndex = 10;
             this.repair_button.Text = global::LunaparkGame.Labels.repairButton;
             this.repair_button.UseVisualStyleBackColor = false;
-            this.repair_button.Click += new System.EventHandler(this.button1_Click);
+            this.repair_button.Click += new System.EventHandler(this.repareButton_Click);
             // 
             // queueValue_label
             // 
             this.queueValue_label.AutoSize = true;
             this.queueValue_label.Location = new System.Drawing.Point(89, 246);
             this.queueValue_label.Name = "queueValue_label";
-            this.queueValue_label.Size = new System.Drawing.Size(74, 13);
+            this.queueValue_label.Size = new System.Drawing.Size(13, 13);
             this.queueValue_label.TabIndex = 16;
-            this.queueValue_label.Text = "Entrance fee: ";
+            this.queueValue_label.Text = "0";
             // 
             // queueText_label
             // 
             this.queueText_label.AutoSize = true;
             this.queueText_label.Location = new System.Drawing.Point(12, 246);
             this.queueText_label.Name = "queueText_label";
-            this.queueText_label.Size = new System.Drawing.Size(62, 13);
+            this.queueText_label.Size = new System.Drawing.Size(81, 13);
             this.queueText_label.TabIndex = 15;
-            this.queueText_label.Text = "Crashness: ";
+            this.queueText_label.Text = "Waiting people:";
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.entrance_button);
+            this.panel1.Controls.Add(this.exit_button);
+            this.panel1.Location = new System.Drawing.Point(1, 299);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(176, 30);
+            this.panel1.TabIndex = 17;
             // 
             // AmusementDetailForm
             // 
             this.AutoScroll = true;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.ClientSize = new System.Drawing.Size(189, 341);
+            this.ClientSize = new System.Drawing.Size(186, 341);
+            this.Controls.Add(this.panel1);
             this.Controls.Add(this.queueValue_label);
             this.Controls.Add(this.queueText_label);
             this.Controls.Add(this.repair_button);
-            this.Controls.Add(this.crashValue_label);
-            this.Controls.Add(this.crashText_label);
-            this.Controls.Add(this.exit_button);
-            this.Controls.Add(this.entrance_button);
+            this.Controls.Add(this.damageValue_label);
+            this.Controls.Add(this.damageText_label);
             this.Controls.Add(this.info_label);
             this.Controls.Add(this.pictureBox);
             this.Controls.Add(this.prize_label);
@@ -195,6 +205,7 @@
             this.Load += new System.EventHandler(this.AmusementDetailForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.prize_numericUpDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();
+            this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -209,10 +220,11 @@
         private System.Windows.Forms.Label info_label;
         private System.Windows.Forms.Button entrance_button;
         private System.Windows.Forms.Button exit_button;
-        private System.Windows.Forms.Label crashText_label;
-        private System.Windows.Forms.Label crashValue_label;
+        private System.Windows.Forms.Label damageText_label;
+        private System.Windows.Forms.Label damageValue_label;
         public System.Windows.Forms.Button repair_button;
         private System.Windows.Forms.Label queueValue_label;
         private System.Windows.Forms.Label queueText_label;
+        private System.Windows.Forms.Panel panel1;
     }
 }

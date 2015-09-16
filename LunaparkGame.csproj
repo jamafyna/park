@@ -78,6 +78,11 @@
     <Compile Include="GateDetailForm.Designer.cs">
       <DependentUpon>GateDetailForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Labels1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Labels.resx</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -98,15 +103,10 @@
       <DependentUpon>MapForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Model.cs" />
-    <Compile Include="Notices.Designer.cs">
+    <Compile Include="Notices1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Notices2.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Notices2.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Notices2.resx</DependentUpon>
+      <DependentUpon>Notices.resx</DependentUpon>
     </Compile>
     <Compile Include="Path.cs" />
     <Compile Include="PathForm.cs">
@@ -129,11 +129,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Labels.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Labels.resx</DependentUpon>
-    </Compile>
     <Compile Include="Properties\Images.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -172,10 +167,10 @@
     <EmbeddedResource Include="MapForm.resx">
       <DependentUpon>MapForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Notices2.cs-CZ.resx" />
-    <EmbeddedResource Include="Notices2.resx">
+    <EmbeddedResource Include="Notices.cs-CZ.resx" />
+    <EmbeddedResource Include="Notices.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Notices2.Designer.cs</LastGenOutput>
+      <LastGenOutput>Notices1.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="PathForm.resx">
       <DependentUpon>PathForm.cs</DependentUpon>

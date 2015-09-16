@@ -223,9 +223,8 @@ namespace LunaparkGame
 
          public SquareAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, Color color, int typeId, int workingCost, int attractiveness)
              : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit, color, typeId, workingCost, attractiveness) {
-#warning sirka se nastavuje az pote, co se pridava do mapy a se sirkou se pocita"!!!!!!!!!
              this.width = width;
-             model.maps.AddAmus(this);
+             model.maps.AddAmus(this); // it must be there because width = 0 when it could be called from the base constructor
         }
 
 

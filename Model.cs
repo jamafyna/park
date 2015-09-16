@@ -17,6 +17,7 @@ namespace LunaparkGame
     public class Model //todo: Prejmenovat na evidenci
     {     
         private const int initialMoney = 10000000;
+       
         //private const int initialMoney = 4000;
         public const int maxPeopleInPark = 10000;
         public readonly byte playingWidth, playingHeight; 
@@ -24,10 +25,7 @@ namespace LunaparkGame
         public readonly int maxAmusementsCount; // count of big amusements, it doesnt include littleComplementaryAmusements
         public bool parkClosed;// = true;
         private int money;
-        /// <summary>
-        /// Represents park advertising, is not thread safe -> for manipulating use atomic operations
-        /// </summary>
-        public int propagation;
+       
         /// <summary>
         /// ReaderWriterLockSlim item. Use for manipulation with longtermContentment.
         /// </summary>
@@ -36,10 +34,7 @@ namespace LunaparkGame
         private int longtermContentment = 100;
         
         
-       /// <summary>
-       /// Represents researching, is not thread safe -> for manipulating use atomic operations
-       /// </summary>
-        public int timeToShowNewItem;
+       
         /// <summary>
         /// use for manipulation with currCheapestFee
         /// </summary>
@@ -54,13 +49,9 @@ namespace LunaparkGame
        // public ConcurrentQueue<MapObjects> dirtyDestruct=new ConcurrentQueue<MapObjects>();//mozna misto mapObjects staci byt Control
        [NonSerialized]
         public ConcurrentQueue<MapObjects> dirtyClick = new ConcurrentQueue<MapObjects>();
-
-      //  public List<IUpdatable> updatableItems;// todo: sem dat taky hlavni form, udelat thread-safe, spis vlozit do view      
-        
-        public AmusementsList amusList;// todo:thread-safe
-        public PersonList persList = new PersonList(maxPeopleInPark);//todo: thread-safe
-        public Map maps;
-        public SpecialEffects effects;
+        public readonly AmusementsList amusList;
+        public readonly PersonList persList = new PersonList(maxPeopleInPark);
+        public readonly Map maps;
         public int[] currBuildedItems { private set; get; }
 
         
@@ -70,8 +61,8 @@ namespace LunaparkGame
         public bool mustBeEnter = false;
         public bool mustBeExit = false;
         public bool demolishOn = false;
-        public bool propagateOn = false;
-        public bool researchOn = false;
+       // public bool propagateOn = false;
+      //  public bool researchOn = false;
         public Gate gate;
         
         public Model(byte playingHeight, byte playingWidth){
@@ -80,11 +71,8 @@ namespace LunaparkGame
             this.playingWidth=playingWidth;
             this.internalHeight = (byte)(playingHeight + 2);
             this.internalWidth = (byte)(playingWidth + 2);
-            money = initialMoney;
-            propagation = 0;
-            effects = new SpecialEffects(this);
-            timeToShowNewItem = effects.newItemWaitingTime.Dequeue();
-            
+            money = initialMoney;            
+                         
             maps = new Map(internalWidth, internalHeight, this);            
             maxAmusementsCount = playingHeight * playingWidth + 1; // max. count of amusements that can user build, + 1 due to the gate which does not lie on the playing place
             gate = new Gate(this, new Coordinates(0, (byte)(new Random()).Next(1, internalHeight - Gate.height - 1)));

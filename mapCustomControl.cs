@@ -103,10 +103,7 @@ namespace LunaparkGame {
             gr.FillRectangle(sbr, rect);
             if (amus is RectangleAmusements && !((RectangleAmusements)amus).isHorizontalOriented) {
                 Image im = (Image)(view.images[amus.internTypeID]).Clone();
-#warning Proc rotace nefunguje???
-               // Image im = (Image)(view.images[amus.internTypeID]);
                 im.RotateFlip(RotateFlipType.Rotate90FlipNone);
-               // im.RotateFlip(RotateFlipType.Rotate90FlipY);
                 gr.DrawImage(im, rect);
             }
             else gr.DrawImage(view.images[amus.internTypeID], rect);
