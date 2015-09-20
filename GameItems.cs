@@ -16,40 +16,8 @@ namespace LunaparkGame
     public interface IActionable {
         void Action();    
     }
-    public interface IUnmoving {
-        Coordinates coord{get;set;}
-    }
-    public interface IMoving {
-        byte x { get; set; }
-        byte y { get; set; }
-    }
-    public interface IClickable { 
-    
-    }
-    public interface IButtonCreatable {
-       
-    }
-   
-
-    public class MyDebugException : Exception
-    {
-        public MyDebugException() : base() { }
-        public MyDebugException(string s) : base(s) { }
-        
-    }
-    public class MyDeserializationException : MyDebugException {
-        public MyDeserializationException() : base() { }
-        public MyDeserializationException(string s) : base(s) { }
-    }
-   
-    [Serializable]
-    public struct Coordinates
-    {
-        public byte x;
-        public byte y;
-        public Coordinates(byte x, byte y) { this.x = x; this.y = y; }
-    }
-    [Serializable]
+  
+   [Serializable]
     public abstract class MapObjectsFactory {
         public int internTypeId;
         public readonly string name;
@@ -65,8 +33,8 @@ namespace LunaparkGame
         /// <param name="x">The intern x-coordinate of the playing map.</param>
         /// <param name="y">The intern x-coordinate of the playing map.</param>
         /// <returns>true if all conditions of building are satisfied, otherwise false.</returns>
-        public abstract bool CanBeBuild(byte x, byte y, Model model);
-        public abstract MapObjects Build(byte x, byte y, Model model);
+        public abstract bool CanBeBuild(byte x, byte y, GameRecords model);
+        public abstract MapObjects Build(byte x, byte y, GameRecords model);
     }
 
     [Serializable]
@@ -77,21 +45,21 @@ namespace LunaparkGame
         /// </summary>
         public int zIndex { protected set ; get; }
         public Coordinates coord { protected set; get; }
-        protected Model model;
+        protected GameRecords model;
         [NonSerialized]
         public bool isClicked = false;
         public readonly int prize;
         public readonly int internTypeID;
         public readonly bool tangible;
         public MapObjects() { }
-        protected MapObjects(Model m, int prize, int typeID, bool tangible=true) {
+        protected MapObjects(GameRecords m, int prize, int typeID, bool tangible=true) {
             this.model = m;
             this.prize = prize;
             this.tangible = tangible;
             model.MoneyAdd(-this.prize);
             this.internTypeID = typeID;
         }
-        public MapObjects(Model m,Coordinates coord, int prize, int typeID, bool tangible=true):this(m, prize, typeID, tangible)
+        public MapObjects(GameRecords m,Coordinates coord, int prize, int typeID, bool tangible=true):this(m, prize, typeID, tangible)
         {            
             this.coord = coord;
             this.internTypeID = typeID;
@@ -110,7 +78,7 @@ namespace LunaparkGame
         /// user action
         /// </summary>
         public virtual void Destruct() {
-           // model.dirtyDestruct.Enqueue(this);
+           
         }
         public abstract Size GetRealSize();
         public abstract Point GetRealCoordinates();
@@ -165,17 +133,17 @@ namespace LunaparkGame
         /// <summary>
         /// 600 = 100 %
         /// </summary>
-        protected int crashnessPercent = 0;
-        public int GetCrashnessPercent {
+        protected int damagePercent = 0;
+        public int GetDamagePercent {
             private set { } 
             get {
-                if(crashnessPercent > 600) return 100;
-                else return crashnessPercent/6;
+                if(damagePercent > 600) return 100;
+                else return damagePercent/6;
                 }
         }
         public bool Crashed { 
             private set{} 
-            get { if (crashnessPercent >= 600) return true; else return false; } 
+            get { if (damagePercent >= 600) return true; else return false; } 
         }
         //-------characteristics-------------
        // public readonly int typeId;
@@ -194,7 +162,7 @@ namespace LunaparkGame
         #endregion
         public Amusements(){}
        
-        public Amusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, Color color, int typeId, int workingPrice, int attractiveness)
+        public Amusements(Coordinates c, GameRecords m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, Color color, int typeId, int workingPrice, int attractiveness)
             : base(m, c, prize, typeId)       
         {
             this.zIndex = 0;
@@ -248,7 +216,7 @@ namespace LunaparkGame
             }
            
             this.status = Status.disposing;
-            model.MoneyAdd((int)((1-crashnessPercent/600.0)*0.9*prize));//refund money
+            model.MoneyAdd((int)((1-damagePercent/600.0)*0.9*prize));//refund money
             
              model.amusList.Remove(this);
             model.maps.RemoveAmus(this);
@@ -260,8 +228,8 @@ namespace LunaparkGame
         /// </summary>
         public void RepairWhole() { 
             // it isnt 100% correct because of not atomic money asking, but never mind, there can be a small debt
-            double repairPrize = crashnessPercent / 600.0 * prize * 0.8;
-            if (model.GetMoney() >= repairPrize) { crashnessPercent = 0; model.MoneyAdd(-(int)repairPrize); }
+            double repairPrize = damagePercent / 600.0 * prize * 0.8;
+            if (model.GetMoney() >= repairPrize) { damagePercent = 0; model.MoneyAdd(-(int)repairPrize); }
             else MessageBox.Show(Labels.warningMessBox, Notices.cannotRepairNoMoney, MessageBoxButtons.OK);
         }
         /// <summary>
@@ -270,10 +238,10 @@ namespace LunaparkGame
         /// <param name="percent">Byte number, count of percent of which the amusement should be repaired.</param>
         public bool TryRepairPart(int percent) {
             // it isnt 100% correct because of not atomic money asking, but never mind, there can be a small debt
-            percent = Math.Min(percent * 6, crashnessPercent);
+            percent = Math.Min(percent * 6, damagePercent);
             double repairPrize = percent / 600.0 * prize * 0.1;
             if (model.GetMoney() >= repairPrize) {
-                Interlocked.Add(ref crashnessPercent, -1 * percent);
+                Interlocked.Add(ref damagePercent, -1 * percent);
                 return true;
             }
             else return false;        
@@ -337,7 +305,7 @@ namespace LunaparkGame
         protected virtual void RunningAction() {
             if (actRunningTime < fixedRunningTime) {
                 actRunningTime++;
-                crashnessPercent++;
+                damagePercent++;
             }
             else {
                 DropPeopleOff();
@@ -384,7 +352,7 @@ namespace LunaparkGame
         /// </summary>
         public virtual void Action() {
             // Cannot use anything from AmusementsList (it could create an cycle)!
-            if (crashnessPercent >= 590) {
+            if (damagePercent >= 600) {
                 status = Status.runningOut;
                 Interlocked.Decrement(ref model.currBuildedItems[internTypeID]);      
       
@@ -561,7 +529,7 @@ namespace LunaparkGame
             this.attractiveness = attractiveness;
         }
         public AmusementsFactory(int prize, string name, int workingCost, int attractiveness):base(prize, name){}
-        protected static bool CheckFreeLocation(byte x, byte y, Model model, byte width, byte height, bool hasSeparatedEntranceAndExit = true) {
+        protected static bool CheckFreeLocation(byte x, byte y, GameRecords model, byte width, byte height, bool hasSeparatedEntranceAndExit = true) {
             if (x + width > model.playingWidth + 1 || y + height > model.playingHeight + 1) return false;
             for (byte i = x; i < x + width; i++) {
                 for (byte j = y; j < y + height; j++) {
@@ -595,13 +563,13 @@ namespace LunaparkGame
         public readonly int typeId;
         public int InternTypeId { get { return typeId; } set { } }
         
-        protected Path(Model m, int prize, int typeId, bool tangible = true)
+        protected Path(GameRecords m, int prize, int typeId, bool tangible = true)
             : base(m, prize, typeId, tangible) {
             this.zIndex = 10;
             signpostAmus = new Direction[m.maxAmusementsCount];
             for (int i = 0; i < signpostAmus.Length; i++) signpostAmus[i] = Direction.no;
         }
-        public Path(Model m, Coordinates c, int prize, string name, int typeId)
+        public Path(GameRecords m, Coordinates c, int prize, string name, int typeId)
             : base(m, c, prize, typeId) {
             this.name = name;
             this.typeId = typeId;
@@ -616,7 +584,7 @@ namespace LunaparkGame
         }
         public override void Destruct() {
             model.maps.RemovePath(this);
-            //model.dirtyDestruct.Enqueue(this);
+          
         }
         public override Size GetRealSize() {
             return new Size(MainForm.sizeOfSquare - 1, MainForm.sizeOfSquare - 1);              
@@ -642,7 +610,7 @@ namespace LunaparkGame
         : base(prize, name) {
            
         }
-        public override bool CanBeBuild(byte x, byte y, Model model) {
+        public override bool CanBeBuild(byte x, byte y, GameRecords model) {
             return true;
         }
     }
@@ -658,7 +626,7 @@ namespace LunaparkGame
         private int money; 
         private readonly int patience;
         public readonly int id;
-        public readonly double maxAcceptablePrice;//max price which he is willing to pay per an amusement
+        public readonly double maxAcceptablePriceCoef;//max price, which he is willing to pay per an amusement, is equal to maxAcceptablePriceCoef * original fee of the amusement
         public bool visible { get; set; }
         public readonly System.Drawing.Color color;
 
@@ -676,7 +644,7 @@ namespace LunaparkGame
         private Amusements currAmus;
         public Status status { set; get; } //protected get; }
         
-        public Person(Model m, int x, int y) : base(m, prize: 0, typeID: -1) {
+        public Person(GameRecords m, int x, int y) : base(m, prize: 0, typeID: -1) {
 
             this.contentment = 100;
             this.zIndex = 1;
@@ -684,7 +652,7 @@ namespace LunaparkGame
             this.status = Status.initialWalking;
             this.money = rand.Next(Person.minMoney,Person.maxMoney);
             this.patience = rand.Next(Person.minPatience, Person.maxPatience);
-            this.maxAcceptablePrice = rand.Next(1000,3000) / 1000.0;
+            this.maxAcceptablePriceCoef = rand.Next(1000,3000) / 1000.0;
             this.realX = x;
             this.realY = y;
             this.visible = true;
@@ -730,7 +698,7 @@ namespace LunaparkGame
                                     status = Status.choosesAmus; return;
                                 }
                                 if (currAmus.Id != CurrAmusId) throw new MyDebugException("Person.Action - lisi se ocekavane id");
-                                if (currAmus.CurrFee > maxAcceptablePrice * currAmus.originalFee){
+                                if (currAmus.CurrFee > maxAcceptablePriceCoef * currAmus.originalFee){
                                     AddContentment(-25);//todo: nastavit poradne
                                     status = Status.choosesAmus;
                                 }

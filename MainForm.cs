@@ -21,7 +21,7 @@ namespace LunaparkGame
 
         private byte playingWidth, playingHeight;
 
-        volatile Model model;
+        volatile GameRecords model;
         volatile View2 view;
         private StartForm startForm;
         public MapForm mapform;
@@ -40,7 +40,7 @@ namespace LunaparkGame
             this.playingWidth = playingWidth;
             this.startForm = startForm;
 
-            model = new Model(playingHeight, playingWidth);
+            model = new GameRecords(playingHeight, playingWidth, startForm.initialAmusementsFilename, startForm.initialPathsFilename, startForm.initialAccessoriesFilename, startForm.revealingRulesFilename);
 
             amusform = new AmusementsForm(model, mainDockPanel, amusementsToolStripMenuItem);
             pathform = new PathForm(model, pathToolStripMenuItem);
@@ -58,8 +58,7 @@ namespace LunaparkGame
         }
         public MainForm(SerializationInfo si, StreamingContext sc) {                        
 //todo: odstranit button1
-            this.button1.Visible = false;
-            model = (Model)si.GetValue("model", typeof(Model));
+            model = (GameRecords)si.GetValue("model", typeof(GameRecords));
             view = (View2)si.GetValue("view", typeof(View2));
             view.form = this;
             playingHeight = si.GetByte("height");
@@ -73,7 +72,7 @@ namespace LunaparkGame
             pathform = new PathForm(model, pathToolStripMenuItem);
             accform = new AccessoriesForm(model, accessoriesToolStripMenuItem);
             mapform = new MapForm(model, view, playingWidth, playingHeight);           
-            PrepareFormsStartAppearance(view.currOfferedAmus, view.currOfferedPaths, view.currOfferedOthers, view.images);           
+            PrepareFormsStartAppearance(model.currOfferedAmus, model.currOfferedPaths, model.currOfferedOthers, model.images);           
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
            
@@ -102,8 +101,8 @@ namespace LunaparkGame
             amusform = new AmusementsForm(model, mainDockPanel, amusementsToolStripMenuItem);
             pathform = new PathForm(model, pathToolStripMenuItem);
             accform = new AccessoriesForm(model, accessoriesToolStripMenuItem);
- 
-            PrepareFormsStartAppearance(view.currOfferedAmus, view.currOfferedPaths, view.currOfferedOthers, view.images);
+
+            PrepareFormsStartAppearance(model.currOfferedAmus, model.currOfferedPaths, model.currOfferedOthers, model.images);
             amusform.Show(mainDockPanel);
             pathform.Show(mainDockPanel);
             mapform.InitializeAfterDeserialization(model, view);
@@ -150,9 +149,9 @@ namespace LunaparkGame
         /// <param name="item">A MapObjectFactory item which represents new item to buy. </param>
         /// <param name="im">An Image which is corresponding to given MapObjectFactory item. </param>
         public void AddNewItemToForm(MapObjectsFactory item, Image im) {
-            if (item.GetType() == typeof(AmusementsFactory))
+            if (item is AmusementsFactory)
                 amusform.CreateNewItem(im, (AmusementsFactory)item);
-            else if (item.GetType() == typeof(PathFactory))
+            else if (item is PathFactory)
                 pathform.CreateNewItem(im, (PathFactory)item);
             else accform.CreateNewItem(im, item);
         }
@@ -220,15 +219,8 @@ namespace LunaparkGame
                 //   model.amusList.Action();
                 //    model.effects.Action();
                 //    model.maps.Action();
-                if (view.effects.propagateOn) {
-                    view.effects.propagation++; // is thread-safe because it is changed only in this thread
-                    model.MoneyAdd(-propagatePrize);
-                }
-                else { view.effects.propagation = Math.Max(0, view.effects.propagation); ;}
-                if (view.effects.researchOn) {
-                    model.MoneyAdd(-researchPrize);
-                    Interlocked.Decrement(ref view.effects.timeToShowNewItem);
-                }
+                model.effects.Action(this);
+                
                 
             }
 
@@ -256,41 +248,30 @@ namespace LunaparkGame
         }
 
         private void demolish_toolStripMenuItem_Click(object sender, EventArgs e) {
-          /*  if (model.demolishOn) {
-                model.demolishOn = false;
-                demolish_toolStripMenuItem.Text = Labels.demolishStart;
-                demolish_toolStripMenuItem.ForeColor = Color.Black;
-            }
-            else {
-                model.demolishOn = true;
-                demolish_toolStripMenuItem.Text = Labels.demolishing;
-                demolish_toolStripMenuItem.ForeColor = Color.Red;
-
-            }*/
             model.demolishOn = !model.demolishOn;
         }
 
         private void propagate_toolStripMenuItem_Click(object sender, EventArgs e) {
-            if (view.effects.propagateOn) {
-                view.effects.propagateOn = false;
+            if (model.effects.propagateOn) {
+                model.effects.propagateOn = false;
                 propagate_toolStripMenuItem.Text = Labels.advertiseStart;
                 propagate_toolStripMenuItem.ForeColor = Color.Black;
             }
             else {
-                view.effects.propagateOn = true;
+                model.effects.propagateOn = true;
                 propagate_toolStripMenuItem.Text = Labels.advertising;
                 propagate_toolStripMenuItem.ForeColor = Color.DarkGreen;
             }
         }
 
         private void research_toolStripMenuItem_Click(object sender, EventArgs e) {
-            if (view.effects.researchOn) {
-                view.effects.researchOn = false;
+            if (model.effects.researchOn) {
+                model.effects.researchOn = false;
                 research_toolStripMenuItem.Text = Labels.researchStart;
                 research_toolStripMenuItem.ForeColor = Color.Black;
             }
             else {
-                view.effects.researchOn = true;
+                model.effects.researchOn = true;
                 research_toolStripMenuItem.Text = Labels.researching;
                 research_toolStripMenuItem.ForeColor = Color.DarkGreen;
 
@@ -334,6 +315,9 @@ namespace LunaparkGame
             model = view.model;
             ChangeAfterDeserialization(model, view);*/
         }
+        private void quitToolStripMenuItem_Click(object sender, EventArgs e) {
+            this.Close();
+        }
 
         private void button1_Click(object sender, EventArgs e) {
            StringBuilder sb= new StringBuilder();
@@ -348,26 +332,12 @@ namespace LunaparkGame
 
         
 
-        public void CloseAll() {
-
-            Application.Exit();
-        }
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e) {
+        
+       private void firstMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
 
         }
 
        
-        private void firstMenuStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
-
-        }
-
-        private void MainForm_FormClosed(object sender, FormClosedEventArgs e) {
-
-            
-            //startForm.Visible = true;
-            
-            //Application.Exit();
-        }
 
         private void MainForm_FormClosing_1(object sender, FormClosingEventArgs e) {
             DialogResult dr = MessageBox.Show(Notices.closeGame, Labels.warningMessBox, MessageBoxButtons.YesNo);
@@ -377,6 +347,8 @@ namespace LunaparkGame
                 startForm.MainFormWasClosed();
             }
         }
+
+        
 
       
 

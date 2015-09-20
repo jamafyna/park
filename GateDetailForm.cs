@@ -9,9 +9,9 @@ using System.Windows.Forms;
 namespace LunaparkGame {
     public partial class GateDetailForm: AmusementDetailForm {
         Gate gate;
-       // Model model;
+       // GameRecords model;
 
-        public GateDetailForm(Model model, Gate gate, Image im) {
+        public GateDetailForm(GameRecords model, Gate gate, Image im) {
             InitializeComponent();
             this.a = gate;
             this.gate = gate;         

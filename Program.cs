@@ -10,14 +10,29 @@ using System.Runtime.Serialization;
 
 namespace LunaparkGame
 {
-    public interface IUpdatable {
-        void MyUpdate();
+
+    public class MyDebugException : Exception {
+        public MyDebugException() : base() { }
+        public MyDebugException(string s) : base(s) { }
+
     }
-    public class InputFileFormatException : Exception {
+    public class MyDeserializationException : MyDebugException {
+        public MyDeserializationException() : base() { }
+        public MyDeserializationException(string s) : base(s) { }
+    }
+   
+   public class InputFileFormatException : Exception {
         public InputFileFormatException() { }
         public InputFileFormatException(string message) : base(message) { }
         public InputFileFormatException(string message, Exception inner) : base(message, inner) { }
     }
+   
+   [Serializable]
+   public struct Coordinates {
+       public byte x;
+       public byte y;
+       public Coordinates(byte x, byte y) { this.x = x; this.y = y; }
+   }
     
     [Serializable]
     public class LaterShownItem {
@@ -247,6 +262,7 @@ namespace LunaparkGame
         Random rand;
         public ExponentialRandom() {
             rand = new Random();
+            
         }
         public ExponentialRandom(int seed) {
             rand = new Random(seed);
@@ -259,28 +275,31 @@ namespace LunaparkGame
             return (int)(0.5 + Math.Log(1 - rand.NextDouble()) * (-lambda));//0.5 due to rounding (zaokrouhlovani)
         }
     }
-    public class ProbabilityGenerationPeople { //predpoklada, ze se brana pta jednou za 1s, mozna pridat do konstruktoru
+    public class CreationPeopleProbability { //predpoklada, ze se brana pta jednou za 1s, mozna pridat do konstruktoru
         private ExponentialRandom expRnd;
         private Random rnd;
         private int waitingTime = 0;
-        private Model model;
+        private GameRecords model;
        // System.IO.StreamWriter DEBUGwriter = new System.IO.StreamWriter("exponential.txt");
+        
 
-        public ProbabilityGenerationPeople(Model model) {
+        public CreationPeopleProbability(GameRecords model) {
             expRnd = new ExponentialRandom();
             rnd = new Random();
             this.model = model;
+            
 
         }
        
         public bool ShouldCreateNewPerson() {
+           //todo: odstranit debugovaci true
             return true;
             waitingTime--;
             if (waitingTime > 0) return false;
             int variousItems = 0;
             foreach (var i in model.currBuildedItems) if (i > 0) variousItems++;
             
-            int propagation = Math.Min(model.propagation, 100);
+            int propagation = Math.Min(model.effects.propagation, 100);
             int minCount = (int)(model.persList.contenment / 2 + variousItems * 4 + propagation / 2);
             if (model.CurrPeopleCount < minCount) {
                 waitingTime = rnd.Next((int)(model.gate.entranceFee/Gate.originalFee * 2));
@@ -290,7 +309,7 @@ namespace LunaparkGame
                 double variety = variousItems / model.currBuildedItems.Length * 100;
                 double contenment = model.persList.contenment;
                 double fee = Gate.originalFee / (model.gate.entranceFee + 1) * 100;
-                double awards = model.effects.awardsCount / SpecialEffects.maxAwardsCount * 100;
+                double awards = model.effects.currPrizeCount / SpecialEffects.maxPrizeCount * 100;
                 double peopleCount = (1000 - Math.Min(model.CurrPeopleCount, 1000)) / 10;
                                
                 expRnd.lambda = -((2 * contenment + 4 * Math.Max(propagation, variety) + 2 * fee + propagation + variety + awards + 5 * peopleCount) / 16 - 100) / 4;      
@@ -354,10 +373,10 @@ namespace LunaparkGame
         [STAThread]
         static void Main()
         {
-           //  System.Threading.Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("cs-CZ");
+            System.Threading.Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("cs-CZ");
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            StartForm s=new StartForm();
+            StartForm s = new StartForm("amusements.txt", "paths.txt", "accessories.txt" ,"additionRules.txt");
             Application.Run(s);
            
             

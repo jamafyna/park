@@ -8,21 +8,21 @@ using System.Windows.Forms;
 
 namespace LunaparkGame {
     public partial class MapForm : WeifenLuo.WinFormsUI.Docking.DockContent {
-        Model model;
+        GameRecords model;
         public readonly Control map;
 
-        public MapForm(Model m, View2 view, byte playingWidth, byte playingHeight) {
+        public MapForm(GameRecords m, View2 view, byte playingWidth, byte playingHeight) {
             InitializeComponent();
             model = m;
-            map = new mapCustomControl(model, view);
+            map = new MapCustomControl(model, view);
             map.Parent = this;
            
 
         }
 
-        public void InitializeAfterDeserialization(Model m, View2 v) {
+        public void InitializeAfterDeserialization(GameRecords m, View2 v) {
             model = m;
-            ((mapCustomControl)map).InitializeAfterDeserialization(m, v);
+            ((MapCustomControl)map).InitializeAfterDeserialization(m, v);
 
         }
         private void MapForm_Load(object sender, EventArgs e) {

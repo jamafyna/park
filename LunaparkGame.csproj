@@ -72,6 +72,11 @@
     <Compile Include="AmusementsForm.Designer.cs">
       <DependentUpon>AmusementsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="PrizeNotices.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PrizeNotices.resx</DependentUpon>
+    </Compile>
     <Compile Include="GateDetailForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -90,11 +95,11 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="GameItems.cs" />
-    <Compile Include="mapCustomControl.cs">
+    <Compile Include="MapCustomControl.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="mapCustomControl.Designer.cs">
-      <DependentUpon>mapCustomControl.cs</DependentUpon>
+    <Compile Include="MapCustomControl.Designer.cs">
+      <DependentUpon>MapCustomControl.cs</DependentUpon>
     </Compile>
     <Compile Include="MapForm.cs">
       <SubType>Form</SubType>
@@ -154,6 +159,11 @@
     <EmbeddedResource Include="AmusementsForm.resx">
       <DependentUpon>AmusementsForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="PrizeNotices.cs-CZ.resx" />
+    <EmbeddedResource Include="PrizeNotices.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>PrizeNotices.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="GateDetailForm.resx">
       <DependentUpon>GateDetailForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -161,8 +171,8 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Labels.cs-CZ.resx" />
-    <EmbeddedResource Include="mapCustomControl.resx">
-      <DependentUpon>mapCustomControl.cs</DependentUpon>
+    <EmbeddedResource Include="MapCustomControl.resx">
+      <DependentUpon>MapCustomControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MapForm.resx">
       <DependentUpon>MapForm.cs</DependentUpon>

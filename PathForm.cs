@@ -11,9 +11,9 @@ namespace LunaparkGame
     public partial class PathForm : WeifenLuo.WinFormsUI.Docking.DockContent
     {
         Panel lastPanel;
-        Model model;
+        GameRecords model;
         ToolStripMenuItem pathItem;
-        public PathForm(Model m, ToolStripMenuItem pathItem)
+        public PathForm(GameRecords m, ToolStripMenuItem pathItem)
         {
             InitializeComponent();
             model = m;

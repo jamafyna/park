@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LunaparkGame {
-    public partial class mapCustomControl : Control {
-        Model model;
+    public partial class MapCustomControl : Control {
+        GameRecords model;
         View2 view;
         Pen pen = new Pen(Color.DarkSeaGreen, 1);
         SolidBrush sbr = new SolidBrush(Color.Lime);
         Rectangle[] borderRects;
 
-        public mapCustomControl(Model model, View2 view) {                     
+        public MapCustomControl(GameRecords model, View2 view) {
             InitializeComponent();
             borderRects = InitializeBorderRects(model.playingWidth + 2, model.playingHeight + 2);
             this.Width = (model.playingWidth + 2) * MainForm.sizeOfSquare + 1;
@@ -29,7 +29,7 @@ namespace LunaparkGame {
             this.view = view;
         }
 
-        public void InitializeAfterDeserialization(Model m, View2 v ) {
+        public void InitializeAfterDeserialization(GameRecords m, View2 v) {
             this.model = m;
             this.view = v;
             this.Width = (model.playingWidth + 2) * MainForm.sizeOfSquare + 1;
@@ -41,21 +41,21 @@ namespace LunaparkGame {
             this.BackColor = Color.Lime;
             DrawGrid(pe.Graphics, pen);
             DrawBorder(pe.Graphics, Properties.Images.plot);
-            
+
             List<Path> paths = model.maps.GetPathsUnsynchronized();
             foreach (Path item in paths) {
-                DrawMapObject(pe.Graphics,item);
+                DrawMapObject(pe.Graphics, item);
             }
             DrawPeople(pe.Graphics);
             foreach (Amusements a in model.amusList.GetAmusementsUnsynchronized()) {
                 DrawAmusement(pe.Graphics, a);
             }
-            
+
         }
         private Rectangle[] InitializeBorderRects(int mapWidth, int mapHeight) {
             int width = mapWidth * MainForm.sizeOfSquare - 1;
             int height = mapHeight * MainForm.sizeOfSquare - 1;
-            int squareSize = MainForm.sizeOfSquare - 1;          
+            int squareSize = MainForm.sizeOfSquare - 1;
             Rectangle[] rects = {
                                     new Rectangle(1, 1, squareSize, height),
                                     new Rectangle(1, 1, width, squareSize),
@@ -67,11 +67,11 @@ namespace LunaparkGame {
 
         private void DrawPerson(Graphics gr, Person p) {
             sbr.Color = p.color;
-            Point point=p.GetRealCoordinatesUnsynchronized();
+            Point point = p.GetRealCoordinatesUnsynchronized();
             Size size = p.GetRealSize();
             gr.FillRectangle(sbr, new Rectangle(point, size));
             sbr.Color = Color.LightSalmon;
-            gr.FillEllipse(sbr, point.X, point.Y - size.Width, size.Width, size.Width);            
+            gr.FillEllipse(sbr, point.X, point.Y - size.Width, size.Width, size.Width);
         }
 
         private void DrawPeople(Graphics gr) {
@@ -84,16 +84,16 @@ namespace LunaparkGame {
                     gr.FillRectangle(sbr, new Rectangle(point, size));
                     sbr.Color = Color.LightSalmon;
                     gr.FillEllipse(sbr, point.X - 1, point.Y - size.Width + 1, size.Width + 2, size.Width + 2);
-                   // gr.FillEllipse(sbr, point.X - 1, point.Y - 5, 7, 7);
+                    // gr.FillEllipse(sbr, point.X - 1, point.Y - 5, 7, 7);
                 }
-            }      
+            }
         }
 
-       /* private void DrawImages(Image im, Color color, Graphics gr, Rectangle rect) {
-            sbr.Color = color;
-            gr.FillRectangle(sbr, rect);
-            gr.DrawImage(im, rect);
-        }*/
+        /* private void DrawImages(Image im, Color color, Graphics gr, Rectangle rect) {
+             sbr.Color = color;
+             gr.FillRectangle(sbr, rect);
+             gr.DrawImage(im, rect);
+         }*/
         private void DrawAmusement(Graphics gr, Amusements amus) {
             Size size = amus.GetRealSize();
             Point point = amus.GetRealCoordinates();
@@ -102,11 +102,11 @@ namespace LunaparkGame {
             else sbr.Color = Color.Black;
             gr.FillRectangle(sbr, rect);
             if (amus is RectangleAmusements && !((RectangleAmusements)amus).isHorizontalOriented) {
-                Image im = (Image)(view.images[amus.internTypeID]).Clone();
+                Image im = (Image)(model.images[amus.internTypeID]).Clone();
                 im.RotateFlip(RotateFlipType.Rotate90FlipNone);
                 gr.DrawImage(im, rect);
             }
-            else gr.DrawImage(view.images[amus.internTypeID], rect);
+            else gr.DrawImage(model.images[amus.internTypeID], rect);
         }
         /// <summary>
         /// Draws all MapObjects, except of an item which has own color.
@@ -115,9 +115,9 @@ namespace LunaparkGame {
         /// <param name="obj">MapObjects item but not item which has its own color.</param>
         private void DrawMapObject(Graphics gr, MapObjects obj) {
             Rectangle rect = new Rectangle(obj.GetRealCoordinates(), obj.GetRealSize());
-            gr.DrawImage(view.images[obj.internTypeID], rect);
+            gr.DrawImage(model.images[obj.internTypeID], rect);
         }
-        
+
         private void DrawGrid(Graphics graphics, Pen pen) {
             for (int i = 0; i <= this.Height; i++)
                 graphics.DrawLine(pen, 0, i * MainForm.sizeOfSquare, this.Width * MainForm.sizeOfSquare, i * MainForm.sizeOfSquare);
@@ -125,8 +125,8 @@ namespace LunaparkGame {
                 graphics.DrawLine(pen, i * MainForm.sizeOfSquare, 0, i * MainForm.sizeOfSquare, this.Height * MainForm.sizeOfSquare);
         }
 
-        private void DrawBorder(Graphics gr, Image im) {           
-            TextureBrush br = new TextureBrush(im, System.Drawing.Drawing2D.WrapMode.Tile);                       
+        private void DrawBorder(Graphics gr, Image im) {
+            TextureBrush br = new TextureBrush(im, System.Drawing.Drawing2D.WrapMode.Tile);
             gr.FillRectangles(br, borderRects);
         }
         private void mapCustomControl_Click(object sender, EventArgs e) {
@@ -142,7 +142,7 @@ namespace LunaparkGame {
             }
         }
 
-       
+
         private void MapClick(byte mapX, byte mapY) {
             if (!model.demolishOn && (model.LastClick != null || model.mustBeEnter || model.mustBeExit)) {
                 #region
@@ -181,6 +181,6 @@ namespace LunaparkGame {
             if ((obj = model.maps.GetPath(mapX, mapY)) != null) return obj;
             return null;
         }
-    
+
     }
 }

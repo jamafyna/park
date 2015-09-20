@@ -9,16 +9,18 @@ using System.Windows.Forms;
 namespace LunaparkGame {
     public partial class AmusementDetailForm : WeifenLuo.WinFormsUI.Docking.DockContent, IUpdatable {
         public Amusements a { protected set; get; }
-        protected Model model;
+        protected GameRecords model;
+        protected View2 view;
         int timeCount = 10;
         public AmusementDetailForm() { }
-        public AmusementDetailForm(Model model, Amusements a, Image im) {
+        public AmusementDetailForm(GameRecords model, Amusements a, Image im, View2 view) {
             InitializeComponent();
             exit_button.Parent = panel1;
             entrance_button.Parent = panel1;
             exit_button.Tag = new AmusementExitPathFactory(a);
             entrance_button.Tag = new AmusementEnterPathFactory(a);
             this.model = model;
+            this.view = view;
             this.pictureBox.BackgroundImage = im;
             this.a = a;
             this.Text = a.name;
@@ -28,11 +30,12 @@ namespace LunaparkGame {
         
         protected void AmusementDetailForm_FormClosing(object sender, FormClosingEventArgs e) {
             a.isClicked = false;
+            view.RemoveClickIUpdatable(this);
         }
         virtual public void MyUpdate() {
             if (a.State == Amusements.Status.disposing) this.Close();
             this.prize_numericUpDown1.Value = a.CurrFee;
-            this.damageValue_label.Text = a.GetCrashnessPercent + "%";
+            this.damageValue_label.Text = a.GetDamagePercent + "%";
             if (timeCount < 0) {
                 this.queueValue_label.Text = a.GetWaitingPeopleCount().ToString();
                 timeCount = 10;

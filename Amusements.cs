@@ -17,12 +17,12 @@ namespace LunaparkGame
         public new const int originalFee = 50;
         public int entranceFee;
         [NonSerialized]
-        private ProbabilityGenerationPeople peopleGeneration;
+        private CreationPeopleProbability peopleGeneration;
         public new Status State {
             get { return status; }
             set { if (value != Status.waitingForPeople) status = value; }
         }
-        public Gate(Model m, Coordinates c) {
+        public Gate(GameRecords m, Coordinates c) {
             this.model = m;
             this.coord = c;
             this.entrance = new AmusementEnterPath(m, new Coordinates(c.x, (byte)(c.y + height / 2)), this, tangible: false);
@@ -30,10 +30,10 @@ namespace LunaparkGame
             this.CurrFee = 0;
             this.entranceFee = originalFee;
             m.maps.AddAmus(this);
-            peopleGeneration = new ProbabilityGenerationPeople(model);
+            peopleGeneration = new CreationPeopleProbability(model);
         }
 
-        public Gate(Model m, Coordinates c, Coordinates entrance, Coordinates exit) {
+        public Gate(GameRecords m, Coordinates c, Coordinates entrance, Coordinates exit) {
             this.model = m;
             this.coord = c;
             this.entrance = new AmusementEnterPath(m, entrance, this, tangible: false);
@@ -44,7 +44,7 @@ namespace LunaparkGame
         [OnDeserialized]
         private new void SetValuesAndCheckOnDeserialized(StreamingContext context) {           
             base.SetValuesAndCheckOnDeserialized(context);
-            peopleGeneration = new ProbabilityGenerationPeople(model);
+            peopleGeneration = new CreationPeopleProbability(model);
         }
         
         public override void Action() {
@@ -137,7 +137,7 @@ namespace LunaparkGame
         public readonly bool isHorizontalOriented;
 
 
-        public RectangleAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height, bool isHorizontal, Color color, int typeId, int workingCost, int attractiveness)
+        public RectangleAmusements(Coordinates c, GameRecords m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, byte height, bool isHorizontal, Color color, int typeId, int workingCost, int attractiveness)
         : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit, color, typeId, workingCost, attractiveness){
             this.sizeA = width;
             this.sizeB = height;
@@ -195,12 +195,12 @@ namespace LunaparkGame
                 this.width = width;
                 this.height = height;
         }
-        public override bool CanBeBuild(byte x, byte y, Model model) {
+        public override bool CanBeBuild(byte x, byte y, GameRecords model) {
             if (isHorizontal) return AmusementsFactory.CheckFreeLocation(x, y, model, width, height, hasSeparatedEnterExit);
             else return AmusementsFactory.CheckFreeLocation(x, y, model, height, width, hasSeparatedEnterExit);
         }
       
-        public override MapObjects Build(byte x, byte y, Model model) {
+        public override MapObjects Build(byte x, byte y, GameRecords model) {
             return new RectangleAmusements(new Coordinates(x,y), model, prize, entranceFee, capacity, runningTime, name, hasSeparatedEnterExit, width, height, isHorizontal, color, internTypeId, workingCost, attractiveness);
         }
         public override string GetInfo() {
@@ -216,12 +216,12 @@ namespace LunaparkGame
     public class SquareAmusements : Amusements {
         public readonly byte width;
         public SquareAmusements() { }
-       /* public SquareAmusements(Model m, Coordinates c)
+       /* public SquareAmusements(GameRecords m, Coordinates c)
             : base(m, c) {
             model.CheckCheapestFee(this.currFee);
         }*/
 
-         public SquareAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, Color color, int typeId, int workingCost, int attractiveness)
+         public SquareAmusements(Coordinates c, GameRecords m, int prize, int fee, int capacity, int runningTime, string name, bool hasEntranceExit, byte width, Color color, int typeId, int workingCost, int attractiveness)
              : base (c, m, prize, fee, capacity, runningTime, name, hasEntranceExit, color, typeId, workingCost, attractiveness) {
              this.width = width;
              model.maps.AddAmus(this); // it must be there because width = 0 when it could be called from the base constructor
@@ -270,11 +270,11 @@ namespace LunaparkGame
                  this.width = width;        
         }
                 
-        public override bool CanBeBuild(byte x, byte y, Model model) {
+        public override bool CanBeBuild(byte x, byte y, GameRecords model) {
             if (AmusementsFactory.CheckFreeLocation(x, y, model, width, width, hasSeparatedEnterExit)) return true;
             else return false;
         }
-        public override MapObjects Build(byte x, byte y, Model model) {
+        public override MapObjects Build(byte x, byte y, GameRecords model) {
             return new SquareAmusements(new Coordinates(x, y), model, prize, entranceFee, capacity, runningTime, name, hasSeparatedEnterExit, width, color, internTypeId, workingCost, attractiveness);
         }
         public override string GetInfo() {
@@ -288,7 +288,7 @@ namespace LunaparkGame
    
     [Serializable]
     public class FreeShapedAmusements : Amusements {
-        public FreeShapedAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, Color color, int typeId, int workingCost, int attractiveness)
+        public FreeShapedAmusements(Coordinates c, GameRecords m, int prize, int fee, int capacity, int runningTime, string name, Color color, int typeId, int workingCost, int attractiveness)
             : base (c, m, prize, fee, capacity, runningTime, name, false, color, typeId, workingCost ,attractiveness) {
                 model.maps.AddAmus(this);
         }
@@ -311,10 +311,10 @@ namespace LunaparkGame
     public class FreeShapedAmusementsFactory : AmusementsFactory {
         //todo: konstruktor nedokonceny
         public FreeShapedAmusementsFactory(int prize, string name, int workingCost, int attractiveness) : base(prize, name, workingCost, attractiveness) { }
-        public override MapObjects Build(byte x, byte y, Model model) {
+        public override MapObjects Build(byte x, byte y, GameRecords model) {
             throw new NotImplementedException();
         }
-        public override bool CanBeBuild(byte x, byte y, Model model) {
+        public override bool CanBeBuild(byte x, byte y, GameRecords model) {
             throw new NotImplementedException();
         }
         public override string GetInfo() {
@@ -328,7 +328,7 @@ namespace LunaparkGame
     /// </summary>
     [Serializable]
     public abstract class LittleComplementaryAmusements : Amusements {
-        public LittleComplementaryAmusements(Coordinates c, Model m, int prize, int fee, int capacity, int runningTime, string name, Color color, int typeId, int workingCost, int attractiveness) 
+        public LittleComplementaryAmusements(Coordinates c, GameRecords m, int prize, int fee, int capacity, int runningTime, string name, Color color, int typeId, int workingCost, int attractiveness) 
           //  : base(c, m, prize, fee, capacity, runningTime, name, hasEntranceExit: false, color: color, typeId: typeId) { }
             : base(c, m, prize, fee, capacity, runningTime, name, false, color, typeId, workingCost, attractiveness) { }
     }
@@ -339,10 +339,10 @@ namespace LunaparkGame
             : base(prize, fee, capacity, runningTime, name, hasEntranceExit: false, workingCost: workingCost, attractiveness: attractiveness) {
 
         }
-        public override MapObjects Build(byte x, byte y, Model model) {
+        public override MapObjects Build(byte x, byte y, GameRecords model) {
             throw new NotImplementedException();
         }
-        public override bool CanBeBuild(byte x, byte y, Model model) {
+        public override bool CanBeBuild(byte x, byte y, GameRecords model) {
             throw new NotImplementedException();
         }
         public override string GetInfo() {
@@ -353,7 +353,7 @@ namespace LunaparkGame
     [Serializable]
     public class Restaurant : SquareAmusements
     {
-        public Restaurant(Coordinates c, Model m, int prize, int foodPrize, int capacity, string name, Color color, int typeId, int workingCost, int attractiveness)
+        public Restaurant(Coordinates c, GameRecords m, int prize, int foodPrize, int capacity, string name, Color color, int typeId, int workingCost, int attractiveness)
             : base(c, m, prize, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1, color: color, typeId: typeId, workingCost: workingCost, attractiveness: attractiveness ) {
             model.mustBeEnter = false; 
             model.mustBeExit = false;
@@ -370,7 +370,7 @@ namespace LunaparkGame
                 p.status = Person.Status.choosesAmus;
                 p.visible = true;
                 p.Feed();
-                this.crashnessPercent++;
+                this.damagePercent++;
             }
             peopleInList.Clear();               
         }
@@ -382,11 +382,11 @@ namespace LunaparkGame
           :base(prize, foodPrize, capacity, runningTime: 0, name: name, hasEntranceExit: false, width: 1, workingCost: workingCost, attractiveness: attractiveness){        
         }
        
-        public override bool CanBeBuild(byte x, byte y, Model model) {
+        public override bool CanBeBuild(byte x, byte y, GameRecords model) {
             if (x > model.playingWidth || y > model.playingHeight) return false;
             return model.maps.isFree(x, y);
         }
-        public override MapObjects Build(byte x, byte y, Model model) {
+        public override MapObjects Build(byte x, byte y, GameRecords model) {
             return new Restaurant(new Coordinates(x, y), model, prize, entranceFee, capacity, name, color, internTypeId, workingCost, attractiveness);
         }
         public override string GetInfo() {

@@ -1,5 +1,5 @@
 ﻿namespace LunaparkGame {
-    partial class mapCustomControl {
+    partial class MapCustomControl {
         /// <summary>
         /// Required designer variable.
         /// </summary>

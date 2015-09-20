@@ -67,7 +67,7 @@
             this.textBox1Rozmer.Name = "textBox1Rozmer";
             this.textBox1Rozmer.Size = new System.Drawing.Size(220, 19);
             this.textBox1Rozmer.TabIndex = 5;
-            this.textBox1Rozmer.Text = "SIZE OF A PLAYING MAP";
+            this.textBox1Rozmer.Text = Labels.sizeOfMap;
             this.textBox1Rozmer.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // radioButton60
@@ -115,7 +115,7 @@
             this.Start_button1.Name = "Start_button1";
             this.Start_button1.Size = new System.Drawing.Size(117, 46);
             this.Start_button1.TabIndex = 0;
-            this.Start_button1.Text = "START";
+            this.Start_button1.Text = global::LunaparkGame.Labels.startButton;
             this.Start_button1.UseVisualStyleBackColor = true;
             this.Start_button1.Click += new System.EventHandler(this.Start_button1_Click);
             // 
@@ -124,7 +124,7 @@
             this.Start_panel.Controls.Add(this.exit_button);
             this.Start_panel.Controls.Add(this.loadGame_button);
             this.Start_panel.Controls.Add(this.newGame_button);
-            this.Start_panel.Location = new System.Drawing.Point(283, 8);
+            this.Start_panel.Location = new System.Drawing.Point(1, 2);
             this.Start_panel.Name = "Start_panel";
             this.Start_panel.Size = new System.Drawing.Size(300, 242);
             this.Start_panel.TabIndex = 8;
@@ -136,7 +136,7 @@
             this.exit_button.Name = "exit_button";
             this.exit_button.Size = new System.Drawing.Size(265, 31);
             this.exit_button.TabIndex = 4;
-            this.exit_button.Text = "EXIT";
+            this.exit_button.Text = global::LunaparkGame.Labels.exitButton;
             this.exit_button.UseVisualStyleBackColor = true;
             this.exit_button.Click += new System.EventHandler(this.exit_button_Click);
             // 
@@ -147,7 +147,7 @@
             this.loadGame_button.Name = "loadGame_button";
             this.loadGame_button.Size = new System.Drawing.Size(265, 31);
             this.loadGame_button.TabIndex = 3;
-            this.loadGame_button.Text = "LOAD SAVED GAME";
+            this.loadGame_button.Text = global::LunaparkGame.Labels.loadButton;
             this.loadGame_button.UseVisualStyleBackColor = true;
             this.loadGame_button.Click += new System.EventHandler(this.loadGame_button_Click);
             // 
@@ -158,7 +158,7 @@
             this.newGame_button.Name = "newGame_button";
             this.newGame_button.Size = new System.Drawing.Size(265, 31);
             this.newGame_button.TabIndex = 2;
-            this.newGame_button.Text = "NEW GAME";
+            this.newGame_button.Text = global::LunaparkGame.Labels.newGameMenu;
             this.newGame_button.UseVisualStyleBackColor = true;
             this.newGame_button.Click += new System.EventHandler(this.newGame_button_Click);
             // 
@@ -170,11 +170,12 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(643, 262);
+            this.AutoSize = true;
+            this.ClientSize = new System.Drawing.Size(305, 247);
             this.Controls.Add(this.Start_panel);
             this.Controls.Add(this.sizeOfMap_panel);
             this.Name = "StartForm";
-            this.Text = "StartForm";
+            this.Text = Labels.lunaparkUpperBar;
             this.sizeOfMap_panel.ResumeLayout(false);
             this.sizeOfMap_panel.PerformLayout();
             this.Start_panel.ResumeLayout(false);

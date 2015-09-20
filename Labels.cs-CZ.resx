@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="advertiseStart" xml:space="preserve">
-    <value>Propaguj</value>
+    <value>Propagovat</value>
     <comment>mozna dat start a stop advertising</comment>
   </data>
   <data name="advertising" xml:space="preserve">
@@ -136,17 +136,17 @@
     <value>Bořím</value>
   </data>
   <data name="demolishStart" xml:space="preserve">
-    <value>Zboř</value>
+    <value>Zbořit</value>
   </data>
   <data name="gameItem" xml:space="preserve">
     <value>HRA</value>
     <comment>button for end game - stop/new game/save/continue/end</comment>
   </data>
   <data name="quitMenu" xml:space="preserve">
-    <value>KONEC</value>
+    <value>UKONČIT HRU</value>
   </data>
   <data name="loadMenu" xml:space="preserve">
-    <value>NAČTI HRU</value>
+    <value>NAČÍST HRU</value>
     <comment>loads from saving games</comment>
   </data>
   <data name="lunaparkUpperBar" xml:space="preserve">
@@ -166,13 +166,13 @@
     <value>Počet lidí:</value>
   </data>
   <data name="researching" xml:space="preserve">
-    <value>ZKOUMÁM</value>
+    <value>Zkoumám</value>
   </data>
   <data name="researchStart" xml:space="preserve">
-    <value>VÝZKUM</value>
+    <value>Zkoumat</value>
   </data>
   <data name="saveMenu" xml:space="preserve">
-    <value>ULOŽ HRU</value>
+    <value>ULOŽIT</value>
   </data>
   <data name="sizeOfMap" xml:space="preserve">
     <value>ROZMĚR MAPY</value>
@@ -187,7 +187,7 @@
     <value>NÁPOVĚDA</value>
   </data>
   <data name="viewItem" xml:space="preserve">
-    <value>ZOBRAZ</value>
+    <value>ZOBRAZIT</value>
   </data>
   <data name="warningMessBox" xml:space="preserve">
     <value>Upozornění</value>
@@ -232,7 +232,7 @@
     <value>Vstupné: </value>
   </data>
   <data name="exitBuild" xml:space="preserve">
-    <value>exit</value>
+    <value>východ</value>
   </data>
   <data name="hasEntranceExit" xml:space="preserve">
     <value>Samostatný vchod a východ: </value>
@@ -247,7 +247,7 @@
     <value>Mimo provoz</value>
   </data>
   <data name="prize" xml:space="preserve">
-    <value>Pořizovací cena: </value>
+    <value>Cena: </value>
   </data>
   <data name="size" xml:space="preserve">
     <value>Rozměr: </value>
@@ -283,10 +283,34 @@
     <value>Dlouhodobá spokojenost: </value>
   </data>
   <data name="saveAsMenu" xml:space="preserve">
-    <value>ULOŽ JAKO</value>
+    <value>ULOŽIT JAKO</value>
   </data>
   <data name="savedGamesDir" xml:space="preserve">
     <value>Ulozene-hry</value>
+  </data>
+  <data name="accessoriesForm" xml:space="preserve">
+    <value>Příslušenství</value>
+  </data>
+  <data name="amusementsForm" xml:space="preserve">
+    <value>Atrakce</value>
+  </data>
+  <data name="awardMessBox" xml:space="preserve">
+    <value>Ocenění</value>
+  </data>
+  <data name="exitButton" xml:space="preserve">
+    <value>KONEC</value>
+  </data>
+  <data name="gratulationMessBox" xml:space="preserve">
+    <value>Oznámení</value>
+  </data>
+  <data name="loadButton" xml:space="preserve">
+    <value>NAČÍST ULOŽENOU HRU</value>
+  </data>
+  <data name="pathForm" xml:space="preserve">
+    <value>Chodníky</value>
+  </data>
+  <data name="pauseMenu" xml:space="preserve">
+    <value>ZASTAVIT</value>
   </data>
   <data name="peopleInQueue" xml:space="preserve">
     <value>Lidí ve frontě: </value>

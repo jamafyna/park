@@ -79,7 +79,7 @@
             this.prize_label.Name = "prize_label";
             this.prize_label.Size = new System.Drawing.Size(74, 13);
             this.prize_label.TabIndex = 7;
-            this.prize_label.Text = "Entrance fee: ";
+            this.prize_label.Text = Labels.entranceFee;
             // 
             // pictureBox
             // 
@@ -127,7 +127,7 @@
             this.damageText_label.Name = "damageText_label";
             this.damageText_label.Size = new System.Drawing.Size(53, 13);
             this.damageText_label.TabIndex = 12;
-            this.damageText_label.Text = "Damage: ";
+            this.damageText_label.Text = Labels.damage;
             // 
             // damageValue_label
             // 
@@ -167,7 +167,7 @@
             this.queueText_label.Name = "queueText_label";
             this.queueText_label.Size = new System.Drawing.Size(81, 13);
             this.queueText_label.TabIndex = 15;
-            this.queueText_label.Text = "Waiting people:";
+            this.queueText_label.Text = Labels.peopleInQueue;
             // 
             // panel1
             // 

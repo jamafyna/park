@@ -11,7 +11,7 @@ namespace LunaparkGame
     [Serializable]
     public abstract class AmusementPath : Path {
        public readonly Amusements amusement;
-        public AmusementPath(Model m, Coordinates c, Amusements a, int typeId, bool tangible = true)
+        public AmusementPath(GameRecords m, Coordinates c, Amusements a, int typeId, bool tangible = true)
             : base(m, prize: 0, typeId: typeId, tangible: tangible) //not call base(m,c) because dont want to add to maps
         {
             this.coord = c;
@@ -23,7 +23,7 @@ namespace LunaparkGame
     [Serializable]
     public class AmusementEnterPath : AmusementPath {
 
-        public AmusementEnterPath(Model m, Coordinates c, Amusements a, bool tangible = true)
+        public AmusementEnterPath(GameRecords m, Coordinates c, Amusements a, bool tangible = true)
             : base(m, c, a, typeId: 1, tangible: tangible) {
                 model.mustBeEnter = false;
                 a.entrance = this;
@@ -46,13 +46,13 @@ namespace LunaparkGame
         public AmusementEnterPathFactory(Amusements a) :base(prize:0, name: "") {
             this.a = a;
         }
-    public override MapObjects Build(byte x, byte y, Model model) {
+    public override MapObjects Build(byte x, byte y, GameRecords model) {
             return new AmusementEnterPath(model, new Coordinates(x, y), a);
         }
     }
     [Serializable]
     public class AmusementExitPath : AmusementPath {
-        public AmusementExitPath(Model m, Coordinates c, Amusements a, bool tangible = true) : base(m, c, a, typeId: 2, tangible: tangible) {
+        public AmusementExitPath(GameRecords m, Coordinates c, Amusements a, bool tangible = true) : base(m, c, a, typeId: 2, tangible: tangible) {
             a.exit = this;
         }
         public override void Destruct() {
@@ -73,7 +73,7 @@ namespace LunaparkGame
             : base(prize: 0, name: "") {
                 this.a = a;
         }
-        public override MapObjects Build(byte x, byte y, Model model) {
+        public override MapObjects Build(byte x, byte y, GameRecords model) {
             return new AmusementExitPath(model, new Coordinates(x, y), a);
         }
     }
@@ -82,7 +82,7 @@ namespace LunaparkGame
     public class StonePath : Path
     {
         
-        public StonePath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
+        public StonePath(GameRecords m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
        
         
     }
@@ -92,7 +92,7 @@ namespace LunaparkGame
         public StonePathFactory(int prize, string name) 
         : base(prize, name) {         
         }
-        public override MapObjects Build(byte x, byte y, Model model) {
+        public override MapObjects Build(byte x, byte y, GameRecords model) {
             return new StonePath(model, new Coordinates(x, y), prize, name, internTypeId);
         }
     }
@@ -100,7 +100,7 @@ namespace LunaparkGame
     [Serializable]
     public class AsphaltPath : Path
     {
-        public AsphaltPath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
+        public AsphaltPath(GameRecords m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
         public AsphaltPath() { }
        
         
@@ -111,7 +111,7 @@ namespace LunaparkGame
         public AsphaltPathFactory(int prize, string name)
             : base( prize, name) {
         }
-        public override MapObjects Build(byte x, byte y, Model model) {
+        public override MapObjects Build(byte x, byte y, GameRecords model) {
             return new AsphaltPath(model, new Coordinates(x, y), prize, name, internTypeId);
         }
     }
@@ -119,7 +119,7 @@ namespace LunaparkGame
     [Serializable]
     public class SandPath : Path
     {
-        public SandPath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
+        public SandPath(GameRecords m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
         
         
     }
@@ -128,14 +128,14 @@ namespace LunaparkGame
         public SandPathFactory(int prize, string name)
             : base(prize, name) {
         }
-        public override MapObjects Build(byte x, byte y, Model model) {
+        public override MapObjects Build(byte x, byte y, GameRecords model) {
             return new SandPath(model, new Coordinates(x, y), prize, name, internTypeId);
         }
     }
     [Serializable]
     public class MarblePath : Path
     {
-        public MarblePath(Model m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
+        public MarblePath(GameRecords m, Coordinates c, int prize, string name, int typeId) : base(m, c, prize, name, typeId) { }
        
     }
     [Serializable]
@@ -143,7 +143,7 @@ namespace LunaparkGame
         public MarblePathFactory(int prize, string name)
             : base(prize, name) {
         }
-        public override MapObjects Build(byte x, byte y, Model model) {
+        public override MapObjects Build(byte x, byte y, GameRecords model) {
             return new MarblePath(model, new Coordinates(x, y), prize, name, internTypeId);
         }
     }

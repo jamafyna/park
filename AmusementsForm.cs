@@ -17,7 +17,7 @@ namespace LunaparkGame
         Panel lastItem;
        
 
-        public AmusementsForm(Model model, DockPanel parent, ToolStripMenuItem amusement)
+        public AmusementsForm(GameRecords model, DockPanel parent, ToolStripMenuItem amusement)
         {
             InitializeComponent();
             dockP = parent;

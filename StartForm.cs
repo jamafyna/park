@@ -26,14 +26,22 @@ namespace LunaparkGame
         MainForm mainForm;
         string currFilePath="";
         string mainDirectory;
+        public readonly string initialAmusementsFilename;
+        public readonly string initialPathsFilename;
+        public readonly string initialAccessoriesFilename;
+        public readonly string revealingRulesFilename;
 
-        public StartForm()
+        public StartForm(string initAFilename, string initPFilename, string initAccFilename, string rulesFilename)
         {
             InitializeComponent();
             width = width1;
             height = height1;            
             mainDirectory = System.IO.Directory.GetCurrentDirectory() + @"\" + "saved-games";
             System.IO.Directory.CreateDirectory(mainDirectory);
+            this.initialAmusementsFilename = initAFilename;
+            this.initialAccessoriesFilename = initAccFilename;
+            this.initialPathsFilename = initPFilename;
+            this.revealingRulesFilename = rulesFilename;
         }
 
         public void NewGame() {

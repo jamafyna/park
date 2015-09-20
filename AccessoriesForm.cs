@@ -9,9 +9,9 @@ using System.Windows.Forms;
 namespace LunaparkGame {
     public partial class AccessoriesForm : WeifenLuo.WinFormsUI.Docking.DockContent {
         Panel lastPanel;
-        Model model;
+        GameRecords model;
         ToolStripMenuItem accItem;
-        public AccessoriesForm(Model m, ToolStripMenuItem accItem) {
+        public AccessoriesForm(GameRecords m, ToolStripMenuItem accItem) {
             InitializeComponent();
             model = m;
             this.accItem = accItem;

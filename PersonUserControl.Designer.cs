@@ -56,7 +56,7 @@
             this.labelHunger.Name = "labelHunger";
             this.labelHunger.Size = new System.Drawing.Size(45, 13);
             this.labelHunger.TabIndex = 31;
-            this.labelHunger.Text = "Hunger:";
+            this.labelHunger.Text = Labels.hunger;
             // 
             // hungerChange_label
             // 
@@ -116,7 +116,7 @@
             this.labelMoney.Name = "labelMoney";
             this.labelMoney.Size = new System.Drawing.Size(42, 13);
             this.labelMoney.TabIndex = 25;
-            this.labelMoney.Text = "Money:";
+            this.labelMoney.Text = Labels.moneyPerson;
             // 
             // labelCont
             // 
@@ -126,7 +126,7 @@
             this.labelCont.Name = "labelCont";
             this.labelCont.Size = new System.Drawing.Size(70, 13);
             this.labelCont.TabIndex = 24;
-            this.labelCont.Text = "Contentment:";
+            this.labelCont.Text = Labels.contentment;
             // 
             // labelAId
             // 
@@ -136,7 +136,7 @@
             this.labelAId.Name = "labelAId";
             this.labelAId.Size = new System.Drawing.Size(59, 13);
             this.labelAId.TabIndex = 23;
-            this.labelAId.Text = "Is going to:";
+            this.labelAId.Text = Labels.isGoingToId;
             // 
             // labelId
             // 
@@ -146,7 +146,7 @@
             this.labelId.Name = "labelId";
             this.labelId.Size = new System.Drawing.Size(57, 13);
             this.labelId.TabIndex = 22;
-            this.labelId.Text = "Person ID:";
+            this.labelId.Text = Labels.idPerson;
             // 
             // close_button
             // 

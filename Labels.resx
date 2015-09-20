@@ -288,6 +288,30 @@
   <data name="savedGamesDir" xml:space="preserve">
     <value>Saved-games</value>
   </data>
+  <data name="accessoriesForm" xml:space="preserve">
+    <value>Accessories</value>
+  </data>
+  <data name="amusementsForm" xml:space="preserve">
+    <value>Amusements</value>
+  </data>
+  <data name="awardMessBox" xml:space="preserve">
+    <value>Award</value>
+  </data>
+  <data name="exitButton" xml:space="preserve">
+    <value>EXIT</value>
+  </data>
+  <data name="gratulationMessBox" xml:space="preserve">
+    <value>Gratulation</value>
+  </data>
+  <data name="loadButton" xml:space="preserve">
+    <value>LOAD SAVED GAME</value>
+  </data>
+  <data name="pathForm" xml:space="preserve">
+    <value>Paths</value>
+  </data>
+  <data name="pauseMenu" xml:space="preserve">
+    <value>PAUSE</value>
+  </data>
   <data name="peopleInQueue" xml:space="preserve">
     <value>Waiting people:</value>
   </data>

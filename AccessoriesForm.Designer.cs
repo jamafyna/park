@@ -38,6 +38,7 @@
             this.HideOnClose = true;
             this.Name = "AccessoriesForm";
             this.ResumeLayout(false);
+            this.Text = Labels.accessoriesForm;
 
         }
 

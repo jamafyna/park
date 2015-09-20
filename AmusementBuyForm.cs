@@ -13,9 +13,9 @@ namespace LunaparkGame
     {
         DockPanel dockPanel;
         public Color color { get; private set; }
-        Model model;
+        GameRecords model;
         bool isHorizontal = true;
-        public AmusementBuyForm(Model m, DockPanel parent)
+        public AmusementBuyForm(GameRecords m, DockPanel parent)
         {
             InitializeComponent();
             this.dockPanel = parent;
